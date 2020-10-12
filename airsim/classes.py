@@ -107,7 +107,6 @@ class AirSimEnv:
     def seed(self, seed=None):
         return self.genv.seed(seed)
 
-
 class Memory:
     """
     Stores and returns list of numpy arrays for s a r s_ d
