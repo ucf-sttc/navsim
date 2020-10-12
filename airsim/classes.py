@@ -114,8 +114,9 @@ class Memory:
 
     assumes you are storing s a r s_ d : state action reward next_state done
     # state / next_state : tuple of n-dim numpy arrays
-    # a : n-dim numpy array of floats or ints
+    # a : 1-d numpy array of floats or ints
     # r : 1-d numpy array of floats #TODO: rewards could also be n-dim
+    # d : 1-d numpy array of booleans
 
     # TODO: see if sampling can be made better with np.random
     # TODO: if we made this tensor based instead of np, would it make it better ?
@@ -141,7 +142,7 @@ class Memory:
         :param capacity: total capacity of the memory
         :param state_shapes: a tuple of state dimensions
         :param action_shape: int representing number of actions
-        :param seed: seed to provide to numpy #TODO How to get separate seed just for the memory object ?
+        :param seed: seed to provide to numpy
         """
         self.capacity = capacity
         self.ptr: int = 0
@@ -154,11 +155,12 @@ class Memory:
         # rg = Generator(mt)
         self.rng = np.random.default_rng(seed)
 
-        if not isinstance(state_shapes, (list, tuple)):  # state_dims is an int
+        #if isinstance(state_shapes, (list, tuple)):  # state_dims is an int
+        if isinstance(state_shapes, (int,float)):  # state_dims is an int
             state_shapes = [[state_shapes]]  # make state_dims a list of sequences
-        elif not isinstance(state_shapes[0], (list, tuple)):  # state_dims first member is an int
+        elif isinstance(state_shapes[0], (int, float)):  # state_dims first member is an int
             state_shapes = [state_shapes]  # make state_dims a list of sequences
-        # else state_dims is a list of sequences, i.e. state_shape, state_shape, state_shape
+        # else state_dims is a list of sequences, i.e. [[state_shape], [state_shap], [state_shape]]
 
         s_len = len(state_shapes)
         self.s = [None] * s_len
@@ -180,10 +182,10 @@ class Memory:
                r: float,
                s_: Union[list, tuple, int, float],
                d: int):
-        if not isinstance(s, (list, tuple)):  # state is an int
+        if isinstance(s, (int, float)):  # state is an int
             s = [[s]]  # make state a list of sequences
             s_ = [[s_]]
-        elif not isinstance(s[0], (list, tuple, np.ndarray)):  # state does not have multiple seq
+        elif isinstance(s[0], (int,float)):  # state does not have multiple seq
             s = [s]
             s_ = [s_]
         for i in range(len(s)):
