@@ -120,16 +120,17 @@ class Memory:
     # TODO: see if sampling can be made better with np.random
     # TODO: if we made this tensor based instead of np, would it make it better ?
     """
+
     @classmethod
-    def sample_info(self,s,a,r,s_,d):
+    def sample_info(self, s, a, r, s_, d):
         print("Sample Info")
         print('-----------')
         print("Shapes:")
-        print('s:',[a.shape for a in s])
-        print('a:',a.shape)
-        print('r:',r.shape)
-        print('s_:',[a.shape for a in s_])
-        print('d:',d.shape)
+        print('s:', [a.shape for a in s])
+        print('a:', a.shape)
+        print('r:', r.shape)
+        print('s_:', [a.shape for a in s_])
+        print('d:', d.shape)
 
     def __init__(self, capacity: int,
                  state_shapes: Union[list, tuple, int],
@@ -147,13 +148,13 @@ class Memory:
         self.size: int = 0
 
         self.seed: Optional[float] = seed
-        #from numpy.random import MT19937, RandomState, Generator
-        #mt = MT19937(seed)
-        #rs = RandomState(mt)
-        #rg = Generator(mt)
+        # from numpy.random import MT19937, RandomState, Generator
+        # mt = MT19937(seed)
+        # rs = RandomState(mt)
+        # rg = Generator(mt)
         self.rng = np.random.default_rng(seed)
 
-        if not isinstance(state_shapes, (list, tuple)): # state_dims is an int
+        if not isinstance(state_shapes, (list, tuple)):  # state_dims is an int
             state_shapes = [[state_shapes]]  # make state_dims a list of sequences
         elif not isinstance(state_shapes[0], (list, tuple)):  # state_dims first member is an int
             state_shapes = [state_shapes]  # make state_dims a list of sequences
@@ -174,12 +175,12 @@ class Memory:
         self.r = np.full((capacity, 1), 0.0)
         self.d = np.full((capacity, 1), False)
 
-    def append(self, s:Union[list, tuple, int, float],
+    def append(self, s: Union[list, tuple, int, float],
                a: Union[list, tuple, int, float],
                r: float,
                s_: Union[list, tuple, int, float],
                d: int):
-        if not isinstance(s, (list, tuple)): # state is an int
+        if not isinstance(s, (list, tuple)):  # state is an int
             s = [[s]]  # make state a list of sequences
             s_ = [[s_]]
         elif not isinstance(s[0], (list, tuple, np.ndarray)):  # state does not have multiple seq
@@ -198,7 +199,7 @@ class Memory:
 
     def sample(self, size):
         if (size == 0) or (size >= self.size):
-            #idx = list(range(self.size))   # just return all
+            # idx = list(range(self.size))   # just return all
             return (
                 self.s,
                 self.a,
@@ -220,15 +221,15 @@ class Memory:
     def info(self):
         print("Memory Info")
         print('-----------')
-        print('capacity:',self.capacity)
-        print('size:',self.size)
-        print('seed:',self.seed)
+        print('capacity:', self.capacity)
+        print('size:', self.size)
+        print('seed:', self.seed)
         print("Shapes:")
-        print('s:',[a.shape for a in self.s])
-        print('a:',self.a.shape)
-        print('r:',self.r.shape)
-        print('s_:',[a.shape for a in self.s_])
-        print('d:',self.d.shape)
+        print('s:', [a.shape for a in self.s])
+        print('a:', self.a.shape)
+        print('r:', self.r.shape)
+        print('s_:', [a.shape for a in self.s_])
+        print('d:', self.d.shape)
 
     def __len__(self):
         return len(self.mem)
@@ -408,28 +409,26 @@ class CriticVector(torch.nn.Module):
 
 class DDPGAgent(object):
 
-    def __init__(self, observation_mode, observation_space, action_space, device, discount=0.99, tau=0.005):
-        self.observation_mode = observation_mode
-        self.observation_space = observation_space
-        self.action_space = action_space
+    def __init__(self, env, device, discount=0.99, tau=0.005):
+        self.env = env
         self.device = device
         self.discount = discount
         self.tau = tau
         # self.state_dim = state_dim
 
-        self.action_dimension = action_space.shape[0]
-        self.max_action = float(action_space.high[0])
+        self.max_action = self.env.action_space.high[0]
 
-        if observation_mode == 0:
-            self.vector_state_dimension = observation_space[0].shape[0]
-        elif observation_mode == 1:
+        print(self.env.observation_space_shapes[0])
+        if self.env.observation_mode == 0:
+            self.vector_state_dimension = self.env.observation_space_shapes[0][0]
+        elif self.env.observation_mode == 1:
             self.vector_state_dimension = None
-        elif observation_mode == 2:
-            self.vector_state_dimension = observation_space[3].shape[0]
+        elif self.env.observation_mode == 2:
+            self.vector_state_dimension = self.env.observation_space_shapes[3][0]
 
-        if (observation_mode == 0) or (observation_mode == 2):
-            self.actor = ActorVector(self.vector_state_dim, self.action_dim, self.max_action).to(device)
-            self.critic = CriticVector(self.vector_state_dim, self.action_dim).to(device)
+        if (self.env.observation_mode == 0) or (self.env.observation_mode == 2):
+            self.actor = ActorVector(self.vector_state_dimension, self.env.action_space_shape[0], self.max_action).to(device)
+            self.critic = CriticVector(self.vector_state_dimension, self.env.action_space_shape[0]).to(device)
         else:  # TODO: Implement VisualActor here
             self.actor = None
             self.critic = None
@@ -441,7 +440,8 @@ class DDPGAgent(object):
         self.critic_optimizer = torch.optim.Adam(self.critic.parameters())
 
     def select_action(self, state):
-        state = torch.FloatTensor(state.reshape(1, -1)).to(self.device)
+        if self.env.observation_mode == 0:
+            state = torch.FloatTensor(state[0].reshape(1, -1)).to(self.device)
         return self.actor(state).cpu().data.numpy().flatten()
 
     @staticmethod
@@ -489,10 +489,17 @@ class DDPGAgent(object):
         )
         self.actor_target = deepcopy(self.actor)
 
-    def train(self, replay_buffer, batch_size=100):
-        state, action, next_state, reward, not_done = replay_buffer.sample(batch_size)
+    def train(self, memory, batch_size=100):
+        state, action, next_state, reward, episode_done = memory.sample(batch_size)
+        if self.env.observation_mode == 0:
+            state = torch.FloatTensor(state[0]).to(self.device)
+            next_state = torch.FloatTensor(next_state[0]).to(self.device)
+        action = torch.FloatTensor(action).to(self.device)
+        reward = torch.FloatTensor(reward).to(self.device)
+        episode_done = torch.FloatTensor(episode_done).to(self.device)
+
         target_q = self.critic_target(next_state, self.actor_target(next_state))
-        target_q = reward + (not_done * self.discount * target_q).detach()
+        target_q = reward + ((1.0 - episode_done) * self.discount * target_q).detach()
         current_q = self.critic(state, action)
         critic_loss = F.mse_loss(current_q, target_q)
         self.critic_optimizer.zero_grad()
@@ -511,9 +518,9 @@ def evaluate_policy(policy, env, seed, eval_episodes=10, render=False):
     eval_env.seed(seed + 100)
     avg_reward = 0.
     for _ in range(eval_episodes):
-        state, done = eval_env.reset()[0], False
+        state, done = eval_env.reset(), False
         while not done:
-            action = policy.select_action(np.array(state))
+            action = policy.select_action(state)
             if render:
                 eval_env.render()
             state, reward, done, _ = eval_env.step(action)
@@ -535,17 +542,14 @@ class Trainer:
         self.config = config
         self.env = env
 
-        self.apply_seed()
+        self.max_action = self.env.action_space.high[0]
+
 
         self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
         self.agent = DDPGAgent(
-            observation_mode=self.env.observation_mode,
-            observation_space=self.env.observation_space,
-            action_space=self.env.action_space,
-            # state_dim=self.vector_state_dimension,
-            # action_dim=self.action_dimension,
-            # max_action=self.max_action, device=self.device,
+            env=self.env,
+            device=self.device,
             discount=self.config['discount'], tau=self.config['tau']
         )
 
@@ -553,7 +557,14 @@ class Trainer:
 
         self.save_file_name = f"DDPG_{self.config['env_name']}_{self.config['seed']}"
         self.memory = Memory(
-            self.config.memory_capacity)  # ReplayBuffer(self.vector_state_dimension, self.action_dimension)
+            capacity=self.config.memory_capacity,
+            state_shapes=self.env.observation_space_shapes,
+            action_shape=self.env.action_space_shape,
+            seed=self.config['seed']
+        )  # ReplayBuffer(self.vector_state_dimension, self.action_dimension)
+
+        self.apply_seed()
+
         if self.enable_logging:
             from torch.utils.tensorboard import SummaryWriter
             self.writer = SummaryWriter('./logs/' + self.config['env_name'] + '/')
@@ -566,11 +577,10 @@ class Trainer:
         self.env.seed(self.config['seed'])
         torch.manual_seed(self.config['seed'])
         np.random.seed(self.config['seed'])
-        self.memory.apply_seed(self.config['seed'])
 
     def train(self):  # at three places state has been selected as 0th element
         state = self.env.reset()
-        done = False
+        episode_done = False
         episode_reward = 0
         episode_timesteps = 0
         episode_num = 0
@@ -584,28 +594,28 @@ class Trainer:
                 action = (
                         self.agent.select_action(state) + np.random.normal(
                     0, self.max_action * self.config['expl_noise'],
-                    size=self.action_dimension
+                    size=self.env.action_shape[0]
                 )
                 ).clip(
                     -self.max_action,
                     self.max_action
                 )
-            next_state, reward, done, _ = self.env.step(action)
-            next_state = next_state[0]
+            next_state, reward, episode_done, _ = self.env.step(action)
+            #next_state = next_state[0]
 
-            self.memory.add(
-                state, action, next_state, reward,
-                float(done) if episode_timesteps < self.config.max_episode_steps else 0)
+            self.memory.append(
+                s=state, a=action, s_=next_state, r=reward,
+                d = float(episode_done) if episode_timesteps < self.config.max_episode_steps else 1)
             state = next_state
             episode_reward += reward
             if ts >= self.config['start_time_step']:
                 self.agent.train(self.memory, self.config['batch_size'])
-            if done:
+            if episode_done:
                 if self.enable_logging:
                     self.writer.add_scalar('Episode Reward', episode_reward, ts)
                 episode_rewards.append(episode_reward)
                 state = self.env.reset()[0]
-                done = False
+                episode_done = False
                 episode_reward = 0
                 episode_timesteps = 0
                 episode_num += 1
