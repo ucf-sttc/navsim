@@ -1,3 +1,4 @@
+import os
 import random
 
 from mlagents_envs.environment import UnityEnvironment
@@ -16,6 +17,7 @@ from copy import deepcopy
 
 from typing import Union, Optional
 
+from .memory import Memory
 
 class AirSimEnv:
     def __init__(self, filename: Optional[str] = None, observation_mode: int = 0):
@@ -119,47 +121,6 @@ class AirSimEnv:
 #   input:  cat([state,action],1)
 #   returns q
 
-class ReplayBuffer(object):
-
-    def __init__(self, state_dimension, action_dimension, max_size=int(1e6)):
-        self.max_size = max_size
-        self.ptr = 0
-        self.size = 0
-        self.state = np.zeros((max_size, state_dimension))
-        self.action = np.zeros((max_size, action_dimension))
-        self.next_state = np.zeros((max_size, state_dimension))
-        self.reward = np.zeros((max_size, 1))
-        self.not_done = np.zeros((max_size, 1))
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
-    def add(self, state, action, next_state, reward, done):
-        self.state[self.ptr] = state
-        self.action[self.ptr] = action
-        self.next_state[self.ptr] = next_state
-        self.reward[self.ptr] = reward
-        self.not_done[self.ptr] = 1. - done
-        self.ptr = (self.ptr + 1) % self.max_size
-        self.size = min(self.size + 1, self.max_size)
-
-    def sample(self, batch_size):
-        ind = np.random.randint(0, self.size, size=batch_size)
-        """
-        return (
-            torch.FloatTensor(self.state[ind]).to(self.device),
-            torch.FloatTensor(self.action[ind]).to(self.device),
-            torch.FloatTensor(self.next_state[ind]).to(self.device),
-            torch.FloatTensor(self.reward[ind]).to(self.device),
-            torch.FloatTensor(self.not_done[ind]).to(self.device)
-        )
-        """
-        return (
-            self.state[ind],
-            self.action[ind],
-            self.next_state[ind],
-            self.reward[ind],
-            self.not_done[ind]
-        )
-
 
 class ModelTorch(nn.Module):
     def __init__(self, conf):
@@ -219,6 +180,7 @@ class AirSimNN(object):
         print(self.conf)
         print(self.model)
 
+import inspect
 
 class ActorVector(torch.nn.Module):
 
@@ -235,11 +197,19 @@ class ActorVector(torch.nn.Module):
         :param state: state is a torch tensor
         :return:
         """
+        #curframe = inspect.currentframe()
+        #calframe = inspect.getouterframes(curframe, 2)
+        #print('actor caller name:', calframe[1][3])
+        #print('actor',state.shape)
+        #print('actor',self.l1)
         # state = state[0]
         a = F.relu(self.l1(state))
         a = F.relu(self.l2(a))
         a = torch.tanh(self.l3(a))
         return self.max_action * a
+
+
+
 
 
 class CriticVector(torch.nn.Module):
@@ -251,11 +221,15 @@ class CriticVector(torch.nn.Module):
         self.l3 = torch.nn.Linear(300, 1)
 
     def forward(self, state, action):
+        #print('critic',state.shape)
+        #print('critic',self.l1)
+
         # state = state[0]
         q = F.relu(self.l1(torch.cat([state, action], 1)))
         q = F.relu(self.l2(q))
         q = self.l3(q)
         return q
+
 
 
 class DDPGAgent(object):
@@ -269,7 +243,6 @@ class DDPGAgent(object):
 
         self.max_action = self.env.action_space.high[0]
 
-        print(self.env.observation_space_shapes[0])
         if self.env.observation_mode == 0:
             self.vector_state_dimension = self.env.observation_space_shapes[0][0]
         elif self.env.observation_mode == 1:
@@ -307,11 +280,21 @@ class DDPGAgent(object):
         torch.save(self.actor_optimizer.state_dict(), filename + '_actor_optimizer')
 
     def save_actor(self, filename):
-        dummy_input = torch.randn(self.state_dim).to(self.device)
-        torch.onnx.export(self.actor, dummy_input, filename, export_params=True, opset_version=9,
+        model = self.actor
+        l1_shape = list(model.parameters())[0].shape #shape_of_first_layer
+        device = next(model.parameters()).device
+        #print(shape_of_first_layer)
+        dummy_input = torch.randn(l1_shape[1:]).to(device)
+        torch.onnx.export(model, dummy_input, filename, export_params=True, opset_version=9,
                           do_constant_folding=True,
                           input_names=['state'], output_names=['action'])
-
+        """
+        if (self.env.observation_mode == 0) or (self.env.observation_mode == 2):
+            dummy_input = torch.randn(self.vector_state_dimension).to(self.device)
+            torch.onnx.export(self.actor, dummy_input, filename, export_params=True, opset_version=9,
+                          do_constant_folding=True,
+                          input_names=['state'], output_names=['action'])
+        """
     def load_checkpoint(self, filename):
         self.critic.load_state_dict(
             torch.load(
@@ -340,11 +323,13 @@ class DDPGAgent(object):
         )
         self.actor_target = deepcopy(self.actor)
 
-    def train(self, memory, batch_size=100):
-        state, action, next_state, reward, episode_done = memory.sample(batch_size)
+    def train(self, state, action, reward, next_state, episode_done):
+        #print('agent train state ',state.shape)
+        #print('agent train next_state',next_state.shape)
         if self.env.observation_mode == 0:
             state = torch.FloatTensor(state[0]).to(self.device)
             next_state = torch.FloatTensor(next_state[0]).to(self.device)
+        #print('agent train',next_state.shape)
         action = torch.FloatTensor(action).to(self.device)
         reward = torch.FloatTensor(reward).to(self.device)
         episode_done = torch.FloatTensor(episode_done).to(self.device)
@@ -386,7 +371,7 @@ class Trainer:
         """
 
         :param config: A DictObj containing dictionary and object interface
-        :param env:
+        :param env: Any gym compatible environment
         :param enable_logging:
         """
         self.enable_logging = enable_logging
@@ -429,48 +414,62 @@ class Trainer:
         torch.manual_seed(self.config['seed'])
         np.random.seed(self.config['seed'])
 
-    def train(self):  # at three places state has been selected as 0th element
-        state = self.env.reset()
-        episode_done = False
-        episode_reward = 0
-        episode_timesteps = 0
-        episode_num = 0
-        evaluations = []
-        episode_rewards = []
-        for ts in tqdm(range(1, int(self.config['time_steps']) + 1)):
-            episode_timesteps += 1
-            if ts < self.config['start_time_step']:
-                action = self.env.action_space.sample()
-            else:
-                action = (
-                        self.agent.select_action(state) + np.random.normal(
-                    0, self.max_action * self.config['expl_noise'],
-                    size=self.env.action_shape[0]
-                )
-                ).clip(
-                    -self.max_action,
-                    self.max_action
-                )
-            next_state, reward, episode_done, _ = self.env.step(action)
-            #next_state = next_state[0]
+    def train(self):
 
-            self.memory.append(
-                s=state, a=action, s_=next_state, r=reward,
-                d = float(episode_done) if episode_timesteps < self.config.max_episode_steps else 1)
-            state = next_state
-            episode_reward += reward
-            if ts >= self.config['start_time_step']:
-                self.agent.train(self.memory, self.config['batch_size'])
-            if episode_done:
-                if self.enable_logging:
-                    self.writer.add_scalar('Episode Reward', episode_reward, ts)
-                episode_rewards.append(episode_reward)
-                state = self.env.reset()[0]
-                episode_done = False
-                episode_reward = 0
-                episode_timesteps = 0
-                episode_num += 1
-        if ts % 1000 == 0:
-            evaluations.append(evaluate_policy(self.agent, self.config['env_name'], self.config['seed']))
-            self.agent.save_checkpoint(f"./models/{self.save_file_name}")
-        return episode_rewards, evaluations
+        for episode in tqdm(range(0,int(self.config['num_episodes']))):
+            # initialise the episode counters
+            episode_rewards = []
+            episode_evaluations = []
+            episode_done = False
+            episode_reward = 0
+
+
+            # observe initial state
+            state = self.env.reset()  # state comes out of env as a tuple always
+
+            for t in range(0, int(self.config['episode_max_steps'])):
+                #episode_timesteps += 1
+                # do the random sampling until enough memory is full
+                if t < (self.config['batch_size'] * self.config['batches_before_train'])+1:
+                    action = self.env.action_space.sample()
+                else:
+                    #print('selecting action from agent')
+                    action = (
+                            self.agent.select_action(state) + np.random.normal(
+                        0, self.max_action * self.config['expl_noise'],
+                        size=self.env.action_space_shape[0]
+                    )
+                    ).clip(
+                        -self.max_action,
+                        self.max_action
+                    )
+                next_state, reward, episode_done, _ = self.env.step(action)
+
+                self.memory.append(
+                    s=state, a=action, s_=next_state, r=reward,
+                    d=float(episode_done) if t < self.config['episode_max_steps']-1 else 1)
+                state = next_state
+
+                episode_reward += reward
+
+                if t >= self.config['batch_size'] * self.config['batches_before_train']:
+                    batch_s, batch_a, batch_r, batch_s_, batch_d = self.memory.sample(self.config['batch_size'])
+                    #print('training the agent')
+                    self.agent.train(batch_s, batch_a, batch_r, batch_s_, batch_d)
+
+                if (t >= self.config['batch_size'] * self.config['batches_before_train']) and (t % 1000 == 0):
+                    episode_evaluations.append(evaluate_policy(self.agent, self.env, self.config['seed']))
+                    self.agent.save_checkpoint(f"./models/{self.save_file_name}")
+
+                if episode_done:
+                    if self.enable_logging:
+                        self.writer.add_scalar('Episode Reward', episode_reward, t)
+                    episode_rewards.append(episode_reward)
+                    break
+                    #state = self.env.reset()[0]
+                    #episode_done = False
+                    #episode_reward = 0
+                    #episode_timesteps = 0
+                    #episode_num += 1
+
+        return

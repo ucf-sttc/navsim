@@ -11,7 +11,6 @@ class Memory:
     # r : 1-d numpy array of floats #TODO: rewards could also be n-dim
     # d : 1-d numpy array of booleans
 
-    # TODO: see if sampling can be made better with np.random
     # TODO: if we made this tensor based instead of np, would it make it better ?
     """
 
@@ -95,23 +94,15 @@ class Memory:
     def sample(self, size):
         if (size == 0) or (size >= self.size):
             # idx = list(range(self.size))   # just return all
-            return (
-                self.s,
-                self.a,
-                self.r,
-                self.s,
-                self.d
-            )
+            return self.s,self.a,self.r,self.s_,self.d
         else:
             idx = self.rng.integers(low=0, high=self.size, size=size)
             s_len = len(self.s)
-            return (
-                [self.s[i][idx] for i in range(s_len)],
-                self.a[idx],
-                self.r[idx],
-                [self.s_[i][idx] for i in range(s_len)],
-                self.d[idx]
-            )
+            return [self.s[i][idx] for i in range(s_len)],\
+                   self.a[idx],\
+                   self.r[idx],\
+                   [self.s_[i][idx] for i in range(s_len)],\
+                   self.d[idx]
 
     def info(self):
         print("Memory Info")
