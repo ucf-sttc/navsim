@@ -1,3 +1,4 @@
+import csv
 import os
 import random
 
@@ -20,20 +21,21 @@ from typing import Union, Optional
 from .memory import Memory
 
 class AirSimEnv:
-    def __init__(self, filename: Optional[str] = None, observation_mode: int = 0):
+    def __init__(self, filename: Optional[str] = None, observation_mode: int = 0, max_steps:int = 5):
         engine_side_channel = EngineConfigurationChannel()
         environment_side_channel = EnvironmentParametersChannel()
         uenv = UnityEnvironment(file_name=filename,
                                 log_folder='/tmp/unity', seed=123,
                                 side_channels=[engine_side_channel, environment_side_channel])
         engine_side_channel.set_configuration_parameters(time_scale=10, quality_level=0)
-        environment_side_channel.set_float_parameter("rewardForGoalCollision", .5)
+        environment_side_channel.set_float_parameter("rewardForGoalCollision", 50)
         environment_side_channel.set_float_parameter("rewardForExplorationPointCollision", .005)
         environment_side_channel.set_float_parameter("rewardForOtherCollision", -.1)
-        environment_side_channel.set_float_parameter("rewardForFallingOffMap", -1)
+        environment_side_channel.set_float_parameter("rewardForFallingOffMap", -50)
         environment_side_channel.set_float_parameter("rewardForEachStep", -.0001)
         environment_side_channel.set_float_parameter("segmentationMode", 1)
         environment_side_channel.set_float_parameter("observationMode", observation_mode)
+        environment_side_channel.set_float_parameter("episodeLength", max_steps)
 
         genv = UnityToGymWrapper(uenv, False, False,
                                  True)  # (Environment, uint8_visual, flatten_branched, allow_multiple_obs)
@@ -416,18 +418,26 @@ class Trainer:
 
     def train(self):
 
-        for episode in tqdm(range(0,int(self.config['num_episodes']))):
+        t_max = int(self.config['episode_max_steps'])
+        rewards_filename = 'rewards.csv'
+        with open(rewards_filename, mode='w') as rewards_file:
+            rewards_file.flush()
+
+        for episode_num in tqdm(range(0,int(self.config['num_episodes']))):
             # initialise the episode counters
             episode_rewards = []
             episode_evaluations = []
+            episode_info = []
             episode_done = False
             episode_reward = 0
+            t = 0
+            info = None
 
 
             # observe initial state
             state = self.env.reset()  # state comes out of env as a tuple always
 
-            for t in range(0, int(self.config['episode_max_steps'])):
+            while not episode_done:
                 #episode_timesteps += 1
                 # do the random sampling until enough memory is full
                 if t < (self.config['batch_size'] * self.config['batches_before_train'])+1:
@@ -447,7 +457,7 @@ class Trainer:
 
                 self.memory.append(
                     s=state, a=action, s_=next_state, r=reward,
-                    d=float(episode_done) if t < self.config['episode_max_steps']-1 else 1)
+                    d=float(episode_done) if t < t_max -1 else 1)
                 state = next_state
 
                 episode_reward += reward
@@ -456,20 +466,38 @@ class Trainer:
                     batch_s, batch_a, batch_r, batch_s_, batch_d = self.memory.sample(self.config['batch_size'])
                     #print('training the agent')
                     self.agent.train(batch_s, batch_a, batch_r, batch_s_, batch_d)
+                    if (t+1 % 1000) == 0:
+                        self.agent.save_checkpoint(f"./models/{self.save_file_name}")
 
-                if (t >= self.config['batch_size'] * self.config['batches_before_train']) and (t % 1000 == 0):
-                    episode_evaluations.append(evaluate_policy(self.agent, self.env, self.config['seed']))
-                    self.agent.save_checkpoint(f"./models/{self.save_file_name}")
+#                    if (t >= self.config['batch_size'] * self.config['batches_before_train']) and (t % 1000 == 0):
+                    #episode_evaluations.append(evaluate_policy(self.agent, self.env, self.config['seed']))
 
-                if episode_done:
-                    if self.enable_logging:
-                        self.writer.add_scalar('Episode Reward', episode_reward, t)
-                    episode_rewards.append(episode_reward)
+                if (t_max and t >= t_max):
                     break
-                    #state = self.env.reset()[0]
-                    #episode_done = False
-                    #episode_reward = 0
-                    #episode_timesteps = 0
-                    #episode_num += 1
+
+                t += 1
+            # end of while loop
+
+            # episode end processing
+            if self.enable_logging:
+                self.writer.add_scalar('Episode Reward', episode_reward, t)
+            episode_rewards.append(episode_reward)
+
+            logged_values = [t, episode_reward, episode_done]
+
+            # Episode End Processing
+            # self.agent.save_actor(f"./models/{self.save_file_name}_{episode_num}.onnx")
+            with open(rewards_filename, mode='a+') as rewards_file:
+                writer = csv.writer(rewards_file,
+                                    delimiter=',',
+                                    quotechar='"',
+                                    quoting=csv.QUOTE_MINIMAL)
+                writer.writerow(logged_values)
+                rewards_file.flush()
+                #state = self.env.reset()[0]
+                #episode_done = False
+                #episode_reward = 0
+                #episode_timesteps = 0
+                #episode_num += 1
 
         return
