@@ -2,3 +2,4 @@
 .idea
 __pycache__
 notebooks/.ipynb_checkpoints/memory_test-checkpoint.ipynb
+/notebooks/logs/
