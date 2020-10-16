@@ -10,7 +10,7 @@ class AirSimEnv:
         engine_side_channel = EngineConfigurationChannel()
         environment_side_channel = EnvironmentParametersChannel()
         self.uenv = UnityEnvironment(file_name=self.conf['filename'],
-                                     log_folder=self.conf['log_folder'],
+                                     #log_folder=self.conf['log_folder'],
                                      seed=self.conf['seed'],
                                      side_channels=[engine_side_channel, environment_side_channel])
         engine_side_channel.set_configuration_parameters(time_scale=10, quality_level=0)
