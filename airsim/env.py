@@ -2,15 +2,19 @@ from mlagents_envs.environment import UnityEnvironment
 from gym_unity.envs import UnityToGymWrapper
 from mlagents_envs.side_channel.engine_configuration_channel import EngineConfigurationChannel
 from mlagents_envs.side_channel.environment_parameters_channel import EnvironmentParametersChannel
+from pathlib import Path
 
 
 class AirSimEnv:
     def __init__(self, conf):  # filename: Optional[str] = None, observation_mode: int = 0, max_steps:int = 5):
         self.conf = conf
+
+        log_folder = Path(self.conf['log_folder'])
+        log_folder.mkdir(parents=True,exist_ok=True)
         engine_side_channel = EngineConfigurationChannel()
         environment_side_channel = EnvironmentParametersChannel()
         self.uenv = UnityEnvironment(file_name=self.conf['filename'],
-                                     #log_folder=self.conf['log_folder'],
+                                     log_folder=str(log_folder.resolve()),
                                      seed=self.conf['seed'],
                                      side_channels=[engine_side_channel, environment_side_channel])
         engine_side_channel.set_configuration_parameters(time_scale=10, quality_level=0)
