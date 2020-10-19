@@ -9,31 +9,53 @@ class AirSimEnv:
     def __init__(self, conf):  # filename: Optional[str] = None, observation_mode: int = 0, max_steps:int = 5):
         self.conf = conf
 
-        log_folder = Path(self.conf['log_folder'])
-        log_folder.mkdir(parents=True,exist_ok=True)
-        engine_side_channel = EngineConfigurationChannel()
-        environment_side_channel = EnvironmentParametersChannel()
-        self.uenv = UnityEnvironment(file_name=self.conf['filename'],
-                                     log_folder=str(log_folder.resolve()),
-                                     seed=self.conf['seed'],
-                                     side_channels=[engine_side_channel, environment_side_channel])
-        engine_side_channel.set_configuration_parameters(time_scale=10, quality_level=0)
-        environment_side_channel.set_float_parameter("rewardForGoalCollision", self.conf['reward_for_goal'])
-        environment_side_channel.set_float_parameter("rewardForExplorationPointCollision", self.conf['reward_for_ep'])
-        environment_side_channel.set_float_parameter("rewardForOtherCollision", self.conf['reward_for_other'])
-        environment_side_channel.set_float_parameter("rewardForFallingOffMap", self.conf['reward_for_falling_off_map'])
-        environment_side_channel.set_float_parameter("rewardForEachStep", self.conf['reward_for_step'])
-        environment_side_channel.set_float_parameter("segmentationMode", self.conf['segmentation_mode'])
-        environment_side_channel.set_float_parameter("observationMode", self.conf['observation_mode'])
-        environment_side_channel.set_float_parameter("episodeLength", self.conf['max_steps'])
-
-        self.genv = UnityToGymWrapper(self.uenv, False, False, True)
-        # (Env, uint8_visual, flatten_branched, allow_multiple_obs)
-        self.genv.action_space.np_random.seed(123)
         self.observation_mode = self.conf['observation_mode']
+        self.uenv = None
+        self.genv = None
+
+        self.env_open = False
+        self.open()
+
+    def open(self):
+
+        if self.env_open:
+            raise ValueError('Environment already open')
+        else:
+            log_folder = Path(self.conf['log_folder'])
+            log_folder.mkdir(parents=True,exist_ok=True)
+
+            engine_side_channel = EngineConfigurationChannel()
+            environment_side_channel = EnvironmentParametersChannel()
+
+            engine_side_channel.set_configuration_parameters(time_scale=10, quality_level=0)
+            environment_side_channel.set_float_parameter("rewardForGoalCollision", self.conf['reward_for_goal'])
+            environment_side_channel.set_float_parameter("rewardForExplorationPointCollision", self.conf['reward_for_ep'])
+            environment_side_channel.set_float_parameter("rewardForOtherCollision", self.conf['reward_for_other'])
+            environment_side_channel.set_float_parameter("rewardForFallingOffMap", self.conf['reward_for_falling_off_map'])
+            environment_side_channel.set_float_parameter("rewardForEachStep", self.conf['reward_for_step'])
+            environment_side_channel.set_float_parameter("segmentationMode", self.conf['segmentation_mode'])
+            environment_side_channel.set_float_parameter("observationMode", self.conf['observation_mode'])
+            environment_side_channel.set_float_parameter("episodeLength", self.conf['max_steps'])
+
+            self.uenv = UnityEnvironment(file_name=self.conf['filename'],
+                                         log_folder=str(log_folder.resolve()),
+                                         seed=self.conf['seed'],
+                                         timeout_wait=self.conf['timeout'],
+                                         worker_id=self.conf['worker_id'],
+                                         base_port=self.conf['base_port'],
+                                         side_channels=[engine_side_channel, environment_side_channel])
+
+            self.genv = UnityToGymWrapper(self.uenv, False, False, True)
+            # (Env, uint8_visual, flatten_branched, allow_multiple_obs)
+            self.seed(self.conf['seed'])
+            self.env_open = True
 
     def close(self):
-        self.uenv.close()
+        if self.env_open:
+            self.env_open = False
+            self.uenv.close()
+        else:
+            raise ValueError('Environment not open')
 
     def info(self):
         print("Env Info")
@@ -95,4 +117,5 @@ class AirSimEnv:
         return self.genv.reset()
 
     def seed(self, seed=None):
-        return self.genv.seed(seed)
+        self.genv.action_space.np_random.seed(seed)
+        #self.genv.seed(seed)

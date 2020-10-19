@@ -134,6 +134,12 @@ class CriticVector(torch.nn.Module):
         self.l3 = torch.nn.Linear(300, 1)
 
     def forward(self, state, action):
+        """
+
+        :param state: a torch Tensor
+        :param action: a torch Tensor
+        :return:
+        """
         #print('critic',state.shape)
         #print('critic',self.l1)
 
@@ -323,7 +329,7 @@ class Trainer:
             pass
 
     def apply_seed(self):
-        self.env.seed(self.config['seed'])
+        self.env.seed(self.config['seed'])  #TODO: not needed because env is seeded at time of creation
         torch.manual_seed(self.config['seed'])
         np.random.seed(self.config['seed'])
 
