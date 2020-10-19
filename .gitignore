@@ -1,6 +1,5 @@
-/.ipynb_checkpoints/
+.ipynb_checkpoints
 .idea
 __pycache__
-*/.ipynb_checkpoints/
+/notebooks/.ipynb_checkpoints/
 /notebooks/logs/
-/.ipynb_checkpoints/
