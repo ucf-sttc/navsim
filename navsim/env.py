@@ -37,7 +37,7 @@ class AirSimEnv:
             environment_side_channel.set_float_parameter("observationMode", self.conf['observation_mode'])
             environment_side_channel.set_float_parameter("episodeLength", self.conf['max_steps'])
 
-            self.uenv = UnityEnvironment(file_name=self.conf['filename'],
+            self.uenv = UnityEnvironment(file_name=str(Path(self.conf['filename']).resolve()),
                                          log_folder=str(log_folder.resolve()),
                                          seed=self.conf['seed'],
                                          timeout_wait=self.conf['timeout'],

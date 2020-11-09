@@ -1,0 +1,29 @@
+{
+  "env_conf": {
+    'filename': '~/unity-envs/Berlin_ML/Berlin_ML',
+    'log_folder': 'unity-logs',
+    'seed': 123,
+    'timeout': 600,
+    'worker_id': 0,
+    'observation_mode': 0,
+    'max_steps': 100,
+    'reward_for_goal': 50,
+    'reward_for_ep': .005,
+    'reward_for_other': -.1,
+    'reward_for_falling_off_map': -50,
+    'reward_for_step': -.0001,
+    'segmentation_mode': 1
+  },
+  "rl_conf": {
+    "env_name": 'airsim',
+    "episode_max_steps": 100,
+    "num_episodes": 2,
+    "memory_capacity": 10000,
+    "seed": 123,
+    "discount": 0.99,
+    "tau": 5e-3,
+    "expl_noise": 0.1,
+    "batch_size": 256,
+    "batches_before_train": 2
+  }
+}
