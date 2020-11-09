@@ -5,7 +5,7 @@ from mlagents_envs.side_channel.environment_parameters_channel import Environmen
 from pathlib import Path
 
 
-class AirSimEnv:
+class NavSimEnv:
     def __init__(self, conf):  # filename: Optional[str] = None, observation_mode: int = 0, max_steps:int = 5):
         self.conf = conf
 

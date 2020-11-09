@@ -1,21 +1,24 @@
 {
+  "run_conf": {
+    "run_id": "navsim_test"
+  },
   "env_conf": {
-    'filename': '~/unity-envs/Berlin_ML/Berlin_ML',
-    'log_folder': 'unity-logs',
-    'seed': 123,
-    'timeout': 600,
-    'worker_id': 0,
-    'observation_mode': 0,
-    'max_steps': 100,
-    'reward_for_goal': 50,
-    'reward_for_ep': .005,
-    'reward_for_other': -.1,
-    'reward_for_falling_off_map': -50,
-    'reward_for_step': -.0001,
-    'segmentation_mode': 1
+    "filename": "/home/afandang/unity_envs/Berlin_ML/Berlin_ML",
+    "log_folder": "unity_log",
+    "seed": 123,
+    "timeout": 600,
+    "worker_id": 0,
+    "observation_mode": 0,
+    "max_steps": 100,
+    "reward_for_goal": 50,
+    "reward_for_ep": 0.005,
+    "reward_for_other": -0.1,
+    "reward_for_falling_off_map": -50,
+    "reward_for_step": -0.0001,
+    "segmentation_mode": 1
   },
   "rl_conf": {
-    "env_name": 'airsim',
+    "env_name": "navsim",
     "episode_max_steps": 100,
     "num_episodes": 2,
     "memory_capacity": 10000,

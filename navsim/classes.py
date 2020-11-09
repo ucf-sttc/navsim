@@ -21,7 +21,7 @@ from pathlib import Path
 from typing import Union, Optional
 
 from .memory import Memory
-from .env import AirSimEnv
+from .env import NavSimEnv
 
 # for actor:
 #   n_x is state dimension
@@ -193,6 +193,13 @@ class DDPGAgent(object):
             target_param.data.copy_(tau * local_param.data + (1.0 - tau) * target_param.data)
 
     def save_checkpoint(self, filename):
+        state = {
+            "critic":self.critic.state_dict(),
+            "critic_optimizer":self.critic_optimizer.state_dict(),
+            "actor":self.actir.state_dict(),
+            "actor_optimizer":self.actor_optimizer.state_dict()
+
+        }
         torch.save(self.critic.state_dict(), filename + '_critic')
         torch.save(self.critic_optimizer.state_dict(), filename + '_critic_optimizer')
         torch.save(self.actor.state_dict(), filename + '_actor')

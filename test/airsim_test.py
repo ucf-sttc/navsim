@@ -4,6 +4,7 @@ from pathlib import Path
 import sys
 import csv
 from tqdm import tqdm
+import numpy as np
 
 #===== TODO: Remove this when ezai_util is an installed package
 base_path=Path('..')
@@ -17,32 +18,44 @@ for pkg in ['ezai_util']:
 #===== TODO: Remove this when ezai_util is an installed package
 
 import ezai_util
-import airsim
+import navsim
 
 from ezai_util import DictObj, ResourceCounter
 
 conf = DictObj().load_from_json_file('airsim_test_conf.json')
+
+run_base_folder = Path(conf.run_conf['run_id'])
+run_base_folder.mkdir(parents=True, exist_ok=True)
+
 rl_conf = DictObj(conf.rl_conf)
 env_conf = DictObj(conf.env_conf)
 
 t_max = env_conf.max_steps
 
 def helper(env_conf):
-    testlog_filename = f'airsim_test_obs_mode_{env_conf.observation_mode}.log'
+    run_out_folder = run_base_folder / 'out' / f'obs_mode_{env_conf.observation_mode}'
+    run_out_folder.mkdir(parents=True, exist_ok=True)
+
+    testlog_filename = run_out_folder / 'log.txt'
+    testlog_filename = str(testlog_filename.resolve())
+    resources_filename = run_out_folder / 'resources.csv'
+    resources_filename = str(resources_filename.resolve())
+    env_conf.log_folder = run_out_folder / env_conf.log_folder
+    env_conf.log_folder = str(env_conf.log_folder.resolve())
+
     with open(testlog_filename, mode='w+') as testlog_file:
-        log_str = f'testing with observation_mode {env_conf.observation_mode}'
+        log_str = f'testing with observation_mode {env_conf.observation_mode} \n'
         testlog_file.write(log_str)
         print(log_str)
         testlog_file.flush()
 
-        resources_filename = f'airsim_test_obs_mode_{env_conf.observation_mode}.csv'
         rc = ResourceCounter()
         rc.start()
 
-        env = airsim.AirSimEnv(env_conf)
+        env = navsim.NavSimEnv(env_conf)
         time_since_start, current_memory, peak_memory = rc.stop()
-        log_str = f'Unity env creation resource usage: ' \
-                  f'time:{time_since_start},peak_memory:{peak_memory},current_memory:{current_memory}'
+        log_str = f'Unity env creation resource usage: \n' \
+                  f'time:{time_since_start},peak_memory:{peak_memory},current_memory:{current_memory}\n'
         testlog_file.write(log_str)
         print(log_str)
         testlog_file.flush()
@@ -80,15 +93,15 @@ def helper(env_conf):
                 while not episode_done:
 
 #                    time_since_start, current_memory, peak_memory = rc.snapshot()
-                    step_resources=[[rc.snapshot()]] #0
+                    step_resources=[rc.snapshot()] #0
                     t += 1
 
                     #2. select an action, and observe the next state
                     a = env.action_space.sample()
 
-                    step_resources.append([rc.snapshot()]) #1
+                    step_resources.append(rc.snapshot()) #1
                     s_, r, episode_done, info = env.step(a)
-                    step_resources.append([rc.snapshot()]) #2
+                    step_resources.append(rc.snapshot()) #2
 
                     #if(t == t_max):
                     #    episode_done=True
@@ -107,8 +120,9 @@ def helper(env_conf):
                 # sample the memory
                 #s,a,r,s_,d = memory.sample(100)
                 #airsim.Memory.sample_info(s,a,r,s_,d)
-                    step_resources.append([rc.snapshot()])  #3
+                    step_resources.append(rc.snapshot())  #3
 
+                    print(step_resources)
                     step_time = step_resources[3][0]-step_resources[0][0]
                     #step_peak_memory = max(step_resources[3][2],step_resources[0][2])
                     unity_step_time = step_resources[2][0]-step_resources[1][0]
