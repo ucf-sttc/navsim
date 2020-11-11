@@ -131,12 +131,12 @@ class Memory:
         return Memory(capacity=self.capacity, seed=self.seed, mem=self.mem[sliced])
 
     def save_to_pkl(self, filename):
-        with open(r"filename", "wb") as out_file:
+        with open(filename, "wb") as out_file:
             pickle.dump(self, out_file)
 
     @staticmethod
     def load_from_pkl(filename):
-        with open(r"filename", "rb") as in_file:
+        with open(filename, "rb") as in_file:
             return pickle.load(in_file)
 
     def pretty_print(self, n_rows=0):
@@ -145,9 +145,4 @@ class Memory:
         :param n_rows: 0 means all
         :return:
         """
-        np.set_printoptions(precision=2)
-        n_rows = n_rows or len(self.mem)
-        for i in range(n_rows):
-            for e in self.mem[i]:
-                print(e, end=' ')
-            print
+        pass

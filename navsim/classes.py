@@ -193,7 +193,7 @@ class DDPGAgent(object):
         state = {
             "critic":self.critic.state_dict(),
             "critic_optimizer":self.critic_optimizer.state_dict(),
-            "actor":self.actir.state_dict(),
+            "actor":self.actor.state_dict(),
             "actor_optimizer":self.actor_optimizer.state_dict()
 
         }

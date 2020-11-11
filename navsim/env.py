@@ -42,6 +42,7 @@ class NavSimEnv:
                                          seed=self.conf['seed'],
                                          timeout_wait=self.conf['timeout'],
                                          worker_id=self.conf['worker_id'],
+                                         no_graphics=True,
                                          side_channels=[engine_side_channel, environment_side_channel])
 
             self.genv = UnityToGymWrapper(self.uenv, False, False, True)
