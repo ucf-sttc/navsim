@@ -1,5 +1,6 @@
 import csv
 import os
+import pickle
 import random
 
 from mlagents_envs.environment import UnityEnvironment
@@ -12,16 +13,12 @@ import torch.nn.functional as F
 from numpy.core._multiarray_umath import ndarray
 from torch import nn
 import numpy as np
-from tqdm import tqdm
 
 from copy import deepcopy
-from pathlib import Path
+
 
 
 from typing import Union, Optional
-
-from .memory import Memory
-from .env import NavSimEnv
 
 # for actor:
 #   n_x is state dimension
@@ -200,11 +197,13 @@ class DDPGAgent(object):
             "actor_optimizer":self.actor_optimizer.state_dict()
 
         }
+        torch.save(state,filename)
+        """
         torch.save(self.critic.state_dict(), filename + '_critic')
         torch.save(self.critic_optimizer.state_dict(), filename + '_critic_optimizer')
         torch.save(self.actor.state_dict(), filename + '_actor')
         torch.save(self.actor_optimizer.state_dict(), filename + '_actor_optimizer')
-
+        """
     def save_actor(self, filename):
         model = self.actor
         l1_shape = list(model.parameters())[0].shape #shape_of_first_layer
@@ -222,6 +221,13 @@ class DDPGAgent(object):
                           input_names=['state'], output_names=['action'])
         """
     def load_checkpoint(self, filename):
+        state = torch.load(filename)
+        self.critic.load_state_dict(state['critic'])
+        self.critic_optimizer.load_state_dict(state['critic_optimizer'])
+        self.actor.load_state_dict(state['actor'])
+        self.actor_optimizer.load_state_dict(state['actor_optimizer'])
+
+        """
         self.critic.load_state_dict(
             torch.load(
                 filename + "_critic",
@@ -247,6 +253,7 @@ class DDPGAgent(object):
                 map_location=torch.device('cpu')
             )
         )
+        """
         self.actor_target = deepcopy(self.actor)
 
     def train(self, state, action, reward, next_state, episode_done):
@@ -289,139 +296,3 @@ def evaluate_policy(policy, env, seed, eval_episodes=10, render=False):
             avg_reward += reward
     avg_reward /= eval_episodes
     return avg_reward
-
-
-class Trainer:
-
-    def __init__(self, config, env, enable_logging=False):
-        """
-
-        :param config: A DictObj containing dictionary and object interface
-        :param env: Any gym compatible environment
-        :param enable_logging:
-        """
-        self.enable_logging = enable_logging
-        self.config = config
-        self.env = env
-
-        self.max_action = self.env.action_space.high[0]
-
-
-        self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-
-        self.agent = DDPGAgent(
-            env=self.env,
-            device=self.device,
-            discount=self.config['discount'], tau=self.config['tau']
-        )
-
-        # TODO: Give file and folder names better names based on the experiment_id
-
-        self.save_file_name = f"DDPG_{self.config['env_name']}_{self.config['seed']}"
-        self.memory = Memory(
-            capacity=self.config.memory_capacity,
-            state_shapes=self.env.observation_space_shapes,
-            action_shape=self.env.action_space_shape,
-            seed=self.config['seed']
-        )  # ReplayBuffer(self.vector_state_dimension, self.action_dimension)
-
-        self.apply_seed()
-
-        if self.enable_logging:
-            from torch.utils.tensorboard import SummaryWriter
-            self.writer = SummaryWriter('./logs/' + self.config['env_name'] + '/')
-        try:
-            os.mkdir('./models')
-        except Exception as e:
-            pass
-
-    def apply_seed(self):
-        self.env.seed(self.config['seed'])  #TODO: not needed because env is seeded at time of creation
-        torch.manual_seed(self.config['seed'])
-        np.random.seed(self.config['seed'])
-
-    def train(self):
-
-        t_max = int(self.config['episode_max_steps'])
-        rewards_filename = 'rewards.csv'
-        with open(rewards_filename, mode='w') as rewards_file:
-            rewards_file.flush()
-
-        for episode_num in tqdm(range(0,int(self.config['num_episodes']))):
-            # initialise the episode counters
-            episode_rewards = []
-            episode_evaluations = []
-            episode_info = []
-            episode_done = False
-            episode_reward = 0
-            t = 0
-            info = None
-
-
-            # observe initial state
-            state = self.env.reset()  # state comes out of env as a tuple always
-
-            while not episode_done:
-                #episode_timesteps += 1
-                # do the random sampling until enough memory is full
-                if t < (self.config['batch_size'] * self.config['batches_before_train'])+1:
-                    action = self.env.action_space.sample()
-                else:
-                    #print('selecting action from agent')
-                    action = (
-                            self.agent.select_action(state) + np.random.normal(
-                        0, self.max_action * self.config['expl_noise'],
-                        size=self.env.action_space_shape[0]
-                    )
-                    ).clip(
-                        -self.max_action,
-                        self.max_action
-                    )
-                next_state, reward, episode_done, _ = self.env.step(action)
-
-                self.memory.append(
-                    s=state, a=action, s_=next_state, r=reward,
-                    d=float(episode_done) if t < t_max -1 else 1)
-                state = next_state
-
-                episode_reward += reward
-
-                if t >= self.config['batch_size'] * self.config['batches_before_train']:
-                    batch_s, batch_a, batch_r, batch_s_, batch_d = self.memory.sample(self.config['batch_size'])
-                    #print('training the agent')
-                    self.agent.train(batch_s, batch_a, batch_r, batch_s_, batch_d)
-                    if (t+1 % 1000) == 0:
-                        self.agent.save_checkpoint(f"./models/{self.save_file_name}")
-
-#                    if (t >= self.config['batch_size'] * self.config['batches_before_train']) and (t % 1000 == 0):
-                    #episode_evaluations.append(evaluate_policy(self.agent, self.env, self.config['seed']))
-
-                if (t_max and t >= t_max):
-                    break
-
-                t += 1
-            # end of while loop
-
-            # episode end processing
-            if self.enable_logging:
-                self.writer.add_scalar('Episode Reward', episode_reward, t)
-            episode_rewards.append(episode_reward)
-
-            logged_values = [t, episode_reward, episode_done]
-
-            # Episode End Processing
-            # self.agent.save_actor(f"./models/{self.save_file_name}_{episode_num}.onnx")
-            with open(rewards_filename, mode='a+') as rewards_file:
-                writer = csv.writer(rewards_file,
-                                    delimiter=',',
-                                    quotechar='"',
-                                    quoting=csv.QUOTE_MINIMAL)
-                writer.writerow(logged_values)
-                rewards_file.flush()
-                #state = self.env.reset()[0]
-                #episode_done = False
-                #episode_reward = 0
-                #episode_timesteps = 0
-                #episode_num += 1
-
-        return

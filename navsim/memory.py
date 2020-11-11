@@ -1,5 +1,6 @@
 from typing import Union, Optional
 import numpy as np
+import pickle
 
 class Memory:
     """
@@ -14,8 +15,8 @@ class Memory:
     # TODO: if we made this tensor based instead of np, would it make it better ?
     """
 
-    @classmethod
-    def sample_info(self, s, a, r, s_, d):
+    @staticmethod
+    def sample_info(s, a, r, s_, d):
         print("Sample Info")
         print('-----------')
         print("Shapes:")
@@ -128,6 +129,15 @@ class Memory:
 
     def __getitem__(self, sliced):
         return Memory(capacity=self.capacity, seed=self.seed, mem=self.mem[sliced])
+
+    def save_to_pkl(self, filename):
+        with open(r"filename", "wb") as out_file:
+            pickle.dump(self, out_file)
+
+    @staticmethod
+    def load_from_pkl(filename):
+        with open(r"filename", "rb") as in_file:
+            return pickle.load(in_file)
 
     def pretty_print(self, n_rows=0):
         """
