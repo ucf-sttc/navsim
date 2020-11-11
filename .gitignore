@@ -1,6 +1,8 @@
 .ipynb_checkpoints
 .idea
 __pycache__
+.pytest_cache
+navsim_test
 /notebooks/.ipynb_checkpoints/
 /notebooks/logs/
 /notebooks/navsim_test/
