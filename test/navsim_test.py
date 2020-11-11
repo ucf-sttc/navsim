@@ -22,7 +22,7 @@ import navsim
 
 from ezai_util import DictObj, ResourceCounter
 
-conf = DictObj().load_from_json_file('airsim_test_conf.json')
+conf = DictObj().load_from_json_file('navsim_test_conf.json')
 
 run_base_folder = Path(conf.run_conf['run_id'])
 run_base_folder.mkdir(parents=True, exist_ok=True)
