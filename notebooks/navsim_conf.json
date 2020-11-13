@@ -5,6 +5,7 @@
     "seed": 123,
     "timeout": 600,
     "worker_id": 0,
+    "base_port": 5005,
     "observation_mode": 0,
     "max_steps": 100,
     "reward_for_goal": 50,

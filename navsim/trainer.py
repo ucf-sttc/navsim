@@ -93,7 +93,7 @@ class Trainer:
         #            from torch.utils.tensorboard import SummaryWriter
         #            self.writer = SummaryWriter('./logs/' + self.run_conf['env_name'] + '/')
         except:
-            self.env or self.env_close()
+            self.env and self.env_close()
             self.files_close()
 
     def apply_seed(self):
