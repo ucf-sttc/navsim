@@ -54,7 +54,10 @@ class NavSimEnv:
     def close(self):
         if self.env_open:
             self.env_open = False
-            self.uenv and self.uenv.close()
+            if self.uenv is None:
+                print('uenv is None')
+            else:
+                self.uenv.close()
         else:
             raise ValueError('Environment not open')
 

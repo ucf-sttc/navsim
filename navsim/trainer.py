@@ -64,7 +64,6 @@ class Trainer:
         try:
             self.env = None
             self.env_open()
-
             if run_resume and run_base_folder.is_dir():
                 self.memory = Memory.load_from_pkl(self.memory_filename)
             else:
@@ -92,9 +91,10 @@ class Trainer:
         #        if self.enable_logging:
         #            from torch.utils.tensorboard import SummaryWriter
         #            self.writer = SummaryWriter('./logs/' + self.run_conf['env_name'] + '/')
-        except:
-            self.env and self.env_close()
+        except Exception as e:
+            self.env_close()
             self.files_close()
+            print(e)
 
     def apply_seed(self):
         self.env.seed(self.run_conf['seed'])  # TODO: not needed because env is seeded at time of creation
@@ -149,7 +149,10 @@ class Trainer:
         self.env.info()
 
     def env_close(self):
-        self.env.close()
+        if self.env is None:
+            print("Env is None")
+        else:
+            self.env.close()
 
     def train(self):
         t_max = int(self.run_conf['episode_max_steps'])

@@ -1,6 +1,6 @@
 {
   "env_conf": {
-    "filename": "/home/afandang/unity_envs/Berlin_ML/Berlin_ML",
+    "filename": "/home/afandang/unity-envs/Berlin_ML/Berlin_ML",
     "log_folder": "unity.log",
     "seed": 123,
     "timeout": 600,
