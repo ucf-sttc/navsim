@@ -16,9 +16,8 @@ import numpy as np
 
 from copy import deepcopy
 
-
-
 from typing import Union, Optional
+
 
 # for actor:
 #   n_x is state dimension
@@ -90,63 +89,277 @@ class AirSimNN(object):
         print(self.conf)
         print(self.model)
 
+
 import inspect
 
-class ActorVector(torch.nn.Module):
+"""
 
-    def __init__(self, state_dimension, action_dimension, max_action):
-        super(ActorVector, self).__init__()
-        self.l1 = torch.nn.Linear(state_dimension, 400)
-        self.l2 = torch.nn.Linear(400, 300)
-        self.l3 = torch.nn.Linear(300, action_dimension)
+"""
+
+def prod(list):
+    result = 1
+    for item in list:
+        result *= item
+    return result
+
+
+import math
+
+
+def num2tuple(num):
+    return tuple(num) if isinstance(num, (tuple, list)) else (num, num)
+
+
+def conv2d_output_shape(h_w, kernel_size=1, stride=1, pad=0, dilation=1):
+    h_w, kernel_size, stride, pad, dilation = num2tuple(h_w), \
+                                              num2tuple(kernel_size), \
+                                              num2tuple(stride), \
+                                              num2tuple(pad), \
+                                              num2tuple(dilation)
+    pad = num2tuple(pad[0]), num2tuple(pad[1])
+    # print(h_w,kernel_size,stride,pad,dilation)
+    h = math.floor((h_w[0] + sum(pad[0]) - dilation[0] * (kernel_size[0] - 1) - 1) / stride[0] + 1)
+    w = math.floor((h_w[1] + sum(pad[1]) - dilation[1] * (kernel_size[1] - 1) - 1) / stride[1] + 1)
+
+    return h, w
+
+
+def convtransp2d_output_shape(h_w, kernel_size=1, stride=1, pad=0, dilation=1, out_pad=0):
+    h_w, kernel_size, stride, pad, dilation, out_pad = num2tuple(h_w), \
+                                                       num2tuple(kernel_size), num2tuple(stride), num2tuple(
+        pad), num2tuple(dilation), num2tuple(out_pad)
+    pad = num2tuple(pad[0]), num2tuple(pad[1])
+
+    h = (h_w[0] - 1) * stride[0] - sum(pad[0]) + dilation[0] * (kernel_size[0] - 1) + out_pad[0] + 1
+    w = (h_w[1] - 1) * stride[1] - sum(pad[1]) + dilation[1] * (kernel_size[1] - 1) + out_pad[1] + 1
+
+    return h, w
+
+
+def conv2d_get_padding(h_w_in, h_w_out, kernel_size=1, stride=1, dilation=1):
+    h_w_in, h_w_out, kernel_size, stride, dilation = num2tuple(h_w_in), num2tuple(h_w_out), \
+                                                     num2tuple(kernel_size), num2tuple(stride), num2tuple(dilation)
+
+    p_h = ((h_w_out[0] - 1) * stride[0] - h_w_in[0] + dilation[0] * (kernel_size[0] - 1) + 1)
+    p_w = ((h_w_out[1] - 1) * stride[1] - h_w_in[1] + dilation[1] * (kernel_size[1] - 1) + 1)
+
+    return (math.floor(p_h / 2), math.ceil(p_h / 2)), (math.floor(p_w / 2), math.ceil(p_w / 2))
+
+
+def convtransp2d_get_padding(h_w_in, h_w_out, kernel_size=1, stride=1, dilation=1, out_pad=0):
+    h_w_in, h_w_out, kernel_size, stride, dilation, out_pad = num2tuple(h_w_in), num2tuple(h_w_out), \
+                                                              num2tuple(kernel_size), num2tuple(stride), num2tuple(
+        dilation), num2tuple(out_pad)
+
+    p_h = -(h_w_out[0] - 1 - out_pad[0] - dilation[0] * (kernel_size[0] - 1) - (h_w[0] - 1) * stride[0]) / 2
+    p_w = -(h_w_out[1] - 1 - out_pad[1] - dilation[1] * (kernel_size[1] - 1) - (h_w[1] - 1) * stride[1]) / 2
+
+    return (math.floor(p_h / 2), math.ceil(p_h / 2)), (math.floor(p_w / 2), math.ceil(p_w / 2))
+
+
+class Actor(torch.nn.Module):
+    """
+    state_dimensions: Should always be a list of state_dimension
+                      if vector is True then vector obs should always be last
+                      if visual is True then visual obs should come before vec dimension
+    """
+
+    def __init__(self, state_dimensions, action_dimension, max_action):
+        super(Actor, self).__init__()
+
+        # All feature_layers end up with ReLU output
+        self.feature_layers = torch.nn.ModuleList()
+        l_out_size = []
+
+        # visual network settings
+        stride = 1
+        padding = 0
+        dilation = 1
+        kernel_size = 2
+        out_channels = 4
+
+        for state_dim in state_dimensions:
+            if len(state_dim) == 1:  # means we have vector observation
+                out_size = state_dim[0] * 2  # make sure its always int
+                layer = torch.nn.Sequential(
+                    torch.nn.Linear(state_dim[0], out_size),
+                    torch.nn.ReLU()
+                    #                torch.nn.Linear(400, 300),
+                    #                torch.nn.ReLU()
+                )
+                self.feature_layers.append(layer)
+                l_out_size.append(out_size)
+            else:  # visual:
+                layer = torch.nn.Sequential(
+                    torch.nn.Conv2d(in_channels=state_dim[2],
+                                    out_channels=out_channels,
+                                    kernel_size=kernel_size,
+                                    stride=stride,
+                                    padding=padding,
+                                    dilation=dilation),  # [batch_size, n_features_conv, height, width]
+                    torch.nn.MaxPool2d(kernel_size=kernel_size,
+                                       stride=stride,
+                                       padding=padding,
+                                       dilation=dilation),
+                    torch.nn.ReLU()
+                )
+                h, w = conv2d_output_shape(h_w=state_dim[0:2],
+                                           kernel_size=kernel_size,
+                                           stride=stride,
+                                           pad=padding,
+                                           dilation=dilation)
+                h, w = conv2d_output_shape(h_w=[h, w],
+                                           kernel_size=kernel_size,
+                                           stride=stride,
+                                           pad=padding,
+                                           dilation=dilation)
+                l_out_size.append(h * w * out_channels)
+                self.feature_layers.append(layer)
+
+        #        self.l3 = torch.nn.Linear(300, action_dimension)
+
+        cat_dim = sum(l_out_size)
+
+        self.out_layer=torch.nn.Sequential(
+            torch.nn.Linear(cat_dim, action_dimension),
+            torch.nn.Tanh()
+        )
+        # print(f'{l_out_size},cat_dim:{cat_dim},action_dim:{action_dimension}')
+        #self.action_out = torch.nn.Linear(cat_dim, action_dimension)
+
         self.max_action = max_action
 
     def forward(self, state):
         """
 
-        :param state: state is a torch tensor
+        :param state: state is a list of torch tensors
         :return:
         """
-        #curframe = inspect.currentframe()
-        #calframe = inspect.getouterframes(curframe, 2)
-        #print('actor caller name:', calframe[1][3])
-        #print('actor',state.shape)
-        #print('actor',self.l1)
+        # curframe = inspect.currentframe()
+        # calframe = inspect.getouterframes(curframe, 2)
+        # print('actor caller name:', calframe[1][3])
+        # print('actor',state.shape)
+        # print('actor',self.l1)
         # state = state[0]
-        a = F.relu(self.l1(state))
-        a = F.relu(self.l2(a))
-        a = torch.tanh(self.l3(a))
+        features = []
+        for s, layer in zip(state, self.feature_layers):
+            layer = layer(s)
+            layer = layer.view(layer.size(0), -1)
+            features.append(layer)
+            #print(layer.shape)
+        features_cat = torch.cat(features, dim=1)
+
+        #a = torch.tanh(features_cat)
+        a = self.out_layer(features_cat)
         return self.max_action * a
 
+class Critic(torch.nn.Module):
+    """
+    TODO:
+    Should we combine the state with action after some layers or right at the first layer?
+    """
 
+    def __init__(self, state_dimensions, action_dimension):
+        super(Critic, self).__init__()
 
+        # All feature_layers end up with ReLU output
+        self.feature_layers = torch.nn.ModuleList()
+        l_out_size = []
 
+        # visual network settings
+        stride = 1
+        padding = 0
+        dilation = 1
+        kernel_size = 2
+        out_channels = 4
 
-class CriticVector(torch.nn.Module):
+        for state_dim in state_dimensions:
+            if len(state_dim) == 1:  # means we have vector observation
+                out_size = state_dim[0] * 2  # make sure its always int
+                layer = torch.nn.Sequential(
+                    torch.nn.Linear(state_dim[0], out_size),
+                    torch.nn.ReLU()
+                    #                torch.nn.Linear(400, 300),
+                    #                torch.nn.ReLU()
+                )
+                self.feature_layers.append(layer)
+                l_out_size.append(out_size)
+            else:  # visual:
+                layer = torch.nn.Sequential(
+                    torch.nn.Conv2d(in_channels=state_dim[2],
+                                    out_channels=out_channels,
+                                    kernel_size=kernel_size,
+                                    stride=stride,
+                                    padding=padding,
+                                    dilation=dilation),  # [batch_size, n_features_conv, height, width]
+                    torch.nn.MaxPool2d(kernel_size=kernel_size,
+                                       stride=stride,
+                                       padding=padding,
+                                       dilation=dilation),
+                    torch.nn.ReLU()
+                )
+                h, w = conv2d_output_shape(h_w=state_dim[0:2],
+                                           kernel_size=kernel_size,
+                                           stride=stride,
+                                           pad=padding,
+                                           dilation=dilation)
+                h, w = conv2d_output_shape(h_w=[h, w],
+                                           kernel_size=kernel_size,
+                                           stride=stride,
+                                           pad=padding,
+                                           dilation=dilation)
+                l_out_size.append(h * w * out_channels)
+                self.feature_layers.append(layer)
 
-    def __init__(self, state_dimension, action_dimension):
-        super(CriticVector, self).__init__()
-        self.l1 = torch.nn.Linear(state_dimension + action_dimension, 400)
-        self.l2 = torch.nn.Linear(400, 300)
-        self.l3 = torch.nn.Linear(300, 1)
+        # add action also as one of the feature layers
+        out_size = action_dimension  # make sure its always int
+        layer = torch.nn.Sequential(
+            torch.nn.Linear(action_dimension, out_size),
+            torch.nn.ReLU()
+            #                torch.nn.Linear(400, 300),
+            #                torch.nn.ReLU()
+        )
+        self.feature_layers.append(layer)
+        l_out_size.append(out_size)
+
+        cat_dim = sum(l_out_size)
+
+        self.out_layer = torch.nn.Sequential(
+            torch.nn.Linear(cat_dim, 1),
+        )
 
     def forward(self, state, action):
         """
 
-        :param state: a torch Tensor
+        :param state: a list of torch Tensors
         :param action: a torch Tensor
         :return:
         """
-        #print('critic',state.shape)
-        #print('critic',self.l1)
+        # print('critic',state.shape)
+        # print('critic',self.l1)
 
         # state = state[0]
-        q = F.relu(self.l1(torch.cat([state, action], 1)))
-        q = F.relu(self.l2(q))
-        q = self.l3(q)
+
+        features = []
+        for s, layer in zip(state, self.feature_layers):
+            layer = layer(s)
+            layer = layer.view(layer.size(0), -1)
+            features.append(layer)
+            #print(layer.shape)
+
+        layer = self.feature_layers[-1]
+        layer = layer(action)
+        layer = layer.view(layer.size(0), -1)
+        features.append(layer)
+
+        features_cat = torch.cat(features, dim=1)
+
+        q = self.out_layer(features_cat)
         return q
 
+"""
 
+"""
 
 class DDPGAgent(object):
 
@@ -159,19 +372,18 @@ class DDPGAgent(object):
 
         self.max_action = self.env.action_space.high[0]
 
-        if self.env.observation_mode == 0:
-            self.vector_state_dimension = self.env.observation_space_shapes[0][0]
-        elif self.env.observation_mode == 1:
-            self.vector_state_dimension = None
-        elif self.env.observation_mode == 2:
-            self.vector_state_dimension = self.env.observation_space_shapes[3][0]
+        # if self.env.observation_mode == 0:
+        #    self.vector_state_dimension = self.env.observation_space_shapes[0][0]
+        # elif self.env.observation_mode == 1:
+        #    self.vector_state_dimension = None
+        # elif self.env.observation_mode == 2:
+        #    self.vector_state_dimension = self.env.observation_space_shapes[3][0]
 
-        if (self.env.observation_mode == 0) or (self.env.observation_mode == 2):
-            self.actor = ActorVector(self.vector_state_dimension, self.env.action_space_shape[0], self.max_action).to(device)
-            self.critic = CriticVector(self.vector_state_dimension, self.env.action_space_shape[0]).to(device)
-        else:  # TODO: Implement VisualActor here
-            self.actor = None
-            self.critic = None
+        self.actor = Actor(self.env.observation_space_shapes,
+                           self.env.action_space_shape[0],
+                           self.max_action).to(device)
+        self.critic = Critic(self.env.observation_space_shapes,
+                             self.env.action_space_shape[0]).to(device)
 
         self.actor_target = deepcopy(self.actor)
         self.actor_optimizer = torch.optim.Adam(self.actor.parameters())
@@ -180,8 +392,9 @@ class DDPGAgent(object):
         self.critic_optimizer = torch.optim.Adam(self.critic.parameters())
 
     def select_action(self, state):
-        if self.env.observation_mode == 0:
-            state = torch.FloatTensor(state[0].reshape(1, -1)).to(self.device)
+        # if self.env.observation_mode == 0:
+        #    state = torch.FloatTensor(state[0].reshape(1, -1)).to(self.device)
+        state = [torch.FloatTensor(s).to(self.device) for s in state]
         return self.actor(state).cpu().data.numpy().flatten()
 
     @staticmethod
@@ -191,24 +404,83 @@ class DDPGAgent(object):
 
     def save_checkpoint(self, filename):
         state = {
-            "critic":self.critic.state_dict(),
-            "critic_optimizer":self.critic_optimizer.state_dict(),
-            "actor":self.actor.state_dict(),
-            "actor_optimizer":self.actor_optimizer.state_dict()
+            "critic": self.critic.state_dict(),
+            "critic_optimizer": self.critic_optimizer.state_dict(),
+            "actor": self.actor.state_dict(),
+            "actor_optimizer": self.actor_optimizer.state_dict()
 
         }
-        torch.save(state,filename)
+        torch.save(state, filename)
         """
         torch.save(self.critic.state_dict(), filename + '_critic')
         torch.save(self.critic_optimizer.state_dict(), filename + '_critic_optimizer')
         torch.save(self.actor.state_dict(), filename + '_actor')
         torch.save(self.actor_optimizer.state_dict(), filename + '_actor_optimizer')
         """
+
+    def save_to_onnx(self,folder=None):
+#        device = next(model.parameters()).device
+        device = self.device
+
+        # prepare input data
+        input_data=[]
+        input_names=[]
+        for state_dim in self.env.observation_space_shapes:
+            if len(state_dim) == 1:
+                random_input = torch.randn(1,state_dim[0]).to(device)
+                input_name=f'state_{state_dim[0]}'
+            else: #visual
+                random_input = torch.randn(1,state_dim[2],state_dim[0],state_dim[1]).to(device)
+                input_name = f'state_{state_dim[0]}_{state_dim[1]}_{state_dim[2]}'
+
+            input_data.append(random_input)
+            input_names.append(input_name)
+
+
+        #export actor
+        model = self.actor
+        torch.onnx.export(model,
+                          args=input_data,
+                          f="actor.onnx",
+                          export_params=True,
+                          opset_version=9,
+                          do_constant_folding=True,
+                          input_names=input_names,
+                          output_names=['action'])
+
+        # add action data for critic
+        action_dim = self.env.action_space_shape[0]
+        random_input = torch.randn(1,action_dim).to(device)
+        input_name=f'action_{action_dim}'
+        input_data=[input_data]
+
+        #print(len(input_data))
+        input_data.append(random_input)
+        input_data = tuple(input_data)
+        #print(len(input_data))
+        input_names.append(input_name)
+
+        #export critic
+        model=self.critic
+        torch.onnx.export(model,
+                          args=input_data,
+                          f="critic.onnx",
+                          export_params=True,
+                          opset_version=9,
+                          do_constant_folding=True,
+                          input_names=input_names,
+                          output_names=['q'])
+
+
     def save_actor(self, filename):
         model = self.actor
-        l1_shape = list(model.parameters())[0].shape #shape_of_first_layer
         device = next(model.parameters()).device
-        #print(shape_of_first_layer)
+
+        for shape in self.env.observation_space_shapes:
+            pass
+        # l1_shape = list(model.parameters())[0].shape  # shape_of_first_layer
+
+        # print(shape_of_first_layer)
         dummy_input = torch.randn(l1_shape[1:]).to(device)
         torch.onnx.export(model, dummy_input, filename, export_params=True, opset_version=9,
                           do_constant_folding=True,
@@ -220,6 +492,8 @@ class DDPGAgent(object):
                           do_constant_folding=True,
                           input_names=['state'], output_names=['action'])
         """
+
+
     def load_checkpoint(self, filename):
         state = torch.load(filename)
         self.critic.load_state_dict(state['critic'])
@@ -257,12 +531,15 @@ class DDPGAgent(object):
         self.actor_target = deepcopy(self.actor)
 
     def train(self, state, action, reward, next_state, episode_done):
-        #print('agent train state ',state.shape)
-        #print('agent train next_state',next_state.shape)
-        if self.env.observation_mode == 0:
-            state = torch.FloatTensor(state[0]).to(self.device)
-            next_state = torch.FloatTensor(next_state[0]).to(self.device)
-        #print('agent train',next_state.shape)
+        # print('agent train state ',state.shape)
+        # print('agent train next_state',next_state.shape)
+        # convert state to lit of tensors on GPU
+        state = [torch.FloatTensor(s).to(self.device) for s in state]
+        next_state = [torch.FloatTensor(s).to(self.device) for s in next_state]
+        #        if self.env.observation_mode == 0:
+        #            state = torch.FloatTensor(state[0]).to(self.device)
+        #            next_state = torch.FloatTensor(next_state[0]).to(self.device)
+        # print('agent train',next_state.shape)
         action = torch.FloatTensor(action).to(self.device)
         reward = torch.FloatTensor(reward).to(self.device)
         episode_done = torch.FloatTensor(episode_done).to(self.device)

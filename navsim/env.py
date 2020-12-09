@@ -76,8 +76,11 @@ class NavSimEnv:
         print('Gym Observation Space Shape:', self.genv.observation_space.shape)
         print('Self Observation Space:', self.observation_space)
         print('Self Observation Space Shape:', self.observation_space.shape)
+        print('Self Observation Space Shapes:', self.observation_space_shapes)
         print('Reward Range:', self.genv.reward_range)
         print('Metadata:', self.genv.metadata)
+
+    def info_steps(self):
         print('Initial State:', self.reset())
         print('First Step State:', self.step(self.action_space.sample()))
 

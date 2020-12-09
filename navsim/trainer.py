@@ -9,6 +9,7 @@ import numpy as np
 from navsim import NavSimEnv, DDPGAgent, Memory
 from ezai_util import DictObj, ResourceCounter
 
+import traceback
 
 class Trainer:
     """
@@ -94,7 +95,8 @@ class Trainer:
         except Exception as e:
             self.env_close()
             self.files_close()
-            print(e)
+            print(traceback.format_exc())
+            #print(e)
 
     def apply_seed(self):
         self.env.seed(self.run_conf['seed'])  # TODO: not needed because env is seeded at time of creation
