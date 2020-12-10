@@ -471,6 +471,8 @@ class DDPGAgent(object):
                           input_names=input_names,
                           output_names=['q'])
 
+        #import hiddenlayer as hl
+        #hl.build_graph(trainer.agent., torch.zeros([1, 3, 224, 224]))
 
     def save_actor(self, filename):
         model = self.actor
