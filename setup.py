@@ -7,7 +7,7 @@ setuptools.setup(
     name="navsim",
     version="0.0.1",
     author="STTC, IST, UCF",
-    author_email="navsim@ucf.edu",
+    author_email="armando@ucf.edu",
     description="Navigation Simulator",
     long_description=long_description,
     long_description_content_type="text/markdown",
