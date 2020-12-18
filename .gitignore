@@ -8,3 +8,5 @@ navsim_test
 /notebooks/navsim_test/
 /navsim.egg-info/
 /notebooks/navsim_demo/
+/build/
+/dist/

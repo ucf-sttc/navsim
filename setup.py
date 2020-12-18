@@ -11,7 +11,6 @@ setuptools.setup(
     description="Navigation Simulator",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="TODO",
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
