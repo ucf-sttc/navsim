@@ -6,3 +6,5 @@ navsim_test
 /notebooks/.ipynb_checkpoints/
 /notebooks/logs/
 /notebooks/navsim_test/
+/navsim.egg-info/
+/notebooks/navsim_demo/
