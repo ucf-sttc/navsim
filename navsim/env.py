@@ -36,6 +36,8 @@ class NavSimEnv:
             environment_side_channel.set_float_parameter("segmentationMode", self.conf['segmentation_mode'])
             environment_side_channel.set_float_parameter("observationMode", self.conf['observation_mode'])
             environment_side_channel.set_float_parameter("episodeLength", self.conf['max_steps'])
+            environment_side_channel.set_float_parameter("selectedTaskIndex", self.conf['task'])
+            environment_side_channel.set_float_parameter("goalSelectionIndex", self.conf['goal'])
 
             self.uenv = UnityEnvironment(file_name=str(Path(self.conf['filename']).resolve()),
                                          log_folder=str(log_folder.resolve()),

@@ -13,7 +13,7 @@ import sys
 #===== TODO: Remove this when ezai_util is an installed package
 import ezai_util
 
-from .classes import DDPGAgent
+from .agents import DDPGAgent
 from .memory import Memory
 from .env import NavSimEnv
 from .trainer import Trainer

@@ -1,18 +1,6 @@
-import csv
-import os
-import pickle
-import random
-
-from mlagents_envs.environment import UnityEnvironment
-from gym_unity.envs import UnityToGymWrapper
-from mlagents_envs.side_channel.engine_configuration_channel import EngineConfigurationChannel
-from mlagents_envs.side_channel.environment_parameters_channel import EnvironmentParametersChannel
-
 import torch
 import torch.nn.functional as F
-from numpy.core._multiarray_umath import ndarray
 from torch import nn
-import numpy as np
 
 from copy import deepcopy
 
@@ -88,19 +76,6 @@ class AirSimNN(object):
     def info(self):
         print(self.conf)
         print(self.model)
-
-
-import inspect
-
-"""
-
-"""
-
-def prod(list):
-    result = 1
-    for item in list:
-        result *= item
-    return result
 
 
 import math
@@ -220,12 +195,12 @@ class Actor(torch.nn.Module):
 
         cat_dim = sum(l_out_size)
 
-        self.out_layer=torch.nn.Sequential(
+        self.out_layer = torch.nn.Sequential(
             torch.nn.Linear(cat_dim, action_dimension),
             torch.nn.Tanh()
         )
         # print(f'{l_out_size},cat_dim:{cat_dim},action_dim:{action_dimension}')
-        #self.action_out = torch.nn.Linear(cat_dim, action_dimension)
+        # self.action_out = torch.nn.Linear(cat_dim, action_dimension)
 
         self.max_action = max_action
 
@@ -246,12 +221,13 @@ class Actor(torch.nn.Module):
             layer = layer(s)
             layer = layer.view(layer.size(0), -1)
             features.append(layer)
-            #print(layer.shape)
+            # print(layer.shape)
         features_cat = torch.cat(features, dim=1)
 
-        #a = torch.tanh(features_cat)
+        # a = torch.tanh(features_cat)
         a = self.out_layer(features_cat)
         return self.max_action * a
+
 
 class Critic(torch.nn.Module):
     """
@@ -345,7 +321,7 @@ class Critic(torch.nn.Module):
             layer = layer(s)
             layer = layer.view(layer.size(0), -1)
             features.append(layer)
-            #print(layer.shape)
+            # print(layer.shape)
 
         layer = self.feature_layers[-1]
         layer = layer(action)
@@ -356,10 +332,6 @@ class Critic(torch.nn.Module):
 
         q = self.out_layer(features_cat)
         return q
-
-"""
-
-"""
 
 class DDPGAgent(object):
 
@@ -418,83 +390,58 @@ class DDPGAgent(object):
         torch.save(self.actor_optimizer.state_dict(), filename + '_actor_optimizer')
         """
 
-    def save_to_onnx(self,folder=None):
-#        device = next(model.parameters()).device
+    def save_to_onnx(self, folder='.', critic=False):
+        #        device = next(model.parameters()).device
         device = self.device
 
         # prepare input data
-        input_data=[]
-        input_names=[]
+        input_data = []
+        input_names = []
         for state_dim in self.env.observation_space_shapes:
             if len(state_dim) == 1:
-                random_input = torch.randn(1,state_dim[0]).to(device)
-                input_name=f'state_{state_dim[0]}'
-            else: #visual
-                random_input = torch.randn(1,state_dim[2],state_dim[0],state_dim[1]).to(device)
+                random_input = torch.randn(1, state_dim[0]).to(device)
+                input_name = f'state_{state_dim[0]}'
+            else:  # visual
+                random_input = torch.randn(1, state_dim[2], state_dim[0], state_dim[1]).to(device)
                 input_name = f'state_{state_dim[0]}_{state_dim[1]}_{state_dim[2]}'
 
             input_data.append(random_input)
             input_names.append(input_name)
 
-
-        #export actor
+        # export actor
         model = self.actor
         torch.onnx.export(model,
                           args=input_data,
-                          f="actor.onnx",
+                          f=f"{folder}/actor.onnx",
                           export_params=True,
                           opset_version=9,
                           do_constant_folding=True,
                           input_names=input_names,
                           output_names=['action'])
 
-        # add action data for critic
-        action_dim = self.env.action_space_shape[0]
-        random_input = torch.randn(1,action_dim).to(device)
-        input_name=f'action_{action_dim}'
-        input_data=[input_data]
+        if critic:
+            # add action data for critic
+            action_dim = self.env.action_space_shape[0]
+            random_input = torch.randn(1, action_dim).to(device)
+            input_name = f'action_{action_dim}'
+            input_data = [input_data]
 
-        #print(len(input_data))
-        input_data.append(random_input)
-        input_data = tuple(input_data)
-        #print(len(input_data))
-        input_names.append(input_name)
+            # print(len(input_data))
+            input_data.append(random_input)
+            input_data = tuple(input_data)
+            # print(len(input_data))
+            input_names.append(input_name)
 
-        #export critic
-        model=self.critic
-        torch.onnx.export(model,
-                          args=input_data,
-                          f="critic.onnx",
-                          export_params=True,
-                          opset_version=9,
-                          do_constant_folding=True,
-                          input_names=input_names,
-                          output_names=['q'])
-
-        #import hiddenlayer as hl
-        #hl.build_graph(trainer.agent., torch.zeros([1, 3, 224, 224]))
-
-    def save_actor(self, filename):
-        model = self.actor
-        device = next(model.parameters()).device
-
-        for shape in self.env.observation_space_shapes:
-            pass
-        # l1_shape = list(model.parameters())[0].shape  # shape_of_first_layer
-
-        # print(shape_of_first_layer)
-        dummy_input = torch.randn(l1_shape[1:]).to(device)
-        torch.onnx.export(model, dummy_input, filename, export_params=True, opset_version=9,
-                          do_constant_folding=True,
-                          input_names=['state'], output_names=['action'])
-        """
-        if (self.env.observation_mode == 0) or (self.env.observation_mode == 2):
-            dummy_input = torch.randn(self.vector_state_dimension).to(self.device)
-            torch.onnx.export(self.actor, dummy_input, filename, export_params=True, opset_version=9,
-                          do_constant_folding=True,
-                          input_names=['state'], output_names=['action'])
-        """
-
+            # export critic
+            model = self.critic
+            torch.onnx.export(model,
+                              args=input_data,
+                              f=f"{folder}/critic.onnx",
+                              export_params=True,
+                              opset_version=9,
+                              do_constant_folding=True,
+                              input_names=input_names,
+                              output_names=['q'])
 
     def load_checkpoint(self, filename):
         state = torch.load(filename)

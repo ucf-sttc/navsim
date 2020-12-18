@@ -5,18 +5,6 @@ import sys
 import csv
 from tqdm import tqdm
 import numpy as np
-
-#===== TODO: Remove this when ezai_util is an installed package
-base_path=Path('..')
-
-for pkg in ['ezai_util']:
-    pkg_path = base_path / pkg
-    pkg_path = str(pkg_path.resolve())
-    print(pkg_path)
-    if not pkg_path in sys.path:
-        sys.path.append(pkg_path)
-#===== TODO: Remove this when ezai_util is an installed package
-
 import ezai_util
 import navsim
 

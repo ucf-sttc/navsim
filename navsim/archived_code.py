@@ -39,3 +39,54 @@ class ReplayBuffer(object):
             self.not_done[ind]
         )
 
+
+
+class ActorVector(torch.nn.Module):
+
+    def __init__(self, state_dimension, action_dimension, max_action):
+        super(ActorVector, self).__init__()
+        self.l1 = torch.nn.Linear(state_dimension, 400)
+        self.l2 = torch.nn.Linear(400, 300)
+        self.l3 = torch.nn.Linear(300, action_dimension)
+        self.max_action = max_action
+
+    def forward(self, state):
+        """
+
+        :param state: state is a torch tensor
+        :return:
+        """
+        # curframe = inspect.currentframe()
+        # calframe = inspect.getouterframes(curframe, 2)
+        # print('actor caller name:', calframe[1][3])
+        # print('actor',state.shape)
+        # print('actor',self.l1)
+        # state = state[0]
+        a = F.relu(self.l1(state))
+        a = F.relu(self.l2(a))
+        a = torch.tanh(self.l3(a))
+        return self.max_action * a
+
+class CriticVector(torch.nn.Module):
+
+    def __init__(self, state_dimension, action_dimension):
+        super(CriticVector, self).__init__()
+        self.l1 = torch.nn.Linear(state_dimension + action_dimension, 400)
+        self.l2 = torch.nn.Linear(400, 300)
+        self.l3 = torch.nn.Linear(300, 1)
+
+    def forward(self, state, action):
+        """
+
+        :param state: a torch Tensor
+        :param action: a torch Tensor
+        :return:
+        """
+        # print('critic',state.shape)
+        # print('critic',self.l1)
+
+        # state = state[0]
+        q = F.relu(self.l1(torch.cat([state, action], 1)))
+        q = F.relu(self.l2(q))
+        q = self.l3(q)
+        return q
