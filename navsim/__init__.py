@@ -17,4 +17,5 @@ from .agents import DDPGAgent
 from .memory import Memory
 from .env import NavSimEnv
 from .trainer import Trainer
+from .util import sizeof_fmt
 

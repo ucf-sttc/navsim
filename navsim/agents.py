@@ -219,12 +219,17 @@ class Actor(torch.nn.Module):
         features = []
         for s, layer in zip(state, self.feature_layers):
             layer = layer(s)
-            layer = layer.view(layer.size(0), -1)
+            if layer.dim()>2:
+                layer = layer.view(layer.size(0), -1)
             features.append(layer)
             # print(layer.shape)
-        features_cat = torch.cat(features, dim=1)
 
-        # a = torch.tanh(features_cat)
+        #        if len(features) > 1:
+        #            features_cat = torch.cat(features, dim=1)
+        #        else:
+        #            features_
+
+        features_cat = torch.cat(features, dim=1) if len(features) > 1 else features[0]
         a = self.out_layer(features_cat)
         return self.max_action * a
 
@@ -319,19 +324,22 @@ class Critic(torch.nn.Module):
         features = []
         for s, layer in zip(state, self.feature_layers):
             layer = layer(s)
-            layer = layer.view(layer.size(0), -1)
+            if layer.dim()>2:
+                layer = layer.view(layer.size(0), -1)
             features.append(layer)
             # print(layer.shape)
 
         layer = self.feature_layers[-1]
         layer = layer(action)
-        layer = layer.view(layer.size(0), -1)
+        if layer.dim()>2:
+            layer = layer.view(layer.size(0), -1)
         features.append(layer)
 
-        features_cat = torch.cat(features, dim=1)
+        features_cat = torch.cat(features, dim=1) if len(features) > 1 else features[0]
 
         q = self.out_layer(features_cat)
         return q
+
 
 class DDPGAgent(object):
 
@@ -366,7 +374,7 @@ class DDPGAgent(object):
     def select_action(self, state):
         # if self.env.observation_mode == 0:
         #    state = torch.FloatTensor(state[0].reshape(1, -1)).to(self.device)
-        state = [torch.FloatTensor(s).to(self.device) for s in state]
+        state = [torch.FloatTensor(s).unsqueeze(0).to(self.device) for s in state]
         return self.actor(state).cpu().data.numpy().flatten()
 
     @staticmethod
@@ -507,6 +515,10 @@ class DDPGAgent(object):
         DDPGAgent.soft_update(self.critic, self.critic_target, self.tau)
         DDPGAgent.soft_update(self.actor, self.actor_target, self.tau)
 
+    def info(self):
+        print("Agent Info")
+        print('-----------')
+        print('Not implemented yet')
 
 def evaluate_policy(policy, env, seed, eval_episodes=10, render=False):
     eval_env = env

@@ -7,9 +7,25 @@ from tqdm import tqdm
 import numpy as np
 
 from navsim import NavSimEnv, DDPGAgent, Memory
+from navsim.util import sizeof_fmt, image_layout
 from ezai_util import DictObj, ResourceCounter
 
 import traceback
+import numpy as np
+
+
+def s_hwc_to_chw(s):
+    # TODO: HWC to CHW conversion optimized here
+    # because pytorch can only deal with images in CHW format
+    # we are making the optimization here to convert from HWC to CHW format.
+    if isinstance(s, np.ndarray) and (s.ndim > 2):  # state is ndarray
+        s = image_layout(s, 'hwc', 'chw')
+    elif isinstance(s, list):  # state is a list of states
+        for i in range(len(s)):
+            if isinstance(s[i], np.ndarray) and (s[i].ndim > 2):  # state is ndarray
+                s[i] = image_layout(s[i], 'hwc', 'chw')
+    return s
+
 
 class Trainer:
     """
@@ -57,7 +73,7 @@ class Trainer:
         env_log_folder = run_base_folder / 'env.log'
         self.env_conf.log_folder = str(env_log_folder.resolve())
         self.model_filename = f"{run_base_folder_str}/model_state.pt"
-        self.memory_filename=f"{run_base_folder_str}/memory.pkl"
+        self.memory_filename = f"{run_base_folder_str}/memory.pkl"
 
         self.rc = ResourceCounter()
         self.files_open()
@@ -68,12 +84,22 @@ class Trainer:
             if run_resume and run_base_folder.is_dir():
                 self.memory = Memory.load_from_pkl(self.memory_filename)
             else:
+                # TODO: HWC to CHW conversion optimized here
+                # because pytorch can only deal with images in CHW format
+                # we are making the optimization here to convert from HWC to CHW format.
+                memory_observation_space_shapes = []
+                for item in self.env.observation_space_shapes:
+                    if len(item)==3: # means its an image in HWC
+                        memory_observation_space_shapes.append((item[2],item[1],item[0]))
+                    else:
+                        memory_observation_space_shapes.append(item)
                 self.memory = Memory(
                     capacity=self.run_conf.memory_capacity,
-                    state_shapes=self.env.observation_space_shapes,
+                    state_shapes=memory_observation_space_shapes,
                     action_shape=self.env.action_space_shape,
                     seed=self.run_conf['seed']
                 )
+                self.memory.info()
 
             self.max_action = self.env.action_space.high[0]
             self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
@@ -96,7 +122,7 @@ class Trainer:
             self.env_close()
             self.files_close()
             print(traceback.format_exc())
-            #print(e)
+            # print(e)
 
     def apply_seed(self):
         self.env.seed(self.run_conf['seed'])  # TODO: not needed because env is seeded at time of creation
@@ -144,7 +170,8 @@ class Trainer:
         self.env = NavSimEnv(self.env_conf)
         time_since_start, current_memory, peak_memory = self.rc.stop()
         log_str = f'Unity env creation resource usage: \n' \
-                  f'time:{time_since_start},peak_memory:{peak_memory},current_memory:{current_memory}\n'
+                  f'time:{time_since_start},peak_memory:{sizeof_fmt(peak_memory)},' \
+                  f'current_memory:{sizeof_fmt(current_memory)}\n'
         self.pylog_file.write(log_str)
         print(log_str)
         self.pylog_file.flush()
@@ -170,28 +197,48 @@ class Trainer:
 
             # observe initial s
             s = self.env.reset()  # s comes out of env as a tuple always
+            # TODO: HWC to CHW conversion optimized here
+            # because pytorch can only deal with images in CHW format
+            # we are making the optimization here to convert from HWC to CHW format.
+            s = s_hwc_to_chw(s)
 
+            samples_before_training = (self.run_conf['batch_size'] * self.run_conf['batches_before_train'])
             while not episode_done:
                 step_resources = [self.rc.snapshot()]  # s0
                 t += 1
 
                 # do the random sampling until enough memory is full
-                if t < (self.run_conf['batch_size'] * self.run_conf['batches_before_train']) + 1:
+                if self.memory.size < samples_before_training:
                     a = self.env.action_space.sample()
                 else:
-                    # print('selecting a from agent')
-                    a = (
-                            self.agent.select_action(s) + np.random.normal(
+                    #TODO: Find the best place to train, moved here for now
+                    batch_s, batch_a, batch_r, batch_s_, batch_d = self.memory.sample(self.run_conf['batch_size'])
+                    # print('training the agent')
+                    self.agent.train(batch_s, batch_a, batch_r, batch_s_, batch_d)
+
+                    a = (self.agent.select_action(s) + np.random.normal(
                         0, self.max_action * self.run_conf['expl_noise'],
-                        size=self.env.action_space_shape[0]
-                    )
-                    ).clip(
+                        size=self.env.action_space_shape[0])
+                         ).clip(
                         -self.max_action,
                         self.max_action
                     )
 
                 step_resources.append(self.rc.snapshot())  # s1
                 s_, r, episode_done, info = self.env.step(a)
+
+                # TODO: HWC to CHW conversion optimized here
+                # because pytorch can only deal with images in CHW format
+                # we are making the optimization here to convert from HWC to CHW format.
+                s_ = s_hwc_to_chw(s_)
+
+                #    s = [[s]]  # make state a list of sequences
+                #    s_ = [[s_]]
+                # elif isinstance(s[0], (int,float)):  # state does not have multiple seq
+                # s = [s]
+                # s_ = [s_]
+                # for item in s_:
+
                 step_resources.append(self.rc.snapshot())  # s2
 
                 self.memory.append(
@@ -201,10 +248,8 @@ class Trainer:
 
                 episode_reward += r
 
-                if t >= self.run_conf['batch_size'] * self.run_conf['batches_before_train']:
-                    batch_s, batch_a, batch_r, batch_s_, batch_d = self.memory.sample(self.run_conf['batch_size'])
-                    # print('training the agent')
-                    self.agent.train(batch_s, batch_a, batch_r, batch_s_, batch_d)
+                #if self.memory.size >= self.run_conf['batch_size'] * self.run_conf['batches_before_train']:
+
 
                 #                    if (t >= self.config['batch_size'] * self.config['batches_before_train']) and (t % 1000 == 0):
                 # episode_evaluations.append(evaluate_policy(self.agent, self.env, self.config['seed']))
@@ -217,7 +262,7 @@ class Trainer:
 
                 # TODO: Collect these through tensorboard
                 self.step_results_writer.writerow(
-                    [episode_num, t, r,step_time, unity_step_time, peak_memory])
+                    [episode_num, t, r, step_time, unity_step_time, peak_memory])
                 self.step_results_file.flush()
                 if (t_max and t >= t_max):
                     break

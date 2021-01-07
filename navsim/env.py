@@ -80,6 +80,7 @@ class NavSimEnv:
         print('Self Observation Space:', self.observation_space)
         print('Self Observation Space Shape:', self.observation_space.shape)
         print('Self Observation Space Shapes:', self.observation_space_shapes)
+        print('Self Observation Space Types:', self.observation_space_types)
         print('Reward Range:', self.genv.reward_range)
         print('Metadata:', self.genv.metadata)
 
@@ -111,6 +112,14 @@ class NavSimEnv:
         :return:
         """
         return [obs.shape for obs in self.observation_space]
+
+    @property
+    def observation_space_types(self):
+        """
+        Returns the dimensions of the observation space
+        :return:
+        """
+        return [type(obs) for obs in self.observation_space]
 
     @property
     def gym_env(self):
