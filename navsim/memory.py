@@ -1,6 +1,9 @@
 from typing import Union, Optional
 import numpy as np
 import pickle
+import sys
+from navsim.util import sizeof_fmt, image_layout
+
 
 class Memory:
     """
@@ -48,8 +51,8 @@ class Memory:
         # rg = Generator(mt)
         self.rng = np.random.default_rng(seed)
 
-        #if isinstance(state_shapes, (list, tuple)):  # state_dims is an int
-        if isinstance(state_shapes, (int,float)):  # state_dims is an int
+        # if isinstance(state_shapes, (list, tuple)):  # state_dims is an int
+        if isinstance(state_shapes, (int, float)):  # state_dims is an int
             state_shapes = [[state_shapes]]  # make state_dims a list of sequences
         elif isinstance(state_shapes[0], (int, float)):  # state_dims first member is an int
             state_shapes = [state_shapes]  # make state_dims a list of sequences
@@ -78,7 +81,7 @@ class Memory:
         if isinstance(s, (int, float)):  # state is an int
             s = [[s]]  # make state a list of sequences
             s_ = [[s_]]
-        elif isinstance(s[0], (int,float)):  # state does not have multiple seq
+        elif isinstance(s[0], (int, float)):  # state does not have multiple seq
             s = [s]
             s_ = [s_]
         for i in range(len(s)):
@@ -95,17 +98,18 @@ class Memory:
     def sample(self, size):
         if (size == 0) or (size >= self.size):
             # idx = list(range(self.size))   # just return all
-            return self.s,self.a,self.r,self.s_,self.d
+            return self.s, self.a, self.r, self.s_, self.d
         else:
             idx = self.rng.integers(low=0, high=self.size, size=size)
             s_len = len(self.s)
-            return [self.s[i][idx] for i in range(s_len)],\
-                   self.a[idx],\
-                   self.r[idx],\
-                   [self.s_[i][idx] for i in range(s_len)],\
+            return [self.s[i][idx] for i in range(s_len)], \
+                   self.a[idx], \
+                   self.r[idx], \
+                   [self.s_[i][idx] for i in range(s_len)], \
                    self.d[idx]
 
     def info(self):
+        print('-----------')
         print("Memory Info")
         print('-----------')
         print('capacity:', self.capacity)
@@ -117,6 +121,13 @@ class Memory:
         print('r:', self.r.shape)
         print('s_:', [a.shape for a in self.s_])
         print('d:', self.d.shape)
+        print("Sizes in bytes:")
+        print('memory:', sizeof_fmt(sys.getsizeof(self)))
+        print('s:', sizeof_fmt(sys.getsizeof(self.s)))
+        print('a:', sizeof_fmt(sys.getsizeof(self.a)))
+        print('r:', sizeof_fmt(sys.getsizeof(self.r)))
+        print('s_:', sizeof_fmt(sys.getsizeof(self.s_)))
+        print('d:', sizeof_fmt(sys.getsizeof(self.d)))
 
     def __len__(self):
         return len(self.mem)

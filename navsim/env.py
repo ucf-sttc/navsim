@@ -65,6 +65,7 @@ class NavSimEnv:
             raise ValueError('Environment not open')
 
     def info(self):
+        print('-----------')
         print("Env Info")
         print('-----------')
         if self.genv.spec:
