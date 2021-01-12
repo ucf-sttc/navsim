@@ -40,7 +40,7 @@ class NavSimEnv:
             environment_side_channel.set_float_parameter("goalSelectionIndex", self.conf['goal'])
             environment_side_channel.set_float_parameter("agentCarPhysics", self.conf['agent_car_physics'])
 
-            self.uenv = UnityEnvironment(file_name=str(Path(self.conf['filename']).resolve()),
+            self.uenv = UnityEnvironment(file_name=str(Path(self.conf['env_path']).resolve()),
                                          log_folder=str(log_folder.resolve()),
                                          seed=self.conf['seed'],
                                          timeout_wait=self.conf['timeout'],

@@ -8,7 +8,7 @@ import numpy as np
 
 from navsim import NavSimEnv, DDPGAgent, Memory
 from navsim.util import sizeof_fmt, image_layout
-from ezai_util import DictObj, ResourceCounter
+from ezai_util import ObjDict, ResourceCounter
 
 import traceback
 import numpy as np
@@ -33,12 +33,12 @@ class Trainer:
     """
 
     def __init__(self, run_id='navsim_test',
-                 run_resume=True, conf=None):
+                 resume=True, conf=None):
         """
 
         :param run_conf: A DictObj containing dictionary and object interface
         :param env: Any gym compatible environment
-        :param run_resume: True: means continue if run exists, else start new
+        :param resume: True: means continue if run exists, else start new
                            False: means overwrite if exists, else start new
         """
         self.run_id = run_id
@@ -48,21 +48,21 @@ class Trainer:
         #        if run_base_folder.is_dir():
         #            raise ValueError(f"{run_base_folder_str} exists as a non-directory. "
         #                             f"Please remove the file or use a different run_id")
-        if run_resume and run_base_folder.is_dir():
+        if resume and run_base_folder.is_dir():
             self.conf = DictObj().load_from_json_file(f"{run_base_folder_str}/conf.json")
-            self.run_resume = True
+            self.resume = True
             self.file_mode = 'a+'
 
         # else just start fresh
         else:
             self.conf = conf
-            self.run_resume = False
+            self.resume = False
             run_base_folder.mkdir(parents=True, exist_ok=True)
             self.conf.save_to_json_file(f"{run_base_folder_str}/conf.json")
             self.file_mode = 'w+'
 
-        self.run_conf = DictObj(self.conf.run_conf)
-        self.env_conf = DictObj(self.conf.env_conf)
+        self.run_conf = ObjDict(self.conf.run_conf)
+        self.env_conf = ObjDict(self.conf.env_conf)
 
         pylog_filename = run_base_folder / 'py.log'  # TODO: use logger
         self.pylog_filename = str(pylog_filename.resolve())
@@ -81,7 +81,7 @@ class Trainer:
         try:
             self.env = None
             self.env_open()
-            if run_resume and run_base_folder.is_dir():
+            if resume and run_base_folder.is_dir():
                 self.memory = Memory.load_from_pkl(self.memory_filename)
             else:
                 # TODO: HWC to CHW conversion optimized here
@@ -137,7 +137,7 @@ class Trainer:
                                               delimiter=',',
                                               quotechar='"',
                                               quoting=csv.QUOTE_MINIMAL)
-        if not self.run_resume:
+        if not self.resume:
             self.step_results_writer.writerow(
                 ['episode_num',
                  't',
@@ -152,7 +152,7 @@ class Trainer:
                                                  delimiter=',',
                                                  quotechar='"',
                                                  quoting=csv.QUOTE_MINIMAL)
-        if not self.run_resume:
+        if not self.resume:
             self.episode_results_writer.writerow(
                 ['episode_num',
                  'episode_reward',
