@@ -25,5 +25,10 @@ setuptools.setup(
         'Intended Audience :: Education',
         'Intended Audience :: Science/Research',
     ],
-    python_requires='>=3.6',
+    python_requires='>=3.7',
+    entry_points={
+        "console_scripts": [
+            "navsim-main=navsim.main:main",
+        ]
+    },
 )
