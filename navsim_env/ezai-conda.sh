@@ -99,6 +99,11 @@ install_habitat() {
   conda install -c conda-forge -c aihabitat habitat-sim withbullet headless
 }
 
+install_detectron() {
+  # Install detectron2
+  pip install detectron2 -f https://dl.fbaipublicfiles.com/detectron2/wheels/cu101/torch1.6/index.html
+}
+
 install_txt () {
   conda config --show-sources
   conda install -y -S --file $condatxt && \
@@ -144,7 +149,7 @@ ezai_conda_create () {
   activate "${venv}" && config_env
   deactivate
 
-  activate "${venv}" && ( install_cuda && install_fastai_pytorch && install_habitat && install_txt )
+  activate "${venv}" && ( install_cuda && install_fastai_pytorch && install_habitat && install_detectron && install_txt )
   deactivate
 
   # Expose environment as kernel

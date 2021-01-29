@@ -1,15 +1,11 @@
 # build with docker build -t ezml-gpu -f dockerfile-gpu  .
 # run with
-ARG BASE
-FROM $BASE as base-image
-MAINTAINER armando@neurasights.com
+FROM nvidia/cuda:10.2-cudnn7-runtime-ubuntu18.04 as base-image
 
 #ARG COMPONENTS=Unity,Windows,Windows-Mono,Mac,Mac-Mono,WebGL
 #ARG COMPONENTS=Unity,Mac,WebGL
 
 ENV CONDA_DIR="/opt/conda"
-
-USER root
 
 USER root
 RUN apt-get -qq update && \
@@ -21,14 +17,20 @@ RUN apt-get -qq update && \
       sudo \
       ca-certificates \
       run-one \
+      build-essential \
+      pkg-config \
+      patchelf \
+      cmake \
       # avoid curl - use wget
 	  wget \
+	  git \
 	  bzip2 \
 	  unzip \
-	  # only uncomment for diagnostics
-	  #iputils-ping \
-	  #htop \
+	  zip \
+	  htop \
+	  tmux \
 	  nano \
+	  vim \
 	  # for webdriver - folium
 	  firefox-geckodriver \
 	  # for matplotlib
@@ -42,13 +44,18 @@ RUN apt-get -qq update && \
 	  libosmesa6-dev \
 	  libglvnd-dev \
 	  libjpeg-dev \
+	  libpng-dev \
 	  libglm-dev \
+	  libglfw3-dev \
+	  libx11-dev \
 	  freeglut3-dev \
 	  xorg-dev \
+	  libomp-dev \
 	  xvfb \
-	  patchelf \
-	  cmake \
 	  swig \
+	  libsm6 \
+	  libxext6 \
+	  libxrender-dev \
 	  ffmpeg && \
 	  apt-get autoremove --purge && apt-get clean && rm -rf /var/lib/apt/lists/*
 
@@ -98,6 +105,17 @@ RUN source ezai-conda.sh && \
     ezai_conda_create --venv "base" && \
     chmod -R 777 ${CONDA_DIR} && \
     rm ezai-conda* ezai-pip-*
+
+# Install challenge specific habitat-api
+RUN git clone --branch stable https://github.com/facebookresearch/habitat-lab.git
+RUN /bin/bash -c "cd habitat-lab; git checkout 96243e6fdae1ba3ee8aae30edce9c18998515773; pip install -e ."
+#TODO: DOes this need to be in the Dockerfile
+RUN /bin/bash -c "cd habitat-lab; wget http://dl.fbaipublicfiles.com/habitat/habitat-test-scenes.zip; unzip habitat-test-scenes.zip"
+
+# Silence habitat-sim logs
+ENV GLOG_minloglevel=2
+ENV MAGNUM_LOG="quiet"
+
 
 #COPY conda-ez-update* /root/
 #RUN ./conda-ez-update.sh && \

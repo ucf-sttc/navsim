@@ -11,6 +11,7 @@ bidict
 tqdm
 pyyaml
 twine  # for pypi
+ifcfg
 
 # basic data science
 hypothesis>=3.58 # needed by pandas but doesnt install on win64
@@ -24,7 +25,7 @@ matplotlib>=3.3.0
 
 # visualization related
 # pytest-mpl
-# seaborn>=0.10.0
+seaborn>=0.10.0
 # bokeh>=2.0.0
 #plotly
 #plotnine
@@ -64,6 +65,7 @@ pillow<=7.2.0
 onnx
 statsmodels>=0.11.0
 scikit-learn>=0.23.0
+scikit-image
 scikit-optimize
 
 # clouds / datasets

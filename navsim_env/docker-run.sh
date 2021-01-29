@@ -4,8 +4,8 @@
 # to remove image: docker rmi <image>
 # to remove container: docker stop <container> && docker rm <container>
 
-cname=${cname:-'ezai-1'}
-itag=${itag:-'1.4.5'}
+cname=${cname:-'navsim-1'}
+itag=${itag:-'0.0.1'}
 while [ $# -gt 0 ]; do
    if [[ $1 == *"--"* ]]; then
         param="${1/--/}"
@@ -15,8 +15,11 @@ while [ $# -gt 0 ]; do
   shift
 done
 irepo="ghcr.io/armando-fandango" #image repo
-iname="${irepo}/ezai:${itag}"   #image name
+iname="${irepo}/navsim:${itag}"   #image name
 
+# singularity pull docker://ghcr.io/armando-fandango/navsim:0.0.1'
+# singularity shell --bind /mnt --nv navsim_0.0.1.sif'
+#
 # docker run -it --gpus all --name phd-gpu-1 -v ${HOME}/datasets:/root/datasets -v /home/armando/phd:/root/phd
 
 # Add this line to your ~/.bashrc
