@@ -1,0 +1,35 @@
+{
+  "env_conf": {
+    "env_path": "/home/afandang/unity-envs/2021-01-04/Berlin_Walk_v2",
+    "env_path": "/home/armando/unity-envs/2021-01-04/Berlin_Walk_v2",
+    "log_folder": "unity.log",
+    "seed": 123,
+    "timeout": 600,
+    "worker_id": 0,
+    "base_port": 5005,
+    "observation_mode": 2,
+    "segmentation_mode": 1,
+    "max_steps": 10,
+    "task": 0,
+    "goal": 0,
+    "reward_for_goal": 50,
+    "reward_for_ep": 0.005,
+    "reward_for_other": -0.1,
+    "reward_for_falling_off_map": -50,
+    "reward_for_step": -0.0001,
+    "agent_car_physics": 0
+  },
+  "run_conf": {
+    "env_name": "navsim",
+    "episode_max_steps": 10,
+    "num_episodes": 2,
+    "seed": 123,
+    "discount": 0.99,
+    "tau": 5e-3,
+    "expl_noise": 0.1,
+    "memory_capacity": 100,
+    "batch_size": 256,
+    "batches_before_train": 2,
+    "checkpoint_interval": 1
+  }
+}
