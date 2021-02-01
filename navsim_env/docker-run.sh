@@ -57,7 +57,7 @@ if [ "$(docker image inspect $iname > /dev/null 2>&1 && echo 1 || echo '')" ];
 then
   echo "found image $iname"
 else
-  ezai_pull_image
+  docker pull $iname
 fi
 
 # HAVE TO CHECK FOR IMAGE AGAIN BECAUSE BULD/PULL FAILS SOMETIME

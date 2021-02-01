@@ -13,7 +13,7 @@ do
       local="0"
       ;;
     -s|--singularity)
-      sing="1"
+      sing="0"
       ;;
     --)
       shift
@@ -39,7 +39,7 @@ image_exists () {
 }
 
 # "$(docker image inspect $iname > /dev/null 2>&1 && echo 1 || echo '')"
-if [ $(image_exists $iname) ];
+if [ "$(image_exists $iname)" ];
 then
   echo "found image $iname.. rebuilding"
 else
@@ -51,30 +51,28 @@ bopt+=" --no-cache "
 docker build $bopt -t $iname -f $dfile $dfolder
 
 # HAVE TO CHECK FOR IMAGE AGAIN BECAUSE BUILD FAILS SOMETIME
-if [ image_exists $iname ];
+if [ "$(image_exists $iname)" ];
 then
-   echo "created image $iname"
-   #docker push $iname
+  echo "created image $iname"
+
+  if [[ $local ]];
+  then
+    docker tag $iname $lname
+    docker push $lname
+  else
+    echo "no $local"
+    #docker push $iname
+  fi
 else
    echo "not created image $iname"
 fi
 
-if [ $local ];
-then
-  docker tag $iname $lname
-  docker push $lname
-else
-  echo "no $local"
-fi
-
-if [ $sing ];
-then
-  [ $local ] && (singularity pull lname) || (singularity pull iname)
-fi
-# docker run -d -p 5000:5000 --restart=always --name registry registry:2
+#
+# docker run -d -p 5000:5000 --restart=always --name registry -v /mnt/data/docker-registry:/var/lib/registry registry:2
 # docker container stop registry && docker container rm -v registry
 # docker tag $iname $lname
 # docker push $lname
 
 # singularity pull docker://ghcr.io/armando-fandango/navsim:0.0.1'
+# SINGULARITY_NOHTTPS=true singularity pull docker://localhost:5000/navsim:0.0.1
 # singularity shell --bind /mnt --nv navsim_0.0.1.sif'
