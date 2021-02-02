@@ -60,9 +60,11 @@ def main():
                              conf=conf)
 
     trainer.train()
-
+    print("training finished")
     trainer.env_close()
+    print("env closed")
     trainer.files_close()
+    print("files closed")
 
 # For python debugger to directly run this script
 if __name__ == "__main__":

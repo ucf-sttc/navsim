@@ -145,6 +145,9 @@ class Memory:
         with open(filename, "wb") as out_file:
             pickle.dump(self, out_file)
 
+    def save_to_npz(self, filename):
+        pass
+
     @staticmethod
     def load_from_pkl(filename):
         with open(filename, "rb") as in_file:

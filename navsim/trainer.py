@@ -12,6 +12,7 @@ from ezai_util import ObjDict, ResourceCounter
 
 import traceback
 import numpy as np
+from torch.utils.tensorboard import SummaryWriter
 
 
 def s_hwc_to_chw(s):
@@ -49,7 +50,7 @@ class Trainer:
         #            raise ValueError(f"{run_base_folder_str} exists as a non-directory. "
         #                             f"Please remove the file or use a different run_id")
         if resume and run_base_folder.is_dir():
-            self.conf = DictObj().load_from_json_file(f"{run_base_folder_str}/conf.json")
+            self.conf = ObjDict().load_from_json_file(f"{run_base_folder_str}/conf.json")
             self.resume = True
             self.file_mode = 'a+'
 
@@ -74,6 +75,9 @@ class Trainer:
         self.env_conf.log_folder = str(env_log_folder.resolve())
         self.model_filename = f"{run_base_folder_str}/model_state.pt"
         self.memory_filename = f"{run_base_folder_str}/memory.pkl"
+        #TODO: Add the code to delete previous files
+        #TODO: Add the code to add categories
+        self.summary_writer = SummaryWriter(f"{run_base_folder_str}/tb")
 
         self.rc = ResourceCounter()
         self.files_open()
@@ -123,6 +127,12 @@ class Trainer:
             self.files_close()
             print(traceback.format_exc())
             # print(e)
+
+    #TODO: Find a better name for  this function
+    def write_tb_values(self, values,t:int):
+        for key,value in values.items():
+            self.summary_writer.add_scalar(key,value,t)
+            self.summary_writer.flush()
 
     def apply_seed(self):
         self.env.seed(self.run_conf['seed'])  # TODO: not needed because env is seeded at time of creation
@@ -181,6 +191,7 @@ class Trainer:
         if self.env is None:
             print("Env is None")
         else:
+            print("closing the env now")
             self.env.close()
 
     def train(self):
@@ -281,6 +292,10 @@ class Trainer:
             #            if self.enable_logging:
             #                self.writer.add_scalar('Episode Reward', episode_reward, t)
             #            episode_rewards.append(episode_reward)
+            self.write_tb_values({'reward':episode_reward,
+                                  'time':episode_time,
+                                  'memory':episode_peak_memory},
+                                 episode_num)
             self.episode_results_writer.writerow([episode_num,
                                                   episode_reward,
                                                   episode_time,
