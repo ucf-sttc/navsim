@@ -24,36 +24,14 @@ matplotlib>=3.3.0
 # neo4j-python-driver>=4.1.0
 
 # visualization related
-# pytest-mpl
 seaborn>=0.10.0
 # bokeh>=2.0.0
-#plotly
-#plotnine
-#ggplot>=0.11.0
+
 # graphviz
 # python-graphviz
 
 terminaltables
 tabulate
-
-# geospatial related
-#proj
-#basemap
-#basemap-data-hires
-#geopandas
-#descartes # for geopandas
-# folium
-# selenium # for folium
-
-# text related
-# nltk>=3.4.0
-# gensim>=3.8.0
-# spacy>=2.3.0
-# transformers==4.1.1
-# sentencepiece
-
-# textblob
-# wordcloud>=1.8.0
 
 # image / vision related
 ffmpeg>=4.3
@@ -63,15 +41,9 @@ pillow<=7.2.0
 
 # ml/dl/rl related
 onnx
-statsmodels>=0.11.0
 scikit-learn>=0.23.0
 scikit-image
 scikit-optimize
-
-# clouds / datasets
-# awscli
-# boto3
-# kaggle
 
 python-snappy
 pyarrow>=1.0  #  dont use fastparquet

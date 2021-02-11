@@ -5,7 +5,7 @@
 # to remove container: docker stop <container> && docker rm <container>
 
 cname=${cname:-'navsim-1'}
-itag=${itag:-'0.0.1'}
+itag=${itag:-'0.0.3'}
 while [ $# -gt 0 ]; do
    if [[ $1 == *"--"* ]]; then
         param="${1/--/}"
@@ -34,7 +34,7 @@ alias eznb='conda activate ezai && xvfb-run -a -s "-screen 0 128x128x24" -- jupy
 #cports+=" -p 5004:5004 " # unity
 #cports+=" -p 5005:5005 " # unity
 
-wfolder=" -w ${HOME}"
+wfolder=" -w ${PWD}/../demo"
 vfolders=" "
 vfolders+=" -v ${HOME}:${HOME}"
 vfolders+=" -v /mnt:/mnt "
@@ -49,8 +49,8 @@ vfolders+=" -v /etc/shadow:/etc/shadow:ro"
 #dfolder="."
 
 # exec options
-evars=" -e COMPUTE=${compute} -e DISPLAY -e XAUTHORITY -e NVIDIA_DRIVER_CAPABILITIES=all "
-user="-u $(id -u):$(id -g)"
+evars=" -e DISPLAY -e XAUTHORITY -e NVIDIA_DRIVER_CAPABILITIES=all "
+user=" -u $(id -u):$(id -g)"
 xhost +  # for running GUI app in container
 
 if [ "$(docker image inspect $iname > /dev/null 2>&1 && echo 1 || echo '')" ];
@@ -68,11 +68,12 @@ then
     echo "found container $cname"
     if [ "$(docker container inspect $cname -f '{{.State.Status}}')"!="running" ]
     then
-      echo "attempting to start container $cname"
+      echo "starting container $cname"
       docker start "$cname"
     fi
     echo "entering started container $cname"
-    docker exec -it $user $wfolder $evars $cname bash
+    echo "docker exec -it $user ${wfolder} ${evars} $cname bash"
+    docker exec -it $user ${wfolder} ${evars} $cname bash
   else
     echo "creating, starting and then entering container $cname"
     # shellcheck disable=SC2154

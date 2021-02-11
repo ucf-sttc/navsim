@@ -14,16 +14,21 @@ keras-tuner
 # needed for tensorflow ends
 tensorflow<=2.3
 
+
+# needed for detectron
+
+
+# needed for detectron ends
+detectron2 @ https://dl.fbaipublicfiles.com/detectron2/wheels/cu101/torch1.6/detectron2-0.3%2Bcu101-cp38-cp38-linux_x86_64.whl
+#https://dl.fbaipublicfiles.com/detectron2/wheels/cu101/torch1.6/index.html
+
 # needed for gym
 opencv-python
 atari-py
 # needed for gym end
-gym
+gym==0.18.0
 
-cutecharts
-#neo4j
-
-# unity begin  release_12 c# v1.7.2
+# unity begin  release_12 c# v1.7.2 py 0.23
 mlagents==0.23.0
 mlagents_envs==0.23.0
 gym_unity==0.23.0

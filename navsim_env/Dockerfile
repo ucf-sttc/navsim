@@ -1,6 +1,4 @@
-# build with docker build -t ezml-gpu -f dockerfile-gpu  .
-# run with
-FROM nvidia/cuda:10.2-cudnn7-runtime-ubuntu18.04 as base-image
+FROM nvidia/cuda:10.1-cudnn7-runtime-ubuntu18.04 as base-image
 
 #ARG COMPONENTS=Unity,Windows,Windows-Mono,Mac,Mac-Mono,WebGL
 #ARG COMPONENTS=Unity,Mac,WebGL

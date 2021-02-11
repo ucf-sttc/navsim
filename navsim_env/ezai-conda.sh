@@ -47,7 +47,7 @@ create_venv () {
 
 install_venv () {
   echo "installing python $py_ver in $venv..."
-  conda install -y -S -c conda-forge "python=${py_ver}"
+  conda install -y -S -c conda-forge "python=$py_ver"
   return $?
 }
 
@@ -96,7 +96,7 @@ install_fastai_pytorch () {
 install_habitat() {
   #conda config --env --prepend channels aihabitat
   #conda config --show-sources
-  conda install -c conda-forge -c aihabitat habitat-sim withbullet headless
+  conda install -c conda-forge -c aihabitat "habitat-sim=0.1.7" withbullet headless
 }
 
 install_detectron() {
@@ -133,24 +133,20 @@ ezai_conda_create () {
 
   if [ "${venv}" != "base" ];
   then
-    echo "setting base conda to 4.6.14, python to 3.7.3"
+    echo "no more setting base conda to 4.6.14, python to 3.7.3"
     activate base
     conda config --env --set auto_update_conda False
     conda config --show-sources
-    conda install -y --no-update-deps "conda=4.6.14" "python=3.7.3" || (echo "Unable to update base conda"; exit 1)
+    #conda install -y --no-update-deps "conda=4.6.14" "python=3.7.3" || (echo "Unable to update base conda"; exit 1)
     deactivate
-
     activate "${venv}" || create_venv || (echo "Unable to create ${venv}" ; exit 1)
   else
     activate "${venv}" && install_venv
-    deactivate
   fi
 
-  activate "${venv}" && config_env
-  deactivate
+  config_env
 
-  activate "${venv}" && ( install_cuda && install_fastai_pytorch && install_habitat && install_detectron && install_txt )
-  deactivate
+  install_cuda && install_fastai_pytorch && install_habitat && install_txt
 
   # Expose environment as kernel
   #python -m ipykernel install --user --name ezai-conda --display-name "ezai-conda"
@@ -158,9 +154,9 @@ ezai_conda_create () {
   # TODO: Uncomment below in final version
   if [ "${venv}" != "base" ];
   then
-    activate "${venv}" &&  conda clean -yt
-    deactivate
+    conda clean -yt
   fi
+  deactivate
   activate base && conda clean -yt
   deactivate
   find $(conda info --base) -follow -type f -name '*.a' -delete
@@ -179,161 +175,3 @@ ezai_conda_create () {
   echo "Activate your environment with  conda activate $venv  and then test with pytest -p no:warnings -vv"
 }
 
-set_sagemaker_env () {
-
-  # prepare instance for lifecycle configuration
-  INSTANCE_NAME=${INSTANCE_NAME:-'ai-playground'}
-  while [ $# -gt 0 ]; do
-    case $1 in
-      -i|--instance-name)
-        #param="${1/--/}"
-        declare INSTANCE_NAME="$2"
-        ;;
-      -c|--clean)
-        local CLEAN='true'
-    esac
-    shift
-  done
-
-  echo "Stopping instance $INSTANCE_NAME"
-  aws sagemaker stop-notebook-instance \
-      --notebook-instance-name "$INSTANCE_NAME"
-  aws sagemaker wait notebook-instance-stopped \
-      --notebook-instance-name "$INSTANCE_NAME"
-
-  CONFIGURATION_NAME=$(aws sagemaker describe-notebook-instance --notebook-instance-name "${INSTANCE_NAME}" | jq -e '.NotebookInstanceLifecycleConfigName | select (.!=null)' | tr -d '"')
-  echo "Configuration [\"$CONFIGURATION_NAME\"] attached to notebook instance $INSTANCE_NAME"
-
-  if [[ -z "$CLEAN" ]]; then
-    # clean variable is not defined
-
-    # add repo to instance
-#    update_params=' --additional-code-repositories "https://github.com/armando-fandango/ezai_env.git" '
-    ATTACHED_EZAI_ENV=$(aws sagemaker describe-notebook-instance --notebook-instance-name "${INSTANCE_NAME}" | jq -e '.AdditionalCodeRepositories | map(select (.=="ezai-env"))[0]' | tr -d '"')
-    if [[ -z "$ATTACHED_EZAI_ENV" ]]; then
-      # there is no attached repo, attach it
-      echo "Attaching repo ezai-env ..."
-
-      REPO_EZAI_ENV=$(aws sagemaker list-code-repositories --name-contains 'ezai-env' | jq -e '.CodeRepositorySummaryList[] | .CodeRepositoryName' | tr -d '"')
-      if [[ -z "$REPO_EZAI_ENV" ]]; then
-        echo "ezai-env code repo not present in sagemaker, creating repo ezai-env ..."
-        aws sagemaker create-code-repository \
-          --code-repository-name "ezai-env" \
-          --git-config '{"Branch":"main", "RepositoryUrl" :
-            "https://github.com/armando-fandango/ezai_env.git" }'
-      else
-        echo "ezai-env code repo present in sagemaker"
-      fi
-
-      aws sagemaker update-notebook-instance \
-        --notebook-instance-name "$INSTANCE_NAME" \
-        --additional-code-repositories "ezai-env"
-
-      aws sagemaker wait notebook-instance-stopped \
-        --notebook-instance-name "$INSTANCE_NAME"
-    fi
-
-    if [[ -z "$CONFIGURATION_NAME" ]]; then
-        # there is no attached configuration name, create a new one
-        CONFIGURATION_NAME="ezai-sagemaker"
-        CONFIG_EZAI_PRESENT = $(aws sagemaker list-notebook-instance-lifecycle-configs --name-contains $CONFIGURATION_NAME | jq -e '.NotebookInstanceLifecycleConfigs[] | .NotebookInstanceLifecycleConfigName' | tr -d '"' )
-        if [[ -z "$CONFIG_EZAI_PRESENT" ]]; then
-          echo "Creating new configuration $CONFIGURATION_NAME..."
-          aws sagemaker create-notebook-instance-lifecycle-config \
-            --notebook-instance-lifecycle-config-name "$CONFIGURATION_NAME" \
-            --on-start Content=$(echo '#!/usr/bin/env bash'| base64) \
-            --on-create Content=$(echo '#!/usr/bin/env bash' | base64)
-        else
-          echo "Found existing configuration $CONFIGURATION_NAME"
-        fi
-        aws sagemaker update-notebook-instance \
-            --notebook-instance-name "$INSTANCE_NAME" \
-            --lifecycle-config-name "$CONFIGURATION_NAME"
-
-        aws sagemaker wait notebook-instance-stopped \
-            --notebook-instance-name "$INSTANCE_NAME"
-        # attaching lifecycle configuration to the notebook instance
-        #update_params+=" --lifecycle-config-name "+"$CONFIGURATION_NAME"
-    fi
-    #echo "Attaching repo ezai_env and configuration $CONFIGURATION_NAME to ${INSTANCE_NAME}..."
-    #aws sagemaker update-notebook-instance \
-    #    --notebook-instance-name "$INSTANCE_NAME" \
-    #    $update_params
-    #aws sagemaker wait notebook-instance-stopped \
-    #    --notebook-instance-name "$INSTANCE_NAME"
-
-
-    echo "Downloading on-start.sh..."
-    # save the existing on-start script into on-start.sh
-    aws sagemaker describe-notebook-instance-lifecycle-config \
-        --notebook-instance-lifecycle-config-name "$CONFIGURATION_NAME" | jq '.OnStart[0].Content'  | tr -d '"' | base64 --decode > on-start.sh
-
-    echo "Adding extensions install to on-start.sh..."
-    echo '' >> on-start.sh
-    #echo '# update ezai_env' >> on-start.sh
-    #echo 'cd /home/ec2-user/SageMaker/ezai_env' >> on-start.sh
-    #echo 'git stash' >> on-start.sh
-    #echo 'git pull --rebase' >> on-start.sh
-    echo '# configure sagemaker as per ezai' >> on-start.sh
-    #echo "export PIP_PACKAGE_NAME=\"${PIP_PACKAGE_NAME}\"" >> on-start.sh
-    #echo "export EXTENSION_NAME=\"${EXTENSION_NAME}\"" >> on-start.sh
-    echo 'cat /home/ec2-user/SageMaker/ezai_env/sagemaker/on-start.sh | bash' >> on-start.sh
-  else
-    if [[ -z "$CONFIGURATION_NAME" ]]; then
-      echo "No config attached, nothing to empty"
-    else
-      echo "creating empty  on-start.sh..."
-      echo '' > on-start.sh
-    fi
-  fi
-
-  if [[ -z "$CONFIGURATION_NAME" ]]; then
-    echo ""
-  else
-    echo "Uploading on-start.sh..."
-    # update the lifecycle configuration config with updated on-start.sh script
-    aws sagemaker update-notebook-instance-lifecycle-config \
-      --notebook-instance-lifecycle-config-name "$CONFIGURATION_NAME" \
-      --on-start Content="$( (cat on-start.sh)| base64)"
-    aws sagemaker wait notebook-instance-stopped \
-      --notebook-instance-name "$INSTANCE_NAME"
-    rm on-start.sh
-  fi
-}
-
-sagemaker_lifecycle_download () {
-
-  INSTANCE_NAME='ai-playground'
-
-  echo "Downloading on-start.sh..."
-  # save the existing on-start script into on-start.sh
-  aws sagemaker describe-notebook-instance-lifecycle-config \
-    --notebook-instance-lifecycle-config-name "$CONFIGURATION_NAME" | jq '.OnStart[0].Content'  | tr -d '"' | base64 --decode > on-start.sh
-}
-
-sagemaker_lifecycle_upload () {
-
-  INSTANCE_NAME='ai-playground'
-
-  CONFIGURATION_NAME=$(aws sagemaker describe-notebook-instance --notebook-instance-name "${INSTANCE_NAME}" | jq -e '.NotebookInstanceLifecycleConfigName | select (.!=null)' | tr -d '"')
-  echo "Configuration \"$CONFIGURATION_NAME\" attached to notebook instance $INSTANCE_NAME"
-
-  echo "Uploading on-start.sh..."
-  # update the lifecycle configuration config with updated on-start.sh script
-  aws sagemaker update-notebook-instance-lifecycle-config \
-      --notebook-instance-lifecycle-config-name "$CONFIGURATION_NAME" \
-      --on-start Content="$((cat on-start.sh)| base64)"
-}
-
-#while [[ "$#" -gt 0 ]]
-#  do
-#    case $1 in
-#      -f|--follow)
-#        local FOLLOW="following"
-#        ;;
-#      -t|--tail)
-#        local TAIL="tail=$2"
-#        ;;
-#    esac
-#    shift
-#  done
