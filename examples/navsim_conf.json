@@ -1,13 +1,13 @@
 {
   "env_conf": {
-    "env_path": "/home/afandang/unity-envs/2021-01-04/Berlin_Walk_v2",
-    "env_path": "/home/armando/unity-envs/2021-01-04/Berlin_Walk_v2",
+    "env_path": "/home/afandang/unity-envs/BerlinLinux_2019.3.9f1_R3_2.3.0/Berlin_Walk_V2",
+    "env_path": "/home/afandang/unity-envs/BerlinLinux_2020.2.1f1_R12_2.4.5/Berlin_Walk_V2",
     "log_folder": "unity.log",
     "seed": 123,
     "timeout": 600,
     "worker_id": 0,
     "base_port": 5005,
-    "observation_mode": 2,
+    "observation_mode": 0,
     "segmentation_mode": 1,
     "max_steps": 10,
     "task": 0,
