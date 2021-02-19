@@ -1,4 +1,5 @@
 import time
+import uuid
 from enum import Enum
 import argparse
 from pathlib import Path
@@ -41,7 +42,7 @@ def main(args : argparse.Namespace):
     #Connect to Unity Editor environment
     unityEnvironmentStr = str(args.binary)
     #Connect to specified binary environment
-    unity_env = UnityEnvironment(file_name = unityEnvironmentStr, seed = args.seed, timeout_wait=args.timeout, side_channels =[engine_side_channel, environment_side_channel])
+    unity_env = UnityEnvironment(file_name = unityEnvironmentStr, worker_id = args.worker_id, seed = args.seed, timeout_wait=args.timeout, side_channels =[engine_side_channel, environment_side_channel])
     
     #Engine Side Channels
     engine_side_channel.set_configuration_parameters(time_scale = args.timescale, quality_level = args.quality_level)
@@ -89,7 +90,7 @@ def main(args : argparse.Namespace):
     #environment_side_channel.set_float_parameter("goalSelectionIndex", goalSelectionIndex)
 
     #File to save step time benchmarks
-    BASEFILENAME = "bench-a"+args.a+"-t"+str(args.t)+"-s"+str(segmentationMode)+"-e"+str(episodeLength)+"-p"+str(agentCarPhysics)+"-sv"+str(int(saveImageFlag))
+    BASEFILENAME = "bench"+uuid.uuid4().hex+"-a"+args.a+"-t"+str(args.t)+"-s"+str(segmentationMode)+"-e"+str(episodeLength)+"-p"+str(agentCarPhysics)+"-sv"+str(int(saveImageFlag))
     print(BASEFILENAME)
     timestr = time.strftime("%Y%m%d-%H%M%S")
     baseFileNameWithTime = BASEFILENAME + "-" + timestr 
@@ -181,6 +182,7 @@ if __name__ == '__main__':
     parser.add_argument('-a', default="Vector", choices=["Vector", "Visual", "VectorVisual"], help="Type of agent")
     parser.add_argument('-s', default=0, type=int, choices=[0,1,2], help="Segmentation model for visual observations")
     parser.add_argument('-e', default=2500, type=int, help="Episode length integer")
+    parser.add_argument('--worker_id', default=0, type=int, help="Worker Id used to offset comms port for multiple instances")
     parser.add_argument('--seed', default=0, type=int, help="Unity Engine seed")
     parser.add_argument('--timeout', default=1000, type=int, help="Amount of time in seconds to wait for a connection to the binary")
     parser.add_argument('--timescale', default=2, type=int, help="Unity Engine physics timescale modifier")
