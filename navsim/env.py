@@ -6,7 +6,12 @@ from pathlib import Path
 
 
 class NavSimEnv:
-    def __init__(self, conf):  # filename: Optional[str] = None, observation_mode: int = 0, max_steps:int = 5):
+    def __init__(self, conf):
+        """
+        conf: ObjDict having Environment Conf
+        :param conf:
+        """
+        # filename: Optional[str] = None, observation_mode: int = 0, max_steps:int = 5):
         self.conf = conf
 
         self.observation_mode = self.conf['observation_mode']
@@ -112,7 +117,7 @@ class NavSimEnv:
         Returns the dimensions of the observation space
         :return:
         """
-        return [obs.shape for obs in self.observation_space]
+        return [obs.shape for obs in self.observation_space.spaces]
 
     @property
     def observation_space_types(self):
@@ -120,7 +125,7 @@ class NavSimEnv:
         Returns the dimensions of the observation space
         :return:
         """
-        return [type(obs) for obs in self.observation_space]
+        return [type(obs) for obs in self.observation_space.spaces]
 
     @property
     def gym_env(self):
@@ -137,5 +142,7 @@ class NavSimEnv:
         return self.genv.reset()
 
     def seed(self, seed=None):
-        self.genv.action_space.np_random.seed(seed)
-        #self.genv.seed(seed)
+        # TODO: This is broken in gym 0.10.9, fix it when they fix it
+        # self.genv.action_space.seed(seed)
+        # self.genv.seed(seed)
+        pass

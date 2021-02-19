@@ -44,6 +44,7 @@ onnx
 scikit-learn>=0.23.0
 scikit-image
 scikit-optimize
+scikit-fmm
 
 python-snappy
 pyarrow>=1.0  #  dont use fastparquet

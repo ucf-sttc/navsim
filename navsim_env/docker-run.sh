@@ -34,7 +34,7 @@ alias eznb='conda activate ezai && xvfb-run -a -s "-screen 0 128x128x24" -- jupy
 #cports+=" -p 5004:5004 " # unity
 #cports+=" -p 5005:5005 " # unity
 
-wfolder=" -w ${PWD}/../demo"
+wfolder=" -w ${PWD}/../examples"
 vfolders=" "
 vfolders+=" -v ${HOME}:${HOME}"
 vfolders+=" -v /mnt:/mnt "

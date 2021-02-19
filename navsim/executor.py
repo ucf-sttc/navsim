@@ -28,7 +28,7 @@ def s_hwc_to_chw(s):
     return s
 
 
-class Trainer:
+class Executor:
     """
         TODO
     """
@@ -37,7 +37,7 @@ class Trainer:
                  resume=True, conf=None):
         """
 
-        :param run_conf: A DictObj containing dictionary and object interface
+        :param conf: A ObjDict containing dictionary and object interface
         :param env: Any gym compatible environment
         :param resume: True: means continue if run exists, else start new
                            False: means overwrite if exists, else start new
@@ -194,10 +194,14 @@ class Trainer:
             print("closing the env now")
             self.env.close()
 
-    def train(self):
-        t_max = int(self.run_conf['episode_max_steps'])
+    def execute(self):
+        """
+        Execute for the number of episodes
+        :return:
+        """
+        t_max = int(self.conf['episode_max_steps'])
 
-        for episode_num in tqdm(range(0, int(self.run_conf['num_episodes']))):
+        for episode_num in tqdm(range(0, int(self.conf['num_episodes']))):
             self.rc.start()
             episode_resources = [self.rc.snapshot()]  # e0
 

@@ -10,4 +10,9 @@ navsim_test
 /notebooks/navsim_demo/
 /build/
 /dist/
-/demo/navsim_demo/
+/examples/navsim_demo/
+*.sif
+/examples/demo/
+/examples/results/
+/notebooks/navsim_demo.1/
+/notebooks/

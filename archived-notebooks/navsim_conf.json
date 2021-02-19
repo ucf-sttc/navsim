@@ -1,7 +1,6 @@
 {
   "env_conf": {
     "env_path": "/home/afandang/unity-envs/2021-01-04/Berlin_Walk_v2",
-    "env_path": "/home/armando/unity-envs/2021-01-04/Berlin_Walk_v2.x86_64",
     "log_folder": "unity.log",
     "seed": 123,
     "timeout": 600,

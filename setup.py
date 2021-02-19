@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="navsim",
-    version="0.0.2",
+    version="0.0.3",
     author="STTC, IST, UCF",
     author_email="armando@ucf.edu",
     description="Navigation Simulator",
@@ -28,7 +28,7 @@ setuptools.setup(
     python_requires='>=3.7',
     entry_points={
         "console_scripts": [
-            "navsim-learn=navsim.main:main",
+            "navsim=navsim.main:main",
         ]
     },
 )

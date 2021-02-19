@@ -2,6 +2,7 @@
 # keep most imortant at the end
 
 scikit-posthocs
+
 torchsummary
 
 # needed for tensorflow

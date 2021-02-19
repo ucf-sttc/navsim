@@ -1,4 +1,4 @@
-FROM nvidia/cuda:10.1-cudnn7-runtime-ubuntu18.04 as base-image
+FROM nvidia/cudagl:10.1-devel-ubuntu18.04 as base-image
 
 #ARG COMPONENTS=Unity,Windows,Windows-Mono,Mac,Mac-Mono,WebGL
 #ARG COMPONENTS=Unity,Mac,WebGL
@@ -104,16 +104,9 @@ RUN source ezai-conda.sh && \
     chmod -R 777 ${CONDA_DIR} && \
     rm ezai-conda* ezai-pip-*
 
-# Install challenge specific habitat-api
-RUN git clone --branch stable https://github.com/facebookresearch/habitat-lab.git
-RUN /bin/bash -c "cd habitat-lab; git checkout 96243e6fdae1ba3ee8aae30edce9c18998515773; pip install -e ."
-#TODO: DOes this need to be in the Dockerfile
-RUN /bin/bash -c "cd habitat-lab; wget http://dl.fbaipublicfiles.com/habitat/habitat-test-scenes.zip; unzip habitat-test-scenes.zip"
-
 # Silence habitat-sim logs
 ENV GLOG_minloglevel=2
 ENV MAGNUM_LOG="quiet"
-
 
 #COPY conda-ez-update* /root/
 #RUN ./conda-ez-update.sh && \
