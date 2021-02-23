@@ -1,7 +1,7 @@
 # Introduction 
 This is Pytorch and Ml-Agents based front end for learning reinforcement learning based models for visual navigation.
 
-# Getting Started
+# Run the container first
 
 ## To run the singularity container
 Note: Do it on a partition that has at least 10GB space as the next step will create navsim_0.0.1.sif file of ~10GB.
@@ -9,10 +9,13 @@ Note: Do it on a partition that has at least 10GB space as the next step will cr
 ```
 ver=0.0.3
 singularity pull docker://ghcr.io/armando-fandango/navsim:$ver
-singularity shell --nv navsim_0.0.1.$ver
+singularity shell --nv navsim_$ver.sif
 ```
-
-# To run the Docker container:
+From local docker repo:
+```
+ver=0.0.3; SINGULARITY_NOHTTPS=true singularity pull docker://localhost:5000/navsim:$ver
+```
+## To run the Docker container:
 
 ```
 docker pull ghcr.io/armando-fandango/navsim:$ver
@@ -22,13 +25,10 @@ docker run -it --gpus all --name navsim_${ver}_1 \
   -v /mnt:/mnt \ 
   navsim_$ver bash
 ```
-## To run NeuralSLAM on BerlinWalk
+# Now run BerlinWalk
 * `navsim` - executes and/or trains the model
 * `navsim-benchmark` - benchmarks the model
 * `navsim-saturate-gpu` - Saturates the GPU
-
-## To run NeuralSLAM on Habitat
-TODO
 
 # Contribute
 
