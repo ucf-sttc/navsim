@@ -12,7 +12,7 @@ singularity pull docker://ghcr.io/armando-fandango/navsim:$ver
 singularity shell --nv navsim_$ver.sif
 ```
 
-# To run the Docker container:
+## To run the Docker container:
 
 ```
 docker pull ghcr.io/armando-fandango/navsim:$ver
@@ -22,13 +22,10 @@ docker run -it --gpus all --name navsim_${ver}_1 \
   -v /mnt:/mnt \ 
   navsim_$ver bash
 ```
-## To run NeuralSLAM on BerlinWalk
+# To run NeuralSLAM on BerlinWalk
 * `navsim` - executes and/or trains the model
 * `navsim-benchmark` - benchmarks the model
 * `navsim-saturate-gpu` - Saturates the GPU
-
-## To run NeuralSLAM on Habitat
-TODO
 
 # Contribute
 
