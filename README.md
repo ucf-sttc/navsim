@@ -7,9 +7,9 @@ This is Pytorch and Ml-Agents based front end for learning reinforcement learnin
 Note: Do it on a partition that has at least 10GB space as the next step will create navsim_0.0.1.sif file of ~10GB.
 
 ```
-ver=0.0.3
+ver=1.0.0
 singularity pull docker://ghcr.io/armando-fandango/navsim:$ver
-singularity shell --nv navsim_0.0.1.$ver
+singularity shell --nv navsim_$ver.sif
 ```
 
 # To run the Docker container:

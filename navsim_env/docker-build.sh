@@ -2,7 +2,7 @@
 
 export local=0
 export sing=1
-export itag="0.0.3"
+export itag="1.0.0"
 
 options=$(getopt -l "remote,singularity" -a -o "rs" -- "$@")
 eval set -- "$options"
