@@ -3,7 +3,8 @@ This is Pytorch and Ml-Agents based front end for learning reinforcement learnin
 
 # Getting Started
 
-# Start X server
+## Headless Run with X-Server 
+TODO: Containerize it
 
 Assumption: X is installed, nvidia-drivers
 
@@ -19,20 +20,20 @@ For tmux hotkeys press ctrl+b then following key
 * Exit Session: Type exit into all open shells within session
 
 
-## X server setup and startup (Admin required)
+### X server setup and startup (Admin required)
 Note: Either run X in a tmux session or have admin start X with generated config and display port in background manually or on startup
  tmux new -s x-server
 ```
 #For Lambda quad
- sudo nvidia-xconfig -o headlessxorg.conf -a --use-display-device=None --virtual=1280x1024
+ nvidia-xconfig -o headlessxorg.conf -a --use-display-device=None --virtual=1280x1024
 #For V100 servers or Nvidia GRID enabled machines
- sudo nvidia-xconfig -o headlessxorg.conf -a 
+ nvidia-xconfig -o headlessxorg.conf -a 
 
 #You can select a perferred DISPLAY port
  sudo X -config headlessxorg.conf :88 (Running in background with & stops the process, TODO containerized)
 ```
 
-## GPU Usage examples
+### GPU Usage examples
 Note: In new pane run container (can pass DISPLAY below as a variable), navigate to training command directory, and setup training specific configurations
 ```
 Run a command on a specific gpu
