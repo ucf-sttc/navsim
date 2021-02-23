@@ -1,7 +1,7 @@
 # Introduction 
 This is Pytorch and Ml-Agents based front end for learning reinforcement learning based models for visual navigation.
 
-# Getting Started
+# Run the container first
 
 ## Headless Run with X-Server 
 TODO: Containerize it
@@ -52,7 +52,10 @@ ver=1.0.0
 singularity pull docker://ghcr.io/armando-fandango/navsim:$ver
 singularity shell --nv navsim_$ver.sif
 ```
-
+From local docker repo:
+```
+ver=0.0.3; SINGULARITY_NOHTTPS=true singularity pull docker://localhost:5000/navsim:$ver
+```
 ## To run the Docker container:
 
 ```
@@ -63,7 +66,7 @@ docker run -it --gpus all --name navsim_${ver}_1 \
   -v /mnt:/mnt \ 
   navsim_$ver bash
 ```
-# To run NeuralSLAM on BerlinWalk
+# Now run BerlinWalk
 * `navsim` - executes and/or trains the model
 * `navsim-benchmark` - benchmarks the model
 * `navsim-saturate-gpu` - Saturates the GPU
