@@ -1,13 +1,14 @@
-#!/usr/bin/env python3
-
-from conda.cli.python_api import Commands, run_command
+#!/usr/bin/env bash
 
 #venv='ezai'
-def prefix():
-  conda_base = run_command(Commands.INFO, " --base")
-  venv = f"{conda_base}/envs/ezai"
 
-  return
+activate () {
+  conda activate $1 || source activate $1
+}
+
+deactivate () {
+  conda deactivate || source deactivate
+}
 
 install_jupyter () {
   echo "Installing jupyter ..."
@@ -40,13 +41,13 @@ install_jupyter_kernel () {
 
 create_venv () {
   echo "$venv doesnt exist - creating now with python $py_ver ..."
-  conda create -y -p $venv -c conda-forge "python=$py_ver" "conda=4.6.14" "pip=20.2.2"
+  conda create -y -p $venv -c conda-forge "python=$py_ver"
   return $?
 }
 
 install_venv () {
   echo "installing python $py_ver in $venv..."
-  conda install -y -S -c conda-forge "python=${py_ver}" "conda=4.6.14" "pip=20.2.2"
+  conda install -y -S -c conda-forge "python=$py_ver"
   return $?
 }
 
@@ -74,8 +75,11 @@ config_env () {
 
 install_cuda () {
   echo "Installing cuda ..."
-  conda install -y -S -c conda-forge -c defaults "cudatoolkit=10.1" "cudnn>=7.6.5" && \
-  conda install -y -S "nccl" #"mpi4py>=3.0.0" gxx_linux-64 gcc_linux-64
+  conda config --env --prepend channels nvidia
+  conda config --show-sources
+  conda install -y -S "cudatoolkit=10.1" "cudnn=7.6.0" "nccl"
+  #&& \
+  #conda install -y -S "nccl" #"mpi4py>=3.0.0" gxx_linux-64 gcc_linux-64
   return $?
 }
 
@@ -87,6 +91,34 @@ install_fastai_pytorch () {
   # numpy spec due to tensorflow and pillow spec due to gym
   conda install -y -S "fastai=2.0.0" "pytorch=1.6.0" "torchvision=0.7.0" "numpy<1.19.0" #"gym=0.18.0"
   return $?
+}
+
+install_habitat() {
+  #conda config --env --prepend channels aihabitat
+  #conda config --show-sources
+  #conda install -c conda-forge -c aihabitat "habitat-sim=0.1.7" withbullet headless
+  #TODO: Does this need to be in the Dockerfile ?
+
+  git clone https://github.com/facebookresearch/habitat-sim.git /opt/habitat-sim && \
+    cd /opt/habitat-sim && \
+    git checkout 9575dcd45fe6f55d2a44043833af08972a7895a9 && \
+    pip install -r /opt/habitat-sim/requirements.txt && \
+    python setup.py install --headless && \
+    cd - && \
+    git clone https://github.com/facebookresearch/habitat-lab.git /opt/habitat-lab && \
+    cd /opt/habitat-lab && \
+    git checkout b5f2b00a25627ecb52b43b13ea96b05998d9a121 && \
+    pip install -e /opt/habitat-lab && \
+    wget http://dl.fbaipublicfiles.com/habitat/habitat-test-scenes.zip && \
+    unzip habitat-test-scenes.zip && \
+    cd - && \
+    chmod -R 777 ${CONDA_DIR} /opt/habitat*
+    return $?
+}
+
+install_detectron() {
+  # Install detectron2
+  pip install detectron2 -f https://dl.fbaipublicfiles.com/detectron2/wheels/cu101/torch1.6/index.html
 }
 
 install_txt () {
@@ -101,7 +133,7 @@ ezai_conda_create () {
   venv=${venv:-$(conda info --base)/envs/ezai}
   piptxt=${piptxt:-"./ezai-pip-req.txt"}
   condatxt=${condatxt:-"./ezai-conda-req.txt"}
-  py_ver=${py_ver:-3.7.3}
+  py_ver=${py_ver:-3.8}
   # add -k if ssl_verify needs to be set to false
   
   while [ $# -gt 0 ]; do
@@ -118,24 +150,20 @@ ezai_conda_create () {
 
   if [ "${venv}" != "base" ];
   then
-    echo "setting base conda to 4.6.14, python to 3.7.3"
+    echo "no more setting base conda to 4.6.14, python to 3.7.3"
     activate base
     conda config --env --set auto_update_conda False
     conda config --show-sources
-    conda install -y -S --no-update-deps "conda=4.6.14" "python=3.7.3" || (echo "Unable to update base conda"; exit 1)
+    #conda install -y --no-update-deps "conda=4.6.14" "python=3.7.3" || (echo "Unable to update base conda"; exit 1)
     deactivate
-
     activate "${venv}" || create_venv || (echo "Unable to create ${venv}" ; exit 1)
   else
     activate "${venv}" && install_venv
-    deactivate
   fi
 
-  activate "${venv}" && config_env
-  deactivate
+  config_env
 
-  activate "${venv}" && ( install_cuda && install_fastai_pytorch && install_txt )
-  deactivate
+  (install_cuda && install_fastai_pytorch && install_txt) || (echo "Conda install failed in ${venv}" ; exit 1)
 
   # Expose environment as kernel
   #python -m ipykernel install --user --name ezai-conda --display-name "ezai-conda"
@@ -143,9 +171,9 @@ ezai_conda_create () {
   # TODO: Uncomment below in final version
   if [ "${venv}" != "base" ];
   then
-    activate "${venv}" &&  conda clean -yt
-    deactivate
+    conda clean -yt
   fi
+  deactivate
   activate base && conda clean -yt
   deactivate
   find $(conda info --base) -follow -type f -name '*.a' -delete
@@ -154,16 +182,6 @@ ezai_conda_create () {
   # TODO: Uncomment above in final version
   echo " "
   echo " "
-  echo " For Linux 64, Open MPI is built with CUDA awareness but this support is disabled by default."
-  echo "To enable it, please set the environmental variable OMPI_MCA_opal_cuda_support=true before"
-  echo "launching your MPI processes. Equivalently, you can set the MCA parameter in the command line:"
-  echo "mpiexec --mca opal_cuda_support 1 ..."
-
-  echo " "
-  echo " "
   echo "Activate your environment with  conda activate $venv  and then test with pytest -p no:warnings -vv"
 }
-
-
-
 

@@ -4,8 +4,8 @@
 # to remove image: docker rmi <image>
 # to remove container: docker stop <container> && docker rm <container>
 
-cname=${cname:-'navsim-1'}
 itag=${itag:-'0.0.3'}
+cname=${cname:-'navsim-0.0.3-1'}
 while [ $# -gt 0 ]; do
    if [[ $1 == *"--"* ]]; then
         param="${1/--/}"

@@ -4,6 +4,7 @@ FROM nvidia/cudagl:10.1-devel-ubuntu18.04 as base-image
 #ARG COMPONENTS=Unity,Mac,WebGL
 
 ENV CONDA_DIR="/opt/conda"
+ENV DEBIAN_FRONTEND=noninteractive
 
 USER root
 RUN apt-get -qq update && \
@@ -54,6 +55,10 @@ RUN apt-get -qq update && \
 	  libsm6 \
 	  libxext6 \
 	  libxrender-dev \
+	  xserver-xorg-core \
+	  xorg \
+	  xserver-xorg-video-dummy \
+	  x11vnc \
 	  ffmpeg && \
 	  apt-get autoremove --purge && apt-get clean && rm -rf /var/lib/apt/lists/*
 

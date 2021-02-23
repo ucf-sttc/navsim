@@ -1,0 +1,112 @@
+dependencies:
+  - python=3.8
+  # basic python env
+  - pytest>=5.0.1
+  - ddt
+  - cython
+  - pip>=20.2.2
+
+  # python related
+  - attrs
+  - cattrs
+  - bidict
+  - tqdm
+  - pyyaml
+  - twine  # for pypi
+  - ifcfg
+
+  # basic data science
+  - hypothesis>=3.58 # needed by pandas but doesnt install on win64
+  - scipy>=1.5.0
+  - pandas>=1.1.0
+  - matplotlib>=3.3.0
+
+  #graph related
+  # networkx>=2.4
+  # neo4j-python-driver>=4.1.0
+
+  # visualization related
+  - seaborn>=0.10.0
+  # bokeh>=2.0.0
+
+  # graphviz
+  # python-graphviz
+
+  - terminaltables
+  - tabulate
+
+  # image / vision related
+  - ffmpeg>=4.3
+  - opencv>=4.4
+  - imageio>=2.9
+  - pillow<=7.2.0
+
+  # ml/dl/rl related
+  - onnx
+  - scikit-learn>=0.23.0
+  - scikit-image
+  - scikit-optimize
+  - scikit-fmm
+
+  - python-snappy
+  - pyarrow>=1.0  #  dont use fastparquet
+  - dask>=2.23
+  - h5py=2.10.0
+
+  # **** required by pips
+
+  # required by tf
+  - google-pasta=0.2
+  - protobuf
+  - absl-py
+  - wrapt
+  - astunparse
+  - termcolor
+  - opt-einsum
+  - gast=0.3.3
+  - flatbuffers
+  # required by tf ends
+
+  # required by tensorboard
+  - grpcio=1.32.0
+  - markdown
+  - werkzeug
+  - google-auth-oauthlib
+  # required by tensorboard
+
+  # required by gym
+  - glfw
+  - box2d-py
+  - pyglet<=1.5.0
+  # required by gym end
+  #gym=0.18.0
+  - pip:
+      # these software can't be found on conda channels hence installed through pip
+      # keep most imortant at the end
+      - --no-deps
+      - --no-cache-dir
+      - scikit-posthocs
+
+      - torchsummary
+
+        # needed for tensorflow
+      - tensorflow-estimator
+      - tensorboard
+      - tensorboard-plugin-wit
+      - keras-applications
+      - keras-preprocessing
+      - keras-tuner
+        # needed for tensorflow ends
+      - tensorflow<=2.3
+        # needed for gym
+      - opencv-python
+      - atari-py
+        # needed for gym end
+      - gym==0.18.0
+        # unity begin  release_12 c# v1.7.2 py 0.23
+      - mlagents==0.23.0
+      - mlagents_envs==0.23.0
+      - gym_unity==0.23.0
+        # unity end
+      - ezai_util
+      - navsim
