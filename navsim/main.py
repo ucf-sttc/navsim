@@ -8,6 +8,7 @@ from .util import ObjDict
 import argparse
 import yaml
 
+
 @attr.s(auto_attribs=True)
 class BaseConfig:
     def as_dict(self):
@@ -25,6 +26,7 @@ class ArgAction(argparse.Action):
         setattr(namespace, self.dest, values)
         ArgAction.non_default_args.add(self.dest)
 
+
 class ArgActionStoreTrue(ArgAction):
     """
     Class to handle actions for flags that need to be set to true
@@ -36,13 +38,14 @@ class ArgActionStoreTrue(ArgAction):
     def __call__(self, arg_parser, namespace, values, option_string=None):
         super().__call__(arg_parser, namespace, True, option_string)
 
+
 def _create_argparser() -> argparse.ArgumentParser:
     argparser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
-    argparser.add_argument(
-        "config_file", nargs="?", default=None
-    )
+    # argparser.add_argument(
+    #    "config_file", nargs="?", default=None
+    # )
     run_conf = argparser.add_argument_group(title="Run Configuration")
 
     run_conf.add_argument(
@@ -55,7 +58,6 @@ def _create_argparser() -> argparse.ArgumentParser:
              "same id are combined as if they were produced by a the same session.)",
         action=ArgAction,
     )
-
 
     run_conf.add_argument(
         "--train",
@@ -119,6 +121,7 @@ class EnvConfig:
     num_envs: int = parser.get_default("num_envs")
     seed: int = parser.get_default("seed")
 
+
 @attr.s(auto_attribs=True)
 class RunConfig:
     """
@@ -129,6 +132,7 @@ class RunConfig:
     debug = parser.get_default("num_envs")
     resume = parser.get_default("resume")
     seed = parser.get_default("force")
+
 
 @attr.s(auto_attribs=True)
 class Config(BaseConfig):
@@ -141,12 +145,12 @@ class Config(BaseConfig):
 
     @staticmethod
     def from_args_dict(args):
-    # create config dict from command line default values
-    # If config file given in command line
+        # create config dict from command line default values
+        # If config file given in command line
         # if the config file doesnt exist then error and exit
         # else read config and overwrite default values
-    # add command line values
-    # let us load config file first
+        # add command line values
+        # let us load config file first
         config_file = args.config_file
         if config_file:
             try:
@@ -161,9 +165,8 @@ class Config(BaseConfig):
         else:
             print(f"Config file not specified in command line, continuing.")
 
-
-
         return True
+
 
 def main():
     """
@@ -174,36 +177,59 @@ def main():
     print('arguments passed:')
     print(ArgAction.non_default_args)
 
-    # let us load config file first
-    config_file = args.config_file or "navsim.yaml"
-    try:
-        conf = ObjDict().load_from_file(config_file)
-    except FileNotFoundError as e:
-        if args.config_file is not None:
-            abs_path = os.path.abspath(config_file)
-            raise OSError(f"Config file could not be found at {abs_path}.") from e
-        else:
-            print(f"Default config file {config_file} not found, continuing.")
-    if conf:
-        print(f'Following configuration loaded from {config_file}')
-        print(conf.to_yaml())
+    env_conf = ObjDict({
+        "log_folder": "unity.log",
+        "seed": 123,
+        "timeout": 600,
+        "worker_id": 0,
+        "base_port": 5005,
+        "observation_mode": 0,
+        "segmentation_mode": 1,
+        "max_steps": 10,
+        "task": 0,
+        "goal": 0,
+        "reward_for_goal": 50,
+        "reward_for_ep": 0.005,
+        "reward_for_other": -0.1,
+        "reward_for_falling_off_map": -50,
+        "reward_for_step": -0.0001,
+        "agent_car_physics": 0,
+        "episode_max_steps": 10,
+    })
+    env_conf["env_path"]=args["env_path"]
 
-    # override with CLI args
-    if args["env_path"]:
-        conf.env_info["env_path"] = args["env_path"]
+    run_conf = ObjDict({
+        "env_name": "navsim",
+        "episode_max_steps": 10,
+        "num_episodes": 2,
+        "seed": 123,
+        "discount": 0.99,
+        "tau": 5e-3,
+        "expl_noise": 0.1,
+        "memory_capacity": 100,
+        "batch_size": 256,
+        "batches_before_train": 2,
+        "checkpoint_interval": 1
+    })
+    run_conf["run_id"]=args["run_id"]
+
+    conf = ObjDict({
+        'env_conf': env_conf, 'run_conf': run_conf
+    })
 
     print("Final Configuration:")
     print(conf.to_yaml())
-    #trainer = navsim.Trainer(run_id=args["run_id"],
-    #                         resume=args["resume"],
-    #                         conf=conf)
+    executor = navsim.Executor(run_id=args["run_id"],
+                               resume=args["resume"],
+                               conf=conf)
 
-    #trainer.train()
+    executor.execute()
     print("training finished")
-    #trainer.env_close()
+    executor.env_close()
     print("env closed")
-    #trainer.files_close()
+    executor.files_close()
     print("files closed")
+
 
 # For python debugger to directly run this script
 if __name__ == "__main__":

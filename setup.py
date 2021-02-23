@@ -1,12 +1,14 @@
 import setuptools
+import navsim
 
+VERSION=navsim.__version__
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setuptools.setup(
     name="navsim",
-    version="0.0.3",
-    author="STTC, IST, UCF",
+    version=VERSION,
+    author="Armando Fandango, Troyle Thomas @ STTC, IST, UCF",
     author_email="armando@ucf.edu",
     description="Navigation Simulator",
     long_description=long_description,
@@ -29,6 +31,8 @@ setuptools.setup(
     entry_points={
         "console_scripts": [
             "navsim=navsim.main:main",
+            "navsim-benchmark=navsim.benchmarks.benchmark:main",
+            "navsim-saturate-gpu=navsim.benchmarks.saturate_gpu:main",
         ]
     },
 )

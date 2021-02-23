@@ -20,7 +20,7 @@ tensorflow<=2.3
 
 
 # needed for detectron ends
-detectron2 @ https://dl.fbaipublicfiles.com/detectron2/wheels/cu101/torch1.6/detectron2-0.3%2Bcu101-cp38-cp38-linux_x86_64.whl
+# detectron2 @ https://dl.fbaipublicfiles.com/detectron2/wheels/cu101/torch1.6/detectron2-0.3%2Bcu101-cp38-cp38-linux_x86_64.whl
 #https://dl.fbaipublicfiles.com/detectron2/wheels/cu101/torch1.6/index.html
 
 # needed for gym

@@ -75,8 +75,8 @@ class Executor:
         self.env_conf.log_folder = str(env_log_folder.resolve())
         self.model_filename = f"{run_base_folder_str}/model_state.pt"
         self.memory_filename = f"{run_base_folder_str}/memory.pkl"
-        #TODO: Add the code to delete previous files
-        #TODO: Add the code to add categories
+        # TODO: Add the code to delete previous files
+        # TODO: Add the code to add categories
         self.summary_writer = SummaryWriter(f"{run_base_folder_str}/tb")
 
         self.rc = ResourceCounter()
@@ -93,8 +93,8 @@ class Executor:
                 # we are making the optimization here to convert from HWC to CHW format.
                 memory_observation_space_shapes = []
                 for item in self.env.observation_space_shapes:
-                    if len(item)==3: # means its an image in HWC
-                        memory_observation_space_shapes.append((item[2],item[1],item[0]))
+                    if len(item) == 3:  # means its an image in HWC
+                        memory_observation_space_shapes.append((item[2], item[1], item[0]))
                     else:
                         memory_observation_space_shapes.append(item)
                 self.memory = Memory(
@@ -128,10 +128,10 @@ class Executor:
             print(traceback.format_exc())
             # print(e)
 
-    #TODO: Find a better name for  this function
-    def write_tb_values(self, values,t:int):
-        for key,value in values.items():
-            self.summary_writer.add_scalar(key,value,t)
+    # TODO: Find a better name for  this function
+    def write_tb_values(self, values, t: int):
+        for key, value in values.items():
+            self.summary_writer.add_scalar(key, value, t)
             self.summary_writer.flush()
 
     def apply_seed(self):
@@ -199,9 +199,9 @@ class Executor:
         Execute for the number of episodes
         :return:
         """
-        t_max = int(self.conf['episode_max_steps'])
+        t_max = int(self.conf.run_conf['episode_max_steps'])
 
-        for episode_num in tqdm(range(0, int(self.conf['num_episodes']))):
+        for episode_num in tqdm(range(0, int(self.conf.run_conf['num_episodes']))):
             self.rc.start()
             episode_resources = [self.rc.snapshot()]  # e0
 
@@ -226,7 +226,7 @@ class Executor:
                 if self.memory.size < samples_before_training:
                     a = self.env.action_space.sample()
                 else:
-                    #TODO: Find the best place to train, moved here for now
+                    # TODO: Find the best place to train, moved here for now
                     batch_s, batch_a, batch_r, batch_s_, batch_d = self.memory.sample(self.run_conf['batch_size'])
                     # print('training the agent')
                     self.agent.train(batch_s, batch_a, batch_r, batch_s_, batch_d)
@@ -263,8 +263,7 @@ class Executor:
 
                 episode_reward += r
 
-                #if self.memory.size >= self.run_conf['batch_size'] * self.run_conf['batches_before_train']:
-
+                # if self.memory.size >= self.run_conf['batch_size'] * self.run_conf['batches_before_train']:
 
                 #                    if (t >= self.config['batch_size'] * self.config['batches_before_train']) and (t % 1000 == 0):
                 # episode_evaluations.append(evaluate_policy(self.agent, self.env, self.config['seed']))
@@ -296,9 +295,9 @@ class Executor:
             #            if self.enable_logging:
             #                self.writer.add_scalar('Episode Reward', episode_reward, t)
             #            episode_rewards.append(episode_reward)
-            self.write_tb_values({'reward':episode_reward,
-                                  'time':episode_time,
-                                  'memory':episode_peak_memory},
+            self.write_tb_values({'reward': episode_reward,
+                                  'time': episode_time,
+                                  'memory': episode_peak_memory},
                                  episode_num)
             self.episode_results_writer.writerow([episode_num,
                                                   episode_reward,

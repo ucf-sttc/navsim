@@ -163,7 +163,7 @@ ezai_conda_create () {
 
   config_env
 
-  (install_cuda && install_fastai_pytorch && install_detectron && install_txt) || exit 1
+  (install_cuda && install_fastai_pytorch && install_txt) || (echo "Conda install failed in ${venv}" ; exit 1)
 
   # Expose environment as kernel
   #python -m ipykernel install --user --name ezai-conda --display-name "ezai-conda"
