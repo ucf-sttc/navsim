@@ -27,16 +27,18 @@ class NavSimEnv:
             raise ValueError('Environment already open')
         else:
             log_folder = Path(self.conf['log_folder'])
-            log_folder.mkdir(parents=True,exist_ok=True)
+            log_folder.mkdir(parents=True, exist_ok=True)
 
             engine_side_channel = EngineConfigurationChannel()
             environment_side_channel = EnvironmentParametersChannel()
 
             engine_side_channel.set_configuration_parameters(time_scale=10, quality_level=0)
             environment_side_channel.set_float_parameter("rewardForGoalCollision", self.conf['reward_for_goal'])
-            environment_side_channel.set_float_parameter("rewardForExplorationPointCollision", self.conf['reward_for_ep'])
+            environment_side_channel.set_float_parameter("rewardForExplorationPointCollision",
+                                                         self.conf['reward_for_ep'])
             environment_side_channel.set_float_parameter("rewardForOtherCollision", self.conf['reward_for_other'])
-            environment_side_channel.set_float_parameter("rewardForFallingOffMap", self.conf['reward_for_falling_off_map'])
+            environment_side_channel.set_float_parameter("rewardForFallingOffMap",
+                                                         self.conf['reward_for_falling_off_map'])
             environment_side_channel.set_float_parameter("rewardForEachStep", self.conf['reward_for_step'])
             environment_side_channel.set_float_parameter("segmentationMode", self.conf['segmentation_mode'])
             environment_side_channel.set_float_parameter("observationMode", self.conf['observation_mode'])
@@ -45,12 +47,13 @@ class NavSimEnv:
             environment_side_channel.set_float_parameter("goalSelectionIndex", self.conf['goal'])
             environment_side_channel.set_float_parameter("agentCarPhysics", self.conf['agent_car_physics'])
 
-            self.uenv = UnityEnvironment(file_name=str(Path(self.conf['env_path']).resolve()),
+            uenv_file_name = str(Path(self.conf['env_path']).resolve()) if self.conf['env_path'] else None
+            self.uenv = UnityEnvironment(file_name=uenv_file_name,
                                          log_folder=str(log_folder.resolve()),
                                          seed=self.conf['seed'],
                                          timeout_wait=self.conf['timeout'],
                                          worker_id=self.conf['worker_id'],
-                                         #base_port=self.conf['base_port'],
+                                         # base_port=self.conf['base_port'],
                                          no_graphics=False,
                                          side_channels=[engine_side_channel, environment_side_channel])
 

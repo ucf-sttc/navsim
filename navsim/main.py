@@ -173,6 +173,9 @@ def main():
     TODO: Implement configuration checks
     :return:
     """
+    print(f'===================================')
+    print(f'Navsim Version {navsim.__version__}')
+    print(f'===================================')
     args = ObjDict(vars(parser.parse_args()))
     print('arguments passed:')
     print(ArgAction.non_default_args)
@@ -216,7 +219,8 @@ def main():
     conf = ObjDict({
         'env_conf': env_conf, 'run_conf': run_conf
     })
-
+    print("Passed arguments + defaults:")
+    print(args.to_yaml())
     print("Final Configuration:")
     print(conf.to_yaml())
     executor = navsim.Executor(run_id=args["run_id"],

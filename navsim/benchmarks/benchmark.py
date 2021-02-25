@@ -62,7 +62,7 @@ def main():
     environment_side_channel = EnvironmentParametersChannel()
 
     # Connect to Unity Editor environment
-    unityEnvironmentStr = str(args.binary)
+    unityEnvironmentStr = str(args.binary) if args.binary else None
     # Connect to specified binary environment
     unity_env = UnityEnvironment(file_name=unityEnvironmentStr, worker_id=args.worker_id, seed=args.seed,
                                  timeout_wait=args.timeout,
