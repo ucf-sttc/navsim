@@ -4,7 +4,6 @@ This is Pytorch and Ml-Agents based front end for learning reinforcement learnin
 # Run the container first
 
 ## Headless Run with X-Server 
-TODO: Containerize it
 
 Assumption: X is installed, nvidia-drivers
 
@@ -20,7 +19,7 @@ For tmux hotkeys press ctrl+b then following key
 * Exit Session: Type exit into all open shells within session
 
 
-### X server setup and startup (Admin required)
+### X server on host setup and startup (Admin required)
 Note: Either run X in a tmux session or have admin start X with generated config and display port in background manually or on startup
  tmux new -s x-server
 ```
@@ -32,6 +31,9 @@ Note: Either run X in a tmux session or have admin start X with generated config
 #You can select a perferred DISPLAY port
  sudo X -config headlessxorg.conf :88 (Running in background with & stops the process, TODO containerized)
 ```
+
+## X server in container
+./docker-run.sh --xserver
 
 ### GPU Usage examples
 Note: In new pane run container (can pass DISPLAY below as a variable), navigate to training command directory, and setup training specific configurations

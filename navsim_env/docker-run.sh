@@ -4,16 +4,20 @@
 # to remove image: docker rmi <image>
 # to remove container: docker stop <container> && docker rm <container>
 
-itag=${itag:-'0.0.3'}
-cname=${cname:-'navsim-0.0.3-1'}
+#Flags:
+#--xserver: starts container with xserver running
+
+itag=${itag:-'0.0.4'}
+cname=${cname:-'navsim-0.0.4-1'}
 while [ $# -gt 0 ]; do
    if [[ $1 == *"--"* ]]; then
         param="${1/--/}"
         declare $param="$2"
-        #echo $1 $2 #// Optional to see the parameter:value result
+        echo $1 $2 #// Optional to see the parameter:value result
    fi
   shift
 done
+
 irepo="ghcr.io/armando-fandango" #image repo
 iname="${irepo}/navsim:${itag}"   #image name
 
@@ -72,13 +76,31 @@ then
       docker start "$cname"
     fi
     echo "entering started container $cname"
-    echo "docker exec -it $user ${wfolder} ${evars} $cname bash"
-    docker exec -it $user ${wfolder} ${evars} $cname bash
+    echo "docker exec -it ${evars} $cname bash"
+    #TODO: refine privileged status to individual devices
+    #defaulted to root user to allow ability to run X server
+    #TODO: add individual user login
+    if [ -v xserver ];
+    then
+        echo "xserver container"
+        #Leaving the docker container open means Xserver is on and taking up memory
+        #Could lead to memory leak
+        docker exec --privileged -it ${evars} $cname bash -c "/root/startx.sh; bash"; 
+    else
+        docker exec --privileged -it ${evars} $cname bash
+    fi
   else
     echo "creating, starting and then entering container $cname"
     # shellcheck disable=SC2154
-    docker run -it --gpus all --name $cname \
-      $user $wfolder $evars $vfolders $cports $iname bash
+    if [ -v xserver ];
+    then
+        echo "xserver container"
+        docker run -u root --privileged -it --gpus all --name $cname \
+          $evars $vfolders $cports $iname bash -c "/root/startx.sh; bash"; 
+    else
+        docker run --privileged -it --gpus all --name $cname \
+          $evars $vfolders $cports $iname bash
+    fi
   fi
 else
    echo "image $iname not found"

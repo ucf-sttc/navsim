@@ -50,7 +50,6 @@ RUN apt-get -qq update && \
 	  freeglut3-dev \
 	  xorg-dev \
 	  libomp-dev \
-	  xvfb \
 	  swig \
 	  libsm6 \
 	  libxext6 \
@@ -59,8 +58,16 @@ RUN apt-get -qq update && \
 	  xorg \
 	  xserver-xorg-video-dummy \
 	  x11vnc \
-	  ffmpeg && \
-	  apt-get autoremove --purge && apt-get clean && rm -rf /var/lib/apt/lists/*
+	  ffmpeg \
+         kmod 
+
+
+COPY scripts/install_nvidia.sh  /root/
+RUN NVIDIA_VERSION=$NVIDIA_VERSION /root/install_nvidia.sh
+
+COPY scripts/startx.sh /root/
+
+RUN apt-get autoremove --purge && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 	#swig \
     # sumo pre-req
