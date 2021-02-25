@@ -33,7 +33,9 @@ Note: Either run X in a tmux session or have admin start X with generated config
 ```
 
 ## X server in container
+```
 ./docker-run.sh --xserver
+```
 
 ### GPU Usage examples
 Note: In new pane run container (can pass DISPLAY below as a variable), navigate to training command directory, and setup training specific configurations
