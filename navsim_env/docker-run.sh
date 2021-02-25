@@ -21,16 +21,10 @@ done
 irepo="ghcr.io/armando-fandango" #image repo
 iname="${irepo}/navsim:${itag}"   #image name
 
-# singularity pull docker://ghcr.io/armando-fandango/navsim:0.0.1'
-# singularity shell --bind /mnt --nv navsim_0.0.1.sif'
 #
 # docker run -it --gpus all --name phd-gpu-1 -v ${HOME}/datasets:/root/datasets -v /home/armando/phd:/root/phd
 
-# Add this line to your ~/.bashrc
-alias eznb='conda activate ezai && xvfb-run -a -s "-screen 0 128x128x24" -- jupyter notebook --ip=* --no-browser'
 # test cvfb : xvfb-run -s "-screen 0 1024x768x24" glxgears
-#echo "alias eznb='conda activate ezai-conda && jupyter notebook --ip=* --no-browser'" >> ${AI_HOME}/.bashrc &&\
-
 # ports exposed in format -p host-port:container-port
 #cports=" -p 8888:8888 " # jupyter notebook
 #cports+=" -p 6006:6006 " # tensorboard
@@ -38,7 +32,7 @@ alias eznb='conda activate ezai && xvfb-run -a -s "-screen 0 128x128x24" -- jupy
 #cports+=" -p 5004:5004 " # unity
 #cports+=" -p 5005:5005 " # unity
 
-wfolder=" -w ${PWD}/../examples"
+wfolder=" -w ${PWD}"
 vfolders=" "
 vfolders+=" -v ${HOME}:${HOME}"
 vfolders+=" -v /mnt:/mnt "
