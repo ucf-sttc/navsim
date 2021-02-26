@@ -49,7 +49,7 @@ vfolders+=" -v /etc/shadow:/etc/shadow:ro"
 # exec options
 evars=" -e DISPLAY -e XAUTHORITY -e NVIDIA_DRIVER_CAPABILITIES=all "
 user=" -u $(id -u):$(id -g)"
-cmd="/root/startx.sh; su - $(id -u):$(id -g)"
+cmd="/root/startx.sh; bash"
 xhost +  # for running GUI app in container
 
 if [ "$(docker image inspect $iname > /dev/null 2>&1 && echo 1 || echo '')" ];
@@ -80,7 +80,7 @@ then
         echo "xserver container"
         #Leaving the docker container open means Xserver is on and taking up memory
         #Could lead to memory leak
-        docker exec --privileged -it ${evars} $cname bash -c "/root/startx.sh; su - $(id -u):$(id -g) bash";
+        docker exec --privileged -it ${evars} $cname bash -c "/root/startx.sh; bash";
     else
         docker exec --privileged -it ${evars} $cname bash
     fi
@@ -91,7 +91,7 @@ then
     then
         echo "xserver container"
         docker run --privileged -it --gpus all --name $cname \
-           $evars $vfolders $cports $iname bash -c $cmd;
+           $evars $vfolders $cports $iname bash -c "/root/startx.sh; bash";
     else
         docker run --privileged -it --gpus all --name $cname \
           $evars $vfolders $cports $iname bash
