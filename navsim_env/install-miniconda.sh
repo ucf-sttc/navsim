@@ -13,13 +13,14 @@ while [ $# -gt 0 ]; do
   shift
 done
 
-#wget -nv https://repo.anaconda.com/miniconda/Miniconda3-py38_4.9.2-Linux-x86_64.sh -O Miniconda.sh && \
-wget -nv https://repo.anaconda.com/miniconda/Miniconda3-4.6.14-Linux-x86_64.sh -O Miniconda.sh && \
+wget -nv https://repo.anaconda.com/miniconda/Miniconda3-py38_4.9.2-Linux-x86_64.sh -O Miniconda.sh && \
+#wget -nv https://repo.anaconda.com/miniconda/Miniconda3-4.6.14-Linux-x86_64.sh -O Miniconda.sh && \
 #curl -o Miniconda.sh -O https://repo.anaconda.com/miniconda/Miniconda3-4.6.14-Linux-x86_64.sh && \
 	/bin/bash Miniconda.sh -f -b -p ${conda_dir} && \
 	rm Miniconda.sh && \
   PATH=${conda_dir}/bin:$PATH && \
   #source $(conda info --base)/etc/profile.d/conda.sh && \
+  # shellcheck disable=SC2046
   conda init $(basename $SHELL)
   #&& \
   #chmod -R 777 ${conda_dir}

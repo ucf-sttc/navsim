@@ -7,8 +7,8 @@
 #Flags:
 #--xserver: starts container with xserver running
 
-itag=${itag:-'0.0.4'}
-cname=${cname:-'navsim-0.0.4-1'}
+itag=${itag:-"1.0.0-dev-headless"}
+cname=${cname:-'navsim-1.0.0-dev-headless-1'}
 while [ $# -gt 0 ]; do
    if [[ $1 == *"--"* ]]; then
         param="${1/--/}"
@@ -49,6 +49,7 @@ vfolders+=" -v /etc/shadow:/etc/shadow:ro"
 # exec options
 evars=" -e DISPLAY -e XAUTHORITY -e NVIDIA_DRIVER_CAPABILITIES=all "
 user=" -u $(id -u):$(id -g)"
+cmd="/root/startx.sh; su - $(id -u):$(id -g)"
 xhost +  # for running GUI app in container
 
 if [ "$(docker image inspect $iname > /dev/null 2>&1 && echo 1 || echo '')" ];
@@ -79,7 +80,7 @@ then
         echo "xserver container"
         #Leaving the docker container open means Xserver is on and taking up memory
         #Could lead to memory leak
-        docker exec --privileged -it ${evars} $cname bash -c "/root/startx.sh; bash"; 
+        docker exec --privileged -it ${evars} $cname bash -c "/root/startx.sh; su - $(id -u):$(id -g) bash";
     else
         docker exec --privileged -it ${evars} $cname bash
     fi
@@ -89,8 +90,8 @@ then
     if [ -v xserver ];
     then
         echo "xserver container"
-        docker run -u root --privileged -it --gpus all --name $cname \
-          $evars $vfolders $cports $iname bash -c "/root/startx.sh; bash"; 
+        docker run --privileged -it --gpus all --name $cname \
+           $evars $vfolders $cports $iname bash -c $cmd;
     else
         docker run --privileged -it --gpus all --name $cname \
           $evars $vfolders $cports $iname bash

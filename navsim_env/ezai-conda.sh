@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-#venv='ezai'
-
 activate () {
   conda activate $1 || source activate $1
 }
@@ -89,7 +87,7 @@ install_fastai_pytorch () {
   conda config --env --prepend channels fastai
   conda config --show-sources
   # numpy spec due to tensorflow and pillow spec due to gym
-  conda install -y -S "fastai=2.0.0" "pytorch=1.6.0" "torchvision=0.7.0" "numpy<1.19.0" #"gym=0.18.0"
+  conda install -y -S "fastai=2.0.0" "pytorch=1.6.0" "torchvision=0.7.0" "numpy<1.19.0"
   return $?
 }
 
@@ -122,6 +120,7 @@ install_detectron() {
 }
 
 install_txt () {
+  echo "Installing conda and pip packages from txt files ..."
   conda config --show-sources
   conda install -y -S --file $condatxt && \
   # install pip with no-deps so it doesnt mess up conda installed versions
@@ -146,7 +145,7 @@ ezai_conda_create () {
   done
 
   conda clean -i
-  source $(conda info --base)/etc/profile.d/conda.sh
+  #source $(conda info --base)/etc/profile.d/conda.sh
 
   if [ "${venv}" != "base" ];
   then
@@ -156,32 +155,56 @@ ezai_conda_create () {
     conda config --show-sources
     #conda install -y --no-update-deps "conda=4.6.14" "python=3.7.3" || (echo "Unable to update base conda"; exit 1)
     deactivate
-    activate "${venv}" || create_venv || (echo "Unable to create ${venv}" ; exit 1)
+    activate "${venv}" || create_venv || echo "Unable to create ${venv}" && exit 1
   else
     activate "${venv}" && install_venv
   fi
 
   config_env
 
-  (install_cuda && install_fastai_pytorch && install_txt) || (echo "Conda install failed in ${venv}" ; exit 1)
-
+  install_cuda && install_fastai_pytorch && install_txt
+  if [ "$?" != "0" ];
+  then
+    echo "Conda install failed in ${venv}"
+    exit $?
+  fi
   # Expose environment as kernel
   #python -m ipykernel install --user --name ezai-conda --display-name "ezai-conda"
 
   # TODO: Uncomment below in final version
-  if [ "${venv}" != "base" ];
-  then
-    conda clean -yt
-  fi
-  deactivate
-  activate base && conda clean -yt
+  conda clean -yt
   deactivate
   find $(conda info --base) -follow -type f -name '*.a' -delete
   find $(conda info --base) -follow -type f -name '*.pyc' -delete
-
   # TODO: Uncomment above in final version
   echo " "
   echo " "
   echo "Activate your environment with  conda activate $venv  and then test with pytest -p no:warnings -vv"
 }
 
+install_miniconda () {
+
+  conda_dir=${conda_dir:-/opt/conda}
+
+  while [ $# -gt 0 ]; do
+     if [[ $1 == *"--"* ]]; then
+          param="${1/--/}"
+          declare $param="$2"
+          # echo $1 $2 // Optional to see the parameter:value result
+     fi
+    shift
+  done
+
+  wget -nv https://repo.anaconda.com/miniconda/Miniconda3-py38_4.9.2-Linux-x86_64.sh -O Miniconda.sh && \
+  #wget -nv https://repo.anaconda.com/miniconda/Miniconda3-4.6.14-Linux-x86_64.sh -O Miniconda.sh && \
+  #curl -o Miniconda.sh -O https://repo.anaconda.com/miniconda/Miniconda3-4.6.14-Linux-x86_64.sh && \
+    /bin/bash Miniconda.sh -f -b -p ${conda_dir} && \
+    rm Miniconda.sh && \
+    PATH=${conda_dir}/bin:$PATH && \
+    #source $(conda info --base)/etc/profile.d/conda.sh && \
+    # shellcheck disable=SC2046
+    conda init $(basename $SHELL)
+    #&& \
+    #chmod -R 777 ${conda_dir}
+  #  chown -R `id -u`:`id -g` ${HOME}/.conda
+}

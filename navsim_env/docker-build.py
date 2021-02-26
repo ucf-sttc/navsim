@@ -1,9 +1,14 @@
 import argparse
 import subprocess
 from subprocess import run, DEVNULL
-from .docker_utils import image_exists
 
-__version__ = "0.0.4"
+__version__ = "1.0.0-dev-headless"
+
+
+def image_exists(iname):
+    cp = run(['docker', 'image', 'inspect', iname], stdin=DEVNULL, stdout=DEVNULL, stderr=DEVNULL)
+    return True if cp.returncode == 0 else False
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -24,9 +29,9 @@ def main():
         print(f"creating image {iname}")
 
     bopt = "--no-cache"
-    cp = subprocess.run(['docker', 'build', bopt,'-t',iname,'.'])
+    cp = subprocess.run(['docker', 'build', bopt, '-t', iname, '.'])
 
-    if image_exists(iname):
+    if cp.returncode==0:
         print(f"created image {iname}")
         if remote:
             print('remote push not implemented yet')
@@ -34,7 +39,7 @@ def main():
             subprocess.run(['docker', 'tag', iname, lname])
             subprocess.run(['docker', 'push', lname])
     else:
-        print(f"not created image {iname}")
+        print(f"Failed to create image {iname}")
 
 
 # "$(docker image inspect $iname > /dev/null 2>&1 && echo 1 || echo '')"

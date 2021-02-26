@@ -82,15 +82,13 @@ RUN apt-get autoremove --purge && apt-get clean && rm -rf /var/lib/apt/lists/*
 WORKDIR /root/
 SHELL ["/bin/bash", "-c"]
 
-#Install MINICONDA
-COPY install-miniconda.sh /root/
-RUN ./install-miniconda.sh --conda_dir ${CONDA_DIR} && rm install-miniconda.sh
-ENV PATH=${CONDA_DIR}/bin:$PATH
-
-# create ez conda env
-
+#Install MINICONDA and navsim_env in base
 COPY ezai-conda* ezai-pip-* /root/
 RUN source ezai-conda.sh && \
+    install_miniconda --conda_dir ${CONDA_DIR}
+ENV PATH=${CONDA_DIR}/bin:$PATH
+#ENV BASH_ENV="/root/.bashrc"
+RUN source /root/.bashrc && source ezai-conda.sh && \
     ezai_conda_create --venv "base" && \
     chmod -R 777 ${CONDA_DIR} && \
     rm ezai-conda* ezai-pip-*
