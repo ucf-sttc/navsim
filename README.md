@@ -38,6 +38,10 @@ SINGULARITY_NOHTTPS=true singularity pull docker://$repo/navsim:$ver
 ```
 #### To run the Docker container:
 
+TODO: Troyle please review and fix it... 
+since the repo is not available so ./docker-run would need to be replaced with one single command
+
+Or docker-run.sh has to be converted to python and provided as a command in navsim.
 ```
 docker pull $repo/navsim:$ver
 docker run -it --gpus all --name navsim_${ver}_1 \
@@ -47,17 +51,40 @@ docker run -it --gpus all --name navsim_${ver}_1 \
   navsim_$ver bash
 ```
 
+```
+./docker-run.sh --xserver
+```
+
 ### Step 1 Option 2 How to run on host machine without container
-TODO
+#### X server on host setup and startup (Admin required)
+Note: Either run X in a tmux session or have admin start X with generated config and display port in background manually or on startup
+ tmux new -s x-server
+```
+#For Lambda quad
+ nvidia-xconfig -o headlessxorg.conf -a --use-display-device=None --virtual=1280x1024
+#For V100 servers or Nvidia GRID enabled machines
+ nvidia-xconfig -o headlessxorg.conf -a 
+
+#You can select a perferred DISPLAY port
+ sudo X -config headlessxorg.conf :88 (Running in background with & stops the process, TODO containerized)
+```
 
 ## Step 2: Run the navsim
 * `navsim` - executes and/or trains the model
 * `navsim-benchmark` - benchmarks the model
 * `navsim-saturate-gpu` - Saturates the GPU
 
-TODO: Fix the following parts of readme
+### GPU Usage examples
+Note: In new pane run container (can pass DISPLAY below as a variable), navigate to training command directory, and setup training specific configurations
+```
+Run a command on a specific gpu
 
-## Headless Run with X-Server 
+DISPLAY=:88.<screen idx> navsim 
+DISPLAY=:88.0 navsim-benchmark AICOOP_binaries/Build2.4.4/Berlin_Walk_V2.x86_64 -a VectorVisual
+DISPLAY=:88.3 navsim-saturate-gpu AICOOP_binaries/Build2.4.4/Berlin_Walk_V2.x86_64  
+```
+
+## TODO: Fix the following parts of readme Headless Run with X-Server 
 
 Assumption: X is installed, nvidia-drivers
 
@@ -73,33 +100,8 @@ For tmux hotkeys press ctrl+b then following key
 * Exit Session: Type exit into all open shells within session
 
 
-### X server on host setup and startup (Admin required)
-Note: Either run X in a tmux session or have admin start X with generated config and display port in background manually or on startup
- tmux new -s x-server
-```
-#For Lambda quad
- nvidia-xconfig -o headlessxorg.conf -a --use-display-device=None --virtual=1280x1024
-#For V100 servers or Nvidia GRID enabled machines
- nvidia-xconfig -o headlessxorg.conf -a 
 
-#You can select a perferred DISPLAY port
- sudo X -config headlessxorg.conf :88 (Running in background with & stops the process, TODO containerized)
-```
 
-## X server in container
-```
-./docker-run.sh --xserver
-```
-
-### GPU Usage examples
-Note: In new pane run container (can pass DISPLAY below as a variable), navigate to training command directory, and setup training specific configurations
-```
-Run a command on a specific gpu
-
-DISPLAY=:88.<screen idx> navsim 
-DISPLAY=:88.0 navsim-benchmark AICOOP_binaries/Build2.4.4/Berlin_Walk_V2.x86_64 -a VectorVisual
-DISPLAY=:88.3 navsim-saturate-gpu AICOOP_binaries/Build2.4.4/Berlin_Walk_V2.x86_64  
-```
 
 # Contribute
 

@@ -100,3 +100,5 @@ then
 else
    echo "image $iname not found"
 fi
+
+#nvidia-xconfig -o headlessxorg.conf -a --use-display-device=None --virtual=1280x1024
