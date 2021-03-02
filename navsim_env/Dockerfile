@@ -65,7 +65,7 @@ RUN apt-get -qq update && \
 COPY scripts/x_server.py scripts/install_nvidia.sh scripts/startx.sh /root/
 RUN NVIDIA_VERSION=$NVIDIA_VERSION /root/install_nvidia.sh
 
-ENTRYPOINT ["bash", "-c", "python /root/x_server.py && bash"]
+ENTRYPOINT ["bash", "-c", "python /root/x_server.py & bash"]
 
 RUN apt-get autoremove --purge && apt-get clean && rm -rf /var/lib/apt/lists/*
 
