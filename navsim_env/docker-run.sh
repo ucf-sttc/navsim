@@ -48,9 +48,8 @@ vfolders+=" -v /etc/shadow:/etc/shadow:ro"
 #dfolder="."
 
 # exec options
-evars=" -e DISPLAY -e XAUTHORITY -e NVIDIA_DRIVER_CAPABILITIES=all "
+evars=" -e XAUTHORITY -e NVIDIA_DRIVER_CAPABILITIES=all "
 user=" -u $(id -u):$(id -g)"
-cmd="/root/startx.sh; bash"
 xhost +  # for running GUI app in container
 
 if [ "$(docker image inspect $iname > /dev/null 2>&1 && echo 1 || echo '')" ];
