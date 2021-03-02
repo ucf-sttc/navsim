@@ -36,6 +36,7 @@ wfolder=" -w ${PWD}"
 vfolders=" "
 vfolders+=" -v ${HOME}:${HOME}"
 vfolders+=" -v /mnt:/mnt "
+vfolders+=" -v /data:/mnt/work "
 vfolders+=" -v /tmp/.X11-unix:/tmp/.X11-unix "
            #-v ${HOME}/.local/share/unity3d /root/.local/share/unity3d "
            #-v ${HOME}/.Xauthority:/root/.Xauthority:rw "
@@ -75,27 +76,14 @@ then
     #TODO: refine privileged status to individual devices
     #defaulted to root user to allow ability to run X server
     #TODO: add individual user login
-    if [ -v xserver ];
-    then
-        echo "xserver container"
-        #Leaving the docker container open means Xserver is on and taking up memory
-        #Could lead to memory leak
-        docker exec --privileged -it ${evars} $cname bash -c "/root/startx.sh; bash";
-    else
-        docker exec --privileged -it ${evars} $cname bash
-    fi
+	#Leaving the docker container open means Xserver is on and taking up memory
+	#Could lead to memory leak
+    docker exec --privileged -it ${evars} $cname bash
   else
     echo "creating, starting and then entering container $cname"
     # shellcheck disable=SC2154
-    if [ -v xserver ];
-    then
-        echo "xserver container"
-        docker run --privileged -it --gpus all --name $cname \
-           $evars $vfolders $cports $iname bash -c "/root/startx.sh; bash";
-    else
-        docker run --privileged -it --gpus all --name $cname \
-          $evars $vfolders $cports $iname bash
-    fi
+	docker run --privileged -it --gpus all --name $cname \
+	$evars $vfolders $cports $iname bash
   fi
 else
    echo "image $iname not found"
