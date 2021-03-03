@@ -4,7 +4,7 @@ import argparse
 import subprocess
 from subprocess import run, DEVNULL
 
-__version__ = "1.0.0-dev-headless"
+__version__ = "1.0.1"
 
 
 def image_exists(iname):

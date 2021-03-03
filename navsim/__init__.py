@@ -1,7 +1,7 @@
 from pathlib import Path
 import sys
 
-__version__="1.0.0"
+__version__="1.0.1"
 
 #===== TODO: Remove this when ezai_util is an installed package
 #base_path=Path.home() / 'projects'
