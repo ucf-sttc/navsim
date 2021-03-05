@@ -29,9 +29,8 @@ seaborn>=0.10.0
 
 # graphviz
 # python-graphviz
-
-terminaltables
-tabulate
+#terminaltables
+#tabulate
 
 # image / vision related
 ffmpeg>=4.3

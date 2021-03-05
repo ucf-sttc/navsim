@@ -17,10 +17,10 @@ First, either start a singularity or a docker container.
 
 Start by defining which repo and version to use.
 ```
-ver=1.0.0
+ver=1.0.1
 repo="ghcr.io/armando-fandango"
 ```
-If running from local docker repo for development purposes:
+For IST Devs: From local docker repo for development purposes:
 ```
 repo="localhost:5000"
 ```
@@ -32,31 +32,27 @@ Note: Do it on a partition that has at least 10GB space as the next step will cr
 singularity pull docker://$repo/navsim:$ver
 singularity shell --nv navsim_$ver.sif
 ```
-From local docker repo for development purposes:
+For IST Devs: From local docker repo for development purposes:
 ```
 SINGULARITY_NOHTTPS=true singularity pull docker://$repo/navsim:$ver
 ```
 #### To run the Docker container:
 
-TODO: Troyle please review and fix it... 
-since the repo is not available so ./docker-run would need to be replaced with one single command
-
-Or docker-run.sh has to be converted to python and provided as a command in navsim.
 ```
 docker pull $repo/navsim:$ver
-docker run -it --gpus all --name navsim_${ver}_1 \
-  -u $(id -u):$(id -g) -w ${PWD} \
-  -e DISPLAY -e XAUTHORITY -e NVIDIA_DRIVER_CAPABILITIES=all \
-  -v /mnt:/mnt \ 
-  navsim_$ver bash
+docker run --privileged -it --gpus all --name navsim_${ver}_1 \
+  -e XAUTHORITY -e NVIDIA_DRIVER_CAPABILITIES=all \
+  -v /mnt:/mnt \
+  -v /etc/group:/etc/group:ro \
+  -v /etc/passwd:/etc/passwd:ro \
+  -v /etc/shadow:/etc/shadow:ro \
+  $repo/navsim:$ver bash
 ```
 
-```
-./docker-run.sh --xserver
-```
-
-### Step 1 Option 2 How to run on host machine without container
+### Step 1 Option 2 How to run on host machine without container - TODO
+### Please skip to step 2 as these instructions are in progress.
 #### X server on host setup and startup (Admin required)
+
 Note: Either run X in a tmux session or have admin start X with generated config and display port in background manually or on startup
  tmux new -s x-server
 ```
@@ -70,11 +66,11 @@ Note: Either run X in a tmux session or have admin start X with generated config
 ```
 
 ## Step 2: Run the navsim
-* `navsim` - executes and/or trains the model
-* `navsim-benchmark` - benchmarks the model
-* `navsim-saturate-gpu` - Saturates the GPU
+* `navsim --env <path to env file>` - executes and/or trains the model
+* `navsim-benchmark <path to env file>` - benchmarks the model
+* `navsim-saturate-gpu <path to env file>` - Saturates the GPU
 
-### GPU Usage examples
+### TODO: This section needs to be fixed - GPU Usage examples
 Note: In new pane run container (can pass DISPLAY below as a variable), navigate to training command directory, and setup training specific configurations
 ```
 Run a command on a specific gpu
@@ -98,9 +94,6 @@ For tmux hotkeys press ctrl+b then following key
 * Detach from tmux session: ctrl + b, d  (detach from tmux session)
 * Attach to existing tmux session: tmux attach -t <session name>
 * Exit Session: Type exit into all open shells within session
-
-
-
 
 
 # Contribute

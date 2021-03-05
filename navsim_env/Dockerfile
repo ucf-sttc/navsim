@@ -63,7 +63,8 @@ RUN apt-get -qq update && \
       pciutils
 
 COPY scripts/x_server.py scripts/install_nvidia.sh scripts/startx.sh /root/
-RUN NVIDIA_VERSION=$NVIDIA_VERSION /root/install_nvidia.sh
+RUN NVIDIA_VERSION=$NVIDIA_VERSION /root/install_nvidia.sh && \
+    rm /root/install_nvidia.sh
 
 ENTRYPOINT ["bash", "-c", "python /root/x_server.py & bash"]
 
@@ -96,15 +97,4 @@ RUN source /root/.bashrc && source ezai-conda.sh && \
     chmod -R 777 ${CONDA_DIR} && \
     rm ezai-conda* ezai-pip-*
 
-#COPY conda-ez-update* /root/
-#RUN ./conda-ez-update.sh && \
-#    rm conda-ez-update*
-
-    #&& \
-    #echo "alias eznb='conda activate ezai-conda && jupyter notebook --ip=* --no-browser'" >> ${AI_HOME}/.bashrc &&\
-    #echo "conda activate ezai-conda" >> ${AI_HOME}/.bashrc
-                    #--allow-root
-# TODO: Make RUN commands use the new environment:
-# SHELL ["conda", "run", "-n", "ezai", "/bin/bash", "-c"]
-# SHELL ["/bin/bash", "-c"] this doesnt work
 

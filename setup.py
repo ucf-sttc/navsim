@@ -2,6 +2,8 @@ import setuptools
 import navsim
 
 VERSION=navsim.__version__
+with open('version.txt', 'r') as vf:
+    version = vf.read().strip()
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
