@@ -30,7 +30,10 @@ Note: Do it on a partition that has at least 10GB space as the next step will cr
 
 ```
 singularity pull docker://$repo/navsim:$ver
-singularity shell --nv navsim_$ver.sif
+singularity shell --nv \
+  -B <path to binary> # not needed if path to binary is inside $HOME folder  
+  -B <path to current folder> # not needed if path to current folder is inside $HOME folder
+  navsim_$ver.sif
 ```
 For IST Devs: From local docker repo for development purposes:
 ```
@@ -40,12 +43,15 @@ SINGULARITY_NOHTTPS=true singularity pull docker://$repo/navsim:$ver
 
 ```
 docker pull $repo/navsim:$ver
-docker run --privileged -it --gpus all --name navsim_${ver}_1 \
+docker run --rm --privileged -it --gpus all \
+  --name navsim_${ver}_1 \
   -e XAUTHORITY -e NVIDIA_DRIVER_CAPABILITIES=all \
-  -v /mnt:/mnt \
+  -v ${HOME}:${HOME}
   -v /etc/group:/etc/group:ro \
   -v /etc/passwd:/etc/passwd:ro \
   -v /etc/shadow:/etc/shadow:ro \
+  -v <path to binary> # not needed if path to binary is inside $HOME folder  
+  -v <path to current folder> # not needed if path to current folder is inside $HOME folder
   $repo/navsim:$ver bash
 ```
 
