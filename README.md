@@ -40,7 +40,8 @@ SINGULARITY_NOHTTPS=true singularity pull docker://$repo/navsim:$ver
 
 ```
 docker pull $repo/navsim:$ver
-docker run --privileged -it --gpus all --name navsim_${ver}_1 \
+docker run --rm --privileged -it --gpus all \
+  --name navsim_${ver}_1 \
   -e XAUTHORITY -e NVIDIA_DRIVER_CAPABILITIES=all \
   -v /mnt:/mnt \
   -v /etc/group:/etc/group:ro \

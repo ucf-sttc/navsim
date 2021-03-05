@@ -1,4 +1,5 @@
 FROM nvidia/cudagl:10.1-devel-ubuntu18.04 as base-image
+MAINTAINER Armando Fandango <armando@neurasights.com>
 
 #ARG COMPONENTS=Unity,Windows,Windows-Mono,Mac,Mac-Mono,WebGL
 #ARG COMPONENTS=Unity,Mac,WebGL
@@ -9,7 +10,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 USER root
 RUN apt-get -qq update && \
     apt-get -qq upgrade -y && \
-    apt-get -qq install -y --no-install-recommends\
+    apt-get -qq install -y --no-install-recommends \
     # TODO: sort these package names by alpha - docker BP
       # needed to install custom / launchpad repos
       software-properties-common \
@@ -60,15 +61,8 @@ RUN apt-get -qq update && \
 	  x11vnc \
       ffmpeg \
       kmod \
-      pciutils
-
-COPY scripts/x_server.py scripts/install_nvidia.sh scripts/startx.sh /root/
-RUN NVIDIA_VERSION=$NVIDIA_VERSION /root/install_nvidia.sh && \
-    rm /root/install_nvidia.sh
-
-ENTRYPOINT ["bash", "-c", "python /root/x_server.py & bash"]
-
-RUN apt-get autoremove --purge && apt-get clean && rm -rf /var/lib/apt/lists/*
+      pciutils && \
+    apt-get autoremove --purge && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 	#swig \
     # sumo pre-req
@@ -87,7 +81,7 @@ WORKDIR /root/
 SHELL ["/bin/bash", "-c"]
 
 #Install MINICONDA and navsim_env in base
-COPY ezai-conda* ezai-pip-* /root/
+COPY scripts/* ezai-conda* ezai-pip-* /root/
 RUN source ezai-conda.sh && \
     install_miniconda --conda_dir ${CONDA_DIR}
 ENV PATH=${CONDA_DIR}/bin:$PATH
@@ -97,4 +91,4 @@ RUN source /root/.bashrc && source ezai-conda.sh && \
     chmod -R 777 ${CONDA_DIR} && \
     rm ezai-conda* ezai-pip-*
 
-
+ENTRYPOINT ["bash", "-c", "(/root/runonce.sh && python /root/x_server.py) & bash"]
