@@ -31,8 +31,8 @@ Note: Do it on a partition that has at least 10GB space as the next step will cr
 ```
 singularity pull docker://$repo/navsim:$ver
 singularity shell --nv \
-  -B <path to binary> # not needed if path to binary is inside $HOME folder  
-  -B <path to current folder> # not needed if path to current folder is inside $HOME folder
+  -B <absolute path of sim binary folder> # not needed if path to binary is inside $HOME folder  
+  -B <absolute path of current folder> # not needed if path to current folder is inside $HOME folder
   navsim_$ver.sif
 ```
 For IST Devs: From local docker repo for development purposes:
@@ -46,12 +46,12 @@ docker pull $repo/navsim:$ver
 docker run --rm --privileged -it --gpus all \
   --name navsim_${ver}_1 \
   -e XAUTHORITY -e NVIDIA_DRIVER_CAPABILITIES=all \
-  -v ${HOME}:${HOME}
+  -v ${HOME}
   -v /etc/group:/etc/group:ro \
   -v /etc/passwd:/etc/passwd:ro \
   -v /etc/shadow:/etc/shadow:ro \
-  -v <path to binary> # not needed if path to binary is inside $HOME folder  
-  -v <path to current folder> # not needed if path to current folder is inside $HOME folder
+  -v <absolute path to sim binary folder> # not needed if path to binary is inside $HOME folder  
+  -v <absolute path to current folder> # not needed if path to current folder is inside $HOME folder
   $repo/navsim:$ver bash
 ```
 
@@ -72,9 +72,9 @@ Note: Either run X in a tmux session or have admin start X with generated config
 ```
 
 ## Step 2: Run the navsim
-* `navsim --env <path to env file>` - executes and/or trains the model
-* `navsim-benchmark <path to env file>` - benchmarks the model
-* `navsim-saturate-gpu <path to env file>` - Saturates the GPU
+* `navsim --env <path to sim binary file>` - executes and/or trains the model
+* `navsim-benchmark <path to sim binary file>` - benchmarks the model
+* `navsim-saturate-gpu <path to sim binary file>` - Saturates the GPU
 
 ### TODO: This section needs to be fixed - GPU Usage examples
 Note: In new pane run container (can pass DISPLAY below as a variable), navigate to training command directory, and setup training specific configurations
