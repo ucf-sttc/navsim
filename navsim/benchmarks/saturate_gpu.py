@@ -25,7 +25,6 @@ def main():
     parser.add_argument('binary', metavar='B', type=Path,
                         default=None, #"/mnt/AICOOP_binaries/Build2.4.4/Berlin_Walk_V2.x86_64",
                         help="File path to Unity game binary")
-    parser.add_argument('benchmarkpy', metavar='bench', type=Path, default="navsim-benchmark",
     help="File path to benchmark.py")
     # TODO find this dynamically with nvidia-smi and parse
     # nvidia-smi  --help-query-gpu
@@ -58,7 +57,7 @@ def main():
         for proc_idx in range(0, proc_per_gpu):
             # proc_list.append(subprocess.Popen(["ls", "-la"]))
             gpu_env["DISPLAY"] = ":" + str(args.x_disp) + "." + str(gpu_idx)
-            sp_args = [benchmark_py_path, unity_binary_path, "-a", "VectorVisual", "--worker_id",
+            sp_args = ["navsim-benchmark", unity_binary_path, "-a", "VectorVisual", "--worker_id",
                        str(proc_idx + (gpu_idx * proc_per_gpu))]
             print(sp_args)
             proc_list.append(subprocess.Popen(sp_args, env=gpu_env))
