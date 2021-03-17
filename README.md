@@ -1,31 +1,32 @@
 # Introduction 
 A navigation simulator API built on top of Python, Stable Baselines.
 
-Can use many simulator backends.
+Can use many simulator backends, for now uses the Unity bases Berlin bakend.
 
 # How to use the navsim API
 
 You can either run directly on a host machine or in a container. 
 
-Step 1 is to run the container, or the required services in the host machine.
-Step 2 is to run the navsim itself.
+## Option 1: Container
 
-## Step 1: Run the container, or the services in host machine
-
-### Step 1 Option 1: Container
-First, either start a singularity or a docker container.
-
-Start by defining which repo and version to use.
+1. Download and extract the unity environment binary zip file, and 
+set the following:
 ```
-ver=1.0.1
+envdir="$HOME/unity-envs/BerlinLinux_2020.2.1f1_R12_2.4.5"
+envbin="Berlin_Walk_V2.x86_64"
+```
+2. Define which repo and version to use.
+```
+ver="1.0.2"
 repo="ghcr.io/armando-fandango"
 ```
 For IST Devs: From local docker repo for development purposes:
 ```
 repo="localhost:5000"
 ```
-Next run the container:
-#### To run the singularity container
+3. Next run the container:
+
+### TODO: To run the singularity container
 Note: Do it on a partition that has at least 10GB space as the next step will create navsim_0.0.1.sif file of ~10GB.
 
 ```
@@ -39,54 +40,32 @@ For IST Devs: From local docker repo for development purposes:
 ```
 SINGULARITY_NOHTTPS=true singularity pull docker://$repo/navsim:$ver
 ```
-#### To run the Docker container:
+### To run the Docker container:
 
 ```
 docker pull $repo/navsim:$ver
-docker run --rm --privileged -it --gpus all \
-  --name navsim_${ver}_1 \
-  -e XAUTHORITY -e NVIDIA_DRIVER_CAPABILITIES=all \
-  -v ${HOME}
+docker run --rm --privileged -it --runtime=nvidia \
+  --name navsim_$ver_1 \
+  -e XAUTHORITY \
+  -e NVIDIA_VISIBLE_DEVICES=all -e NVIDIA_DRIVER_CAPABILITIES=all \
+  -e USER_ID=$(id -u) -e USER_HOME="$HOME" \
+  -v $HOME \
   -v /etc/group:/etc/group:ro \
   -v /etc/passwd:/etc/passwd:ro \
   -v /etc/shadow:/etc/shadow:ro \
-  -v <absolute path to sim binary folder> # not needed if path to binary is inside $HOME folder  
-  -v <absolute path to current folder> # not needed if path to current folder is inside $HOME folder
-  $repo/navsim:$ver bash
+  -v "$(realpath $envdir)":$HOME/rlenv \
+  -v $(realpath $PWD):$HOME/$(basename $PWD) \
+  -w $HOME/$(basename $PWD) \
+  $repo/navsim:$ver "<navsim_command> 
 ```
 
-### Step 1 Option 2 How to run on host machine without container - TODO
-### Please skip to step 2 as these instructions are in progress.
-#### X server on host setup and startup (Admin required)
+### The `<navsim_command>`
+* `DISPLAY=:0.0 navsim --env $HOME/rlenv/$envbin` - executes and/or trains the model
+* `DISPLAY=:0.0 navsim-benchmark $HOME/rlenv/$envbin` - benchmarks the model
+* `DISPLAY=:0.0 navsim-saturate-gpu $HOME/rlenv/$envbin` - Saturates the GPU
 
-Note: Either run X in a tmux session or have admin start X with generated config and display port in background manually or on startup
- tmux new -s x-server
-```
-#For Lambda quad
- nvidia-xconfig -o headlessxorg.conf -a --use-display-device=None --virtual=1280x1024
-#For V100 servers or Nvidia GRID enabled machines
- nvidia-xconfig -o headlessxorg.conf -a 
-
-#You can select a perferred DISPLAY port
- sudo X -config headlessxorg.conf :88 (Running in background with & stops the process, TODO containerized)
-```
-
-## Step 2: Run the navsim
-* `navsim --env <path to sim binary file>` - executes and/or trains the model
-* `navsim-benchmark <path to sim binary file>` - benchmarks the model
-* `navsim-saturate-gpu <path to sim binary file>` - Saturates the GPU
-
-### TODO: This section needs to be fixed - GPU Usage examples
-Note: In new pane run container (can pass DISPLAY below as a variable), navigate to training command directory, and setup training specific configurations
-```
-Run a command on a specific gpu
-
-DISPLAY=:88.<screen idx> navsim 
-DISPLAY=:88.0 navsim-benchmark AICOOP_binaries/Build2.4.4/Berlin_Walk_V2.x86_64 -a VectorVisual
-DISPLAY=:88.3 navsim-saturate-gpu AICOOP_binaries/Build2.4.4/Berlin_Walk_V2.x86_64  
-```
-
-## TODO: Fix the following parts of readme Headless Run with X-Server 
+## Option 2: TODO: Run on host directly
+### Fix the following parts of readme Headless Run with X-Server 
 
 Assumption: X is installed, nvidia-drivers
 

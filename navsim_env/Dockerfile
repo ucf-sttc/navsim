@@ -82,7 +82,8 @@ SHELL ["/bin/bash", "-c"]
 
 #Install MINICONDA and navsim_env in base
 COPY scripts/* ezai-conda* ezai-pip-* /root/
-RUN source ezai-conda.sh && \
+RUN chmod +x /root/*.sh && \
+    source ezai-conda.sh && \
     install_miniconda --conda_dir ${CONDA_DIR}
 ENV PATH=${CONDA_DIR}/bin:$PATH
 #ENV BASH_ENV="/root/.bashrc"
@@ -90,5 +91,6 @@ RUN source /root/.bashrc && source ezai-conda.sh && \
     ezai_conda_create --venv "base" && \
     chmod -R 777 ${CONDA_DIR} && \
     rm ezai-conda* ezai-pip-*
-
-ENTRYPOINT ["bash", "-c", "(/root/runonce.sh && python /root/x_server.py) & bash"]
+#ENTRYPOINT ["bash", "-c", "(/root/chuser.sh && python /root/x_server.py) && bash"]
+ENTRYPOINT ["/root/entrypoint.sh"]
+CMD ["bash"]

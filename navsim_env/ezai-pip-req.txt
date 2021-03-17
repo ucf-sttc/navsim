@@ -35,5 +35,4 @@ mlagents_envs==0.23.0
 gym_unity==0.23.0
 # unity end
 
-ezai_util
 navsim

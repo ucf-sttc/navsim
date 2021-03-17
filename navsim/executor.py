@@ -8,7 +8,7 @@ import numpy as np
 
 from navsim import NavSimEnv, DDPGAgent, Memory
 from navsim.util import sizeof_fmt, image_layout
-from ezai_util import ObjDict, ResourceCounter
+from navsim.util import ObjDict, ResourceCounter
 
 import traceback
 import numpy as np

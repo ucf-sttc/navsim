@@ -34,12 +34,12 @@ def main():
     cp = subprocess.run(['docker', 'build', bopt, '-t', iname, '.'])
 
     if cp.returncode==0:
-        print(f"created image {iname}")
+        subprocess.run(['docker', 'tag', iname, lname])
+        subprocess.run(['docker', 'tag', iname, rname])
+        print(f"created image {iname} aka {lname} aka {rname}")
         if args.remote:
-            subprocess.run(['docker', 'tag', iname, rname])
             subprocess.run(['docker', 'push', rname])
         if args.local:
-            subprocess.run(['docker', 'tag', iname, lname])
             subprocess.run(['docker', 'push', lname])
         if args.singularity:
             print('headless singularity build not implemented yet')

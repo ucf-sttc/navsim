@@ -75,7 +75,7 @@ install_cuda () {
   echo "Installing cuda ..."
   conda config --env --prepend channels nvidia
   conda config --show-sources
-  conda install -y -S "cudatoolkit=10.1" "cudnn=7.6.0" "nccl"
+  conda install -y -S "cudatoolkit=10.1" "cudnn>=7.6.0" "nccl"
   #&& \
   #conda install -y -S "nccl" #"mpi4py>=3.0.0" gxx_linux-64 gcc_linux-64
   return $?
