@@ -17,7 +17,7 @@ envbin="Berlin_Walk_V2.x86_64"
 ```
 2. Define which repo and version to use.
 ```
-ver="1.0.2"
+ver="1.0.4"
 repo="ghcr.io/armando-fandango"
 ```
 For IST Devs: From local docker repo for development purposes:

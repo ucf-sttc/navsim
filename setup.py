@@ -29,6 +29,8 @@ setuptools.setup(
         'Intended Audience :: Education',
         'Intended Audience :: Science/Research',
     ],
+    include_package_data=True,
+    #data_files=[('navsim',['navsim/version.txt'])],
     python_requires='>=3.7',
     entry_points={
         "console_scripts": [
