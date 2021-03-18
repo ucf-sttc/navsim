@@ -1,13 +1,15 @@
 import setuptools
 
-with open('version.txt', 'r') as vf:
-    version = vf.read().strip()
+with open('navsim/version.txt', 'r') as vf:
+    __version__ = vf.read().strip()
+#from navsim.version import __version__
+
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setuptools.setup(
     name="navsim",
-    version=version,
+    version=__version__,
     author="Armando Fandango, Troyle Thomas @ STTC, IST, UCF",
     author_email="armando@ucf.edu",
     description="Navigation Simulator",
