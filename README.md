@@ -49,14 +49,14 @@ docker run --rm --privileged -it --runtime=nvidia \
   -e XAUTHORITY \
   -e NVIDIA_VISIBLE_DEVICES=all -e NVIDIA_DRIVER_CAPABILITIES=all \
   -e USER_ID=$(id -u) -e USER_HOME="$HOME" \
-  -v $HOME \
+  -v $HOME:$HOME \
   -v /etc/group:/etc/group:ro \
   -v /etc/passwd:/etc/passwd:ro \
   -v /etc/shadow:/etc/shadow:ro \
   -v "$(realpath $envdir)":$HOME/rlenv \
-  -v $(realpath $PWD):$HOME/$(basename $PWD) \
+  -v "$(realpath $PWD)":$HOME/$(basename $PWD) \
   -w $HOME/$(basename $PWD) \
-  $repo/navsim:$ver "<navsim_command> 
+  $repo/navsim:$ver <navsim_command>
 ```
 
 ### The `<navsim_command>`

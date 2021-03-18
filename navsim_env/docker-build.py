@@ -4,7 +4,7 @@ import argparse
 import subprocess
 from subprocess import run, DEVNULL
 
-with open('../version.txt', 'r') as vf:
+with open('../navsim/version.txt', 'r') as vf:
     __version__ = vf.read().strip()
 
 def image_exists(iname):
