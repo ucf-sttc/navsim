@@ -62,7 +62,7 @@ docker run --rm --privileged -it --runtime=nvidia \
 ### The `<navsim_command>`
 * `DISPLAY=:0.0 navsim --env $HOME/rlenv/$envbin` - executes and/or trains the model
 * `DISPLAY=:0.0 navsim-benchmark $HOME/rlenv/$envbin` - benchmarks the model
-* `DISPLAY=:0.0 navsim-saturate-gpu $HOME/rlenv/$envbin` - Saturates the GPU
+* `navsim-saturate-gpu $HOME/rlenv/$envbin` - Saturates the GPU
 
 ## Option 2: TODO: Run on host directly
 ### Fix the following parts of readme Headless Run with X-Server 

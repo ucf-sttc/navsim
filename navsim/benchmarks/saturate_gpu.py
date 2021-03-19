@@ -25,12 +25,11 @@ def main():
     parser.add_argument('binary', metavar='B', type=Path,
                         default=None, #"/mnt/AICOOP_binaries/Build2.4.4/Berlin_Walk_V2.x86_64",
                         help="File path to Unity game binary")
-    help="File path to benchmark.py")
     # TODO find this dynamically with nvidia-smi and parse
     # nvidia-smi  --help-query-gpu
     # p=subprocess.Popen(["nvidia-smi", '--query-gpu=count', '--format=csv', '-i', 0])
     # p=subprocess.Popen(["nvidia-smi", '--query-gpu=memory.total', '--format=csv', '-i', 0])
-    parser.add_argument('-x-disp', metavar='X', default="88", help="X DISPLAY port")
+    parser.add_argument('-x-disp', metavar='X', default="0", help="X DISPLAY port")
     parser.add_argument('--num-gpus', default=4, type=int, help="Number of available gpus")
     parser.add_argument('--max-proc-vram', default=5000, type=int, help="Maximum VRAM used by Unity Game")
     parser.add_argument('--single-gpu-vram', default=11178, type=int, help="Total amount of available vram per gpu")
@@ -43,7 +42,6 @@ def main():
     print(args)
     # "python ../benchmarks/benchmark.py  ../../AICOOP_binaries/Build2.4.4/Berlin_Walk_V2.x86_64 -a VectorVisual"
     unity_binary_path = args.binary
-    benchmark_py_path = args.benchmarkpy
 
     gpu_env = os.environ.copy()
 
