@@ -43,7 +43,7 @@ create_venv () {
   return $?
 }
 
-install_venv () {
+install_py () {
   echo "installing python $py_ver in $venv..."
   conda install -y -S -c conda-forge "python=$py_ver"
   return $?
@@ -155,9 +155,10 @@ ezai_conda_create () {
     conda config --show-sources
     #conda install -y --no-update-deps "conda=4.6.14" "python=3.7.3" || (echo "Unable to update base conda"; exit 1)
     deactivate
-    activate "${venv}" || create_venv || echo "Unable to create ${venv}" && exit 1
+    activate "${venv}" || create_venv || (echo "Unable to create ${venv}" && return $?)
+    activate "${venv}"
   else
-    activate "${venv}" && install_venv
+    activate "${venv}" && install_py
   fi
 
   config_env
@@ -165,8 +166,7 @@ ezai_conda_create () {
   install_cuda && install_fastai_pytorch && install_txt
   if [ "$?" != "0" ];
   then
-    echo "Conda install failed in ${venv}"
-    exit $?
+    echo "Conda install failed in ${venv}" && return $?
   fi
   # Expose environment as kernel
   #python -m ipykernel install --user --name ezai-conda --display-name "ezai-conda"

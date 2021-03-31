@@ -15,7 +15,9 @@ else
 fi
 
 nohup python /root/x_server.py &
-
+touch nohup.out
+chmod 666 nohup.out
+chown $USER_ID nohup.out
 USER_ID=${USER_ID:-0}
 export HOME=${USER_HOME:-/root}
 echo "Starting with UID : $USER_ID"

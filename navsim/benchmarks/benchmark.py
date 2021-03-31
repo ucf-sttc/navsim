@@ -151,11 +151,11 @@ def main():
         # action = gym_env.action_space.sample()
         # some arbitrary turns and then reverse
         if (t >= 0):
-            action = [1, 1]
+            action = [1, 1, 0]
         if (t > 17000):
-            action = [1, 0]
+            action = [1, 0, 0]
         if (t > 25000):
-            action = [0, 1]
+            action = [0, 1, 0]
         observation, reward, done, info = gym_env.step(action)
 
         current_time = time.time()
