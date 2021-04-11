@@ -12,6 +12,8 @@ tqdm
 pyyaml
 twine  # for pypi
 ifcfg
+sphinx # for docs
+recommonmark
 
 # basic data science
 hypothesis>=3.58 # needed by pandas but doesnt install on win64

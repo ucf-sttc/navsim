@@ -34,5 +34,9 @@ mlagents==0.23.0
 mlagents_envs==0.23.0
 gym_unity==0.23.0
 # unity end
+stable-baselines3[extra]
+ray[rllib]
+
+sphinx-rtd-theme
 
 navsim

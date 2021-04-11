@@ -3,9 +3,89 @@ from gym_unity.envs import UnityToGymWrapper
 from mlagents_envs.side_channel.engine_configuration_channel import EngineConfigurationChannel
 from mlagents_envs.side_channel.environment_parameters_channel import EnvironmentParametersChannel
 from pathlib import Path
+import attr
+from .util import BaseConfig
+import gym
 
+class NavSimGymEnv(UnityToGymWrapper):
+    """NavSimGymEnv Class is a wrapper to Unity2Gym that inherits from the Gym interface
 
-class NavSimEnv:
+    The configuration provided is as follows:
+
+    Observation Mode
+
+    * Vector 0
+
+    * Visual 1
+
+    * VectorVisual 2
+
+    Segmentation
+    
+    * Object Segmentation 0
+
+    * Tag Segmentation 1
+
+    * Layer Segmentation 2
+
+    Task
+
+    * PointNav 0
+
+    * SimpleObjectNav 1
+
+    * ObjectNav 2
+
+    Goal Selection
+
+    * 0 - Tocus
+
+    * 1 - sedan1
+
+    * 2 - Car1
+
+    * 3 - Car2
+
+    * 4 - City Bus
+
+    * 5 - Sporty_Hatchback
+
+    * Else - SEDAN
+
+    .. code-block:: python
+
+        env_conf = ObjDict({
+            "log_folder": "unity.log",
+            "seed": 123,
+            "timeout": 600,
+            "worker_id": 0,
+            "base_port": 5005,
+            "observation_mode": 2,
+            "segmentation_mode": 1,
+            "task": 0,
+            "goal": 0,
+            "max_steps": 10,
+            "reward_for_goal": 50,
+            "reward_for_ep": 0.005,
+            "reward_for_other": -0.1,
+            "reward_for_falling_off_map": -50,
+            "reward_for_step": -0.0001,
+            "agent_car_physics": 0,
+            "episode_max_steps": 10,
+            "env_path":args["env_path"]
+        })
+
+    Action Space: [Throttle, Steering, Brake]
+
+    * Throttle: -1.0 to 1.0
+
+    * Steering: -1.0 to 1.0
+
+    * Brake: 0.0 to 1.0
+
+    Observation Space: [[Agent Position, Agent Rotation, Agent Velocity,Agent Rotation, Goal Position],[Raw Agent Camera],[Depth Agent Camera],[Segmentation Agent Camera]]
+
+    """
     def __init__(self, conf):
         """
         conf: ObjDict having Environment Conf
@@ -13,17 +93,16 @@ class NavSimEnv:
         """
         # filename: Optional[str] = None, observation_mode: int = 0, max_steps:int = 5):
         self.conf = conf
-
         self.observation_mode = self.conf['observation_mode']
+
         self.uenv = None
-        self.genv = None
+        self.uenv = self.open_uenv()
+        super().__init__(self.uenv, False, False, True)
+                    # (Env, uint8_visual, flatten_branched, allow_multiple_obs)
+        #self.seed(self.conf['seed']) # unity-gym env seed is not working, seed has to be passed with unity env
 
-        self.env_open = False
-        self.open()
-
-    def open(self):
-
-        if self.env_open:
+    def open_uenv(self):
+        if self.uenv:
             raise ValueError('Environment already open')
         else:
             log_folder = Path(self.conf['log_folder'])
@@ -31,8 +110,10 @@ class NavSimEnv:
 
             engine_side_channel = EngineConfigurationChannel()
             environment_side_channel = EnvironmentParametersChannel()
+            self.map_side_channel = MapSideChannel()
 
             engine_side_channel.set_configuration_parameters(time_scale=10, quality_level=0)
+
             environment_side_channel.set_float_parameter("rewardForGoalCollision", self.conf['reward_for_goal'])
             environment_side_channel.set_float_parameter("rewardForExplorationPointCollision",
                                                          self.conf['reward_for_ep'])
@@ -47,6 +128,7 @@ class NavSimEnv:
             environment_side_channel.set_float_parameter("goalSelectionIndex", self.conf['goal'])
             environment_side_channel.set_float_parameter("agentCarPhysics", self.conf['agent_car_physics'])
 
+
             uenv_file_name = str(Path(self.conf['env_path']).resolve()) if self.conf['env_path'] else None
             self.uenv = UnityEnvironment(file_name=uenv_file_name,
                                          log_folder=str(log_folder.resolve()),
@@ -55,97 +137,149 @@ class NavSimEnv:
                                          worker_id=self.conf['worker_id'],
                                          # base_port=self.conf['base_port'],
                                          no_graphics=False,
-                                         side_channels=[engine_side_channel, environment_side_channel])
+                                         side_channels=[engine_side_channel, environment_side_channel,self.map_side_channel])
 
-            self.genv = UnityToGymWrapper(self.uenv, False, False, True)
-            # (Env, uint8_visual, flatten_branched, allow_multiple_obs)
-            self.seed(self.conf['seed'])
-            self.env_open = True
+            return self.uenv
 
-    def close(self):
-        if self.env_open:
-            self.env_open = False
-            if self.uenv is None:
-                print('uenv is None')
-            else:
-                self.uenv.close()
+    def close_uenv(self):
+        if self.uenv is None:
+            print('uenv is None')
         else:
-            raise ValueError('Environment not open')
+            self.uenv.close()
 
     def info(self):
+        """Prints the information about the environment
+
+        """
         print('-----------')
         print("Env Info")
         print('-----------')
-        if self.genv.spec:
+        if self.spec:
             print(self.genv.spec.id)
         print('Action Space:', self.action_space)
-        print('Action sample:', self.action_space.sample())
         print('Action Space Shape:', self.action_space.shape)
         print('Action Space Low:', self.action_space.low)
         print('Action Space High:', self.action_space.high)
         print('Observation Mode:', self.observation_mode)
-        print('Gym Observation Space:', self.genv.observation_space)
-        print('Gym Observation Space Shape:', self.genv.observation_space.shape)
-        print('Self Observation Space:', self.observation_space)
-        print('Self Observation Space Shape:', self.observation_space.shape)
-        print('Self Observation Space Shapes:', self.observation_space_shapes)
-        print('Self Observation Space Types:', self.observation_space_types)
-        print('Reward Range:', self.genv.reward_range)
-        print('Metadata:', self.genv.metadata)
+        #print('Gym Observation Space:', self.genv.observation_space)
+        #print('Gym Observation Space Shape:', self.genv.observation_space.shape)
+        print('Observation Space:', self.observation_space)
+        print('Observation Space Shape:', self.observation_space.shape)
+        print('Observation Space Shapes:', self.observation_space_shapes)
+        print('Observation Space Types:', self.observation_space_types)
+        print('Reward Range:', self.reward_range)
+        print('Metadata:', self.metadata)
+        return self
 
     def info_steps(self):
+        """Prints the initial state, action sample, first step state
+
+        """
         print('Initial State:', self.reset())
-        print('First Step State:', self.step(self.action_space.sample()))
-
-    @property
-    def action_space(self):
-        return self.genv.action_space
-
-    @property
-    def action_space_shape(self):
-        return self.action_space.shape
-
-    @property
-    def observation_space(self):
-        """
-        We can control here what observation space to return
-        Observation Space is always returned as a tuple
-        :return:
-        """
-        return self.genv.observation_space
+        action_sample = self.action_space.sample()
+        print('Action sample:', action_sample)
+        print('First Step State:', self.step(action_sample))
+        self.reset()
+        return self
 
     @property
     def observation_space_shapes(self):
-        """
-        Returns the dimensions of the observation space
-        :return:
+        """Returns the dimensions of the observation space
         """
         return [obs.shape for obs in self.observation_space.spaces]
 
     @property
     def observation_space_types(self):
-        """
-        Returns the dimensions of the observation space
-        :return:
+        """Returns the dimensions of the observation space
         """
         return [type(obs) for obs in self.observation_space.spaces]
 
-    @property
-    def gym_env(self):
-        return self.genv
+    def render(self,mode=''):
+        """Not implemented yet
 
-    @property
-    def unity_env(self):
-        return self.uenv
+        Args:
+            mode:
 
-    def step(self, a):
-        return self.genv.step(a)
+        Returns:
 
-    def reset(self):
-        return self.genv.reset()
-
-    def seed(self, seed=None):
-        # TODO: This is broken in gym 0.10.9, fix it when they fix it
-        # self.genv.action_space.seed(seed)
-        # self.genv.seed(seed)
+        """
         pass
+
+    def get_navigable_map(self,resolution_x=200,resolution_y=200,cell_occupancy_threshold=0.5):
+        """Get the Navigable Areas map
+        Args:
+            resolution_x: The size of the x axis of the resulting grid, default = 200
+            resolution_y: The size of the y axis of the resulting grid, default = 200
+            cell_occupancy_threshold: If at least this much % of the cell is occupied, then it will be marked as non-navigable, default = 50%
+
+        Returns:
+            A numpy array which has 0 for non-navigable and 1 for navigable cells
+        """
+        self.map_side_channel.send_request("binaryMap", [resolution_x,resolution_y,cell_occupancy_threshold])
+        return self.map_side_channel.requested_map
+
+    # Functions added to have parity with Env and RLEnv of habitat lab
+    @property
+    def sim(self):
+        """Returns itself
+
+        Added for compatibility with habitat API.
+
+        Returns: link to self
+
+        """
+        return self
+
+
+import time
+from mlagents_envs.environment import UnityEnvironment
+from mlagents_envs.side_channel.side_channel import (
+    SideChannel,
+    IncomingMessage,
+    OutgoingMessage,
+)
+
+from typing import List
+from PIL import Image
+import numpy as np
+
+import uuid
+
+class MapSideChannel(SideChannel):
+    """
+    This is the SideChannel for retrieving map data from Unity.
+    You can send map requests to Unity using send_request.
+    The arguments for a mapRequest are ("binaryMap", [RESOLUTION_X, RESOLUTION_Y, THRESHOLD])
+    """
+    resolution = []
+
+    def __init__(self) -> None:
+        channel_id = uuid.UUID("24b099f1-b184-407c-af72-f3d439950bdb")
+        super().__init__(channel_id)
+        self.requested_map = None
+
+    def on_message_received(self, msg: IncomingMessage) -> None:
+        if self.resolution is None:
+            return
+
+        # mode as grayscale 'L' and convert to binary '1' because for some reason using only '1' doesn't work (possible bug)
+
+        #img = Image.frombuffer('L', (self.resolution[0],self.resolution[1]), np.array(msg.get_raw_bytes())).convert('1')
+        #timestr = time.strftime("%Y%m%d-%H%M%S")
+        #img.save("img-"+timestr+".png")
+        self.requested_map = np.array(msg.get_raw_bytes())
+        self.requested_map = self.requested_map[self.requested_map==255]=1
+        return self.requested_map
+
+        #np.savetxt("arrayfile", np.asarray(img), fmt='%1d', delimiter='')
+
+    def send_request(self, key: str, value: List[float]) -> None:
+        """
+        Sends a request to Unity
+        The arguments for a mapRequest are ("binaryMap", [RESOLUTION_X, RESOLUTION_Y, THRESHOLD])
+        """
+        self.resolution = value
+        msg = OutgoingMessage()
+        msg.write_string(key)
+        msg.write_float32_list(value)
+        super().queue_message_to_send(msg)

@@ -360,10 +360,10 @@ class DDPGAgent(object):
         #    self.vector_state_dimension = self.env.observation_space_shapes[3][0]
 
         self.actor = Actor(self.env.observation_space_shapes,
-                           self.env.action_space_shape[0],
+                           self.env.action_space.shape[0],
                            self.max_action).to(device)
         self.critic = Critic(self.env.observation_space_shapes,
-                             self.env.action_space_shape[0]).to(device)
+                             self.env.action_space.shape[0]).to(device)
 
         self.actor_target = deepcopy(self.actor)
         self.actor_optimizer = torch.optim.Adam(self.actor.parameters())

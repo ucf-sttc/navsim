@@ -5,8 +5,9 @@ from pathlib import Path
 import torch
 from tqdm import tqdm
 import numpy as np
+import math
 
-from navsim import NavSimEnv, DDPGAgent, Memory
+from navsim import NavSimGymEnv, DDPGAgent, Memory
 from navsim.util import sizeof_fmt, image_layout
 from navsim.util import ObjDict, ResourceCounter
 
@@ -33,7 +34,7 @@ class Executor:
         TODO
     """
 
-    def __init__(self, run_id='navsim_test',
+    def __init__(self, run_id='navsim_demo',
                  resume=True, conf=None):
         """
 
@@ -100,7 +101,7 @@ class Executor:
                 self.memory = Memory(
                     capacity=self.run_conf.memory_capacity,
                     state_shapes=memory_observation_space_shapes,
-                    action_shape=self.env.action_space_shape,
+                    action_shape=self.env.action_space.shape,
                     seed=self.run_conf['seed']
                 )
                 self.memory.info()
@@ -177,7 +178,8 @@ class Executor:
 
     def env_open(self):
         self.rc.start()
-        self.env = NavSimEnv(self.env_conf)
+        self.env = NavSimGymEnv(self.env_conf)
+        self.env.reset()
         time_since_start, current_memory, peak_memory = self.rc.stop()
         log_str = f'Unity env creation resource usage: \n' \
                   f'time:{time_since_start},peak_memory:{sizeof_fmt(peak_memory)},' \
@@ -200,114 +202,120 @@ class Executor:
         :return:
         """
         t_max = int(self.conf.run_conf['episode_max_steps'])
+        num_episodes = int(self.conf.run_conf['num_episodes'])
+        checkpoint_interval = int(self.conf.run_conf['checkpoint_interval'])
+        num_episode_blocks = int( math.ceil(num_episodes / checkpoint_interval ))
 
-        for episode_num in tqdm(range(0, int(self.conf.run_conf['num_episodes']))):
-            self.rc.start()
-            episode_resources = [self.rc.snapshot()]  # e0
+        for i in range(0,num_episode_blocks):
+            for episode_num in tqdm(iterable=range((i*checkpoint_interval)+1, min((i+1)*checkpoint_interval,num_episodes)+1),
+                                    desc=f"Episode {(i*checkpoint_interval)+1}-{min((i+1)*checkpoint_interval,num_episodes)}/{num_episodes}",
+                                    unit='episode', ascii=True, ncols=80,bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{rate_fmt}{postfix}]'):
+                self.rc.start()
+                episode_resources = [self.rc.snapshot()]  # e0
 
-            # initialise the episode counters
-            episode_done = False
-            episode_reward = 0
-            t = 0
+                # initialise the episode counters
+                episode_done = False
+                episode_reward = 0
+                t = 0
 
-            # observe initial s
-            s = self.env.reset()  # s comes out of env as a tuple always
-            # TODO: HWC to CHW conversion optimized here
-            # because pytorch can only deal with images in CHW format
-            # we are making the optimization here to convert from HWC to CHW format.
-            s = s_hwc_to_chw(s)
-
-            samples_before_training = (self.run_conf['batch_size'] * self.run_conf['batches_before_train'])
-            while not episode_done:
-                step_resources = [self.rc.snapshot()]  # s0
-                t += 1
-
-                # do the random sampling until enough memory is full
-                if self.memory.size < samples_before_training:
-                    a = self.env.action_space.sample()
-                else:
-                    # TODO: Find the best place to train, moved here for now
-                    batch_s, batch_a, batch_r, batch_s_, batch_d = self.memory.sample(self.run_conf['batch_size'])
-                    # print('training the agent')
-                    self.agent.train(batch_s, batch_a, batch_r, batch_s_, batch_d)
-
-                    a = (self.agent.select_action(s) + np.random.normal(
-                        0, self.max_action * self.run_conf['expl_noise'],
-                        size=self.env.action_space_shape[0])
-                         ).clip(
-                        -self.max_action,
-                        self.max_action
-                    )
-
-                step_resources.append(self.rc.snapshot())  # s1
-                s_, r, episode_done, info = self.env.step(a)
-
+                # observe initial s
+                s = self.env.reset()  # s comes out of env as a tuple always
                 # TODO: HWC to CHW conversion optimized here
                 # because pytorch can only deal with images in CHW format
                 # we are making the optimization here to convert from HWC to CHW format.
-                s_ = s_hwc_to_chw(s_)
+                s = s_hwc_to_chw(s)
 
-                #    s = [[s]]  # make state a list of sequences
-                #    s_ = [[s_]]
-                # elif isinstance(s[0], (int,float)):  # state does not have multiple seq
-                # s = [s]
-                # s_ = [s_]
-                # for item in s_:
+                samples_before_training = (self.run_conf['batch_size'] * self.run_conf['batches_before_train'])
+                while not episode_done:
+                    step_resources = [self.rc.snapshot()]  # s0
+                    t += 1
 
-                step_resources.append(self.rc.snapshot())  # s2
+                    # do the random sampling until enough memory is full
+                    if self.memory.size < samples_before_training:
+                        a = self.env.action_space.sample()
+                    else:
+                        # TODO: Find the best place to train, moved here for now
+                        batch_s, batch_a, batch_r, batch_s_, batch_d = self.memory.sample(self.run_conf['batch_size'])
+                        # print('training the agent')
+                        self.agent.train(batch_s, batch_a, batch_r, batch_s_, batch_d)
 
-                self.memory.append(
-                    s=s, a=a, s_=s_, r=r,
-                    d=float(episode_done))  # if t < t_max -1 else 1)
-                s = s_
+                        a = (self.agent.select_action(s) + np.random.normal(
+                            0, self.max_action * self.run_conf['expl_noise'],
+                            size=self.env.action_space_shape[0])
+                             ).clip(
+                            -self.max_action,
+                            self.max_action
+                        )
 
-                episode_reward += r
+                    step_resources.append(self.rc.snapshot())  # s1
+                    s_, r, episode_done, info = self.env.step(a)
 
-                # if self.memory.size >= self.run_conf['batch_size'] * self.run_conf['batches_before_train']:
+                    # TODO: HWC to CHW conversion optimized here
+                    # because pytorch can only deal with images in CHW format
+                    # we are making the optimization here to convert from HWC to CHW format.
+                    s_ = s_hwc_to_chw(s_)
 
-                #                    if (t >= self.config['batch_size'] * self.config['batches_before_train']) and (t % 1000 == 0):
-                # episode_evaluations.append(evaluate_policy(self.agent, self.env, self.config['seed']))
+                    #    s = [[s]]  # make state a list of sequences
+                    #    s_ = [[s_]]
+                    # elif isinstance(s[0], (int,float)):  # state does not have multiple seq
+                    # s = [s]
+                    # s_ = [s_]
+                    # for item in s_:
 
-                step_resources.append(self.rc.snapshot())  # 3
+                    step_resources.append(self.rc.snapshot())  # s2
 
-                step_time = step_resources[3][0] - step_resources[0][0]
-                unity_step_time = step_resources[2][0] - step_resources[1][0]
-                peak_memory = step_resources[3][2]
+                    self.memory.append(
+                        s=s, a=a, s_=s_, r=r,
+                        d=float(episode_done))  # if t < t_max -1 else 1)
+                    s = s_
 
-                # TODO: Collect these through tensorboard
-                self.step_results_writer.writerow(
-                    [episode_num, t, r, step_time, unity_step_time, peak_memory])
-                self.step_results_file.flush()
-                if (t_max and t >= t_max):
-                    break
-                # t += 1
-            # end of while loop
-            # episode end processing
-            episode_resources.append(self.rc.stop())  # e1
-            episode_time = episode_resources[1][0] - episode_resources[0][0]
-            episode_peak_memory = episode_resources[1][2]
-            # save every int(self.run_conf['checkpoint_interval'])
-            # TODO: Save the episode_num
-            if ((episode_num + 1) % int(self.run_conf['checkpoint_interval'])) == 0:
-                self.agent.save_checkpoint(self.model_filename)
-                self.memory.save_to_pkl(self.memory_filename)
+                    episode_reward += r
 
-            #            if self.enable_logging:
-            #                self.writer.add_scalar('Episode Reward', episode_reward, t)
-            #            episode_rewards.append(episode_reward)
-            self.write_tb_values({'reward': episode_reward,
-                                  'time': episode_time,
-                                  'memory': episode_peak_memory},
-                                 episode_num)
-            self.episode_results_writer.writerow([episode_num,
-                                                  episode_reward,
-                                                  episode_time,
-                                                  episode_peak_memory])
-            self.episode_results_file.flush()
-            # s = self.env.reset()[0]
-            # episode_done = False
-            # episode_reward = 0
-            # episode_timesteps = 0
-            # episode_num += 1
+                    # if self.memory.size >= self.run_conf['batch_size'] * self.run_conf['batches_before_train']:
+
+                    #                    if (t >= self.config['batch_size'] * self.config['batches_before_train']) and (t % 1000 == 0):
+                    # episode_evaluations.append(evaluate_policy(self.agent, self.env, self.config['seed']))
+
+                    step_resources.append(self.rc.snapshot())  # 3
+
+                    step_time = step_resources[3][0] - step_resources[0][0]
+                    unity_step_time = step_resources[2][0] - step_resources[1][0]
+                    peak_memory = step_resources[3][2]
+
+                    # TODO: Collect these through tensorboard
+                    self.step_results_writer.writerow(
+                        [episode_num, t, r, step_time, unity_step_time, peak_memory])
+                    self.step_results_file.flush()
+                    if (t_max and t >= t_max):
+                        break
+                    # t += 1
+                # end of while loop
+                # episode end processing
+                episode_resources.append(self.rc.stop())  # e1
+                episode_time = episode_resources[1][0] - episode_resources[0][0]
+                episode_peak_memory = episode_resources[1][2]
+                # save every int(self.run_conf['checkpoint_interval'])
+                # TODO: Save the episode_num
+                if (episode_num % int(self.run_conf['checkpoint_interval'])) == 0:
+                    self.agent.save_checkpoint(self.model_filename)
+                    self.memory.save_to_pkl(self.memory_filename)
+
+                #            if self.enable_logging:
+                #                self.writer.add_scalar('Episode Reward', episode_reward, t)
+                #            episode_rewards.append(episode_reward)
+                self.write_tb_values({'reward': episode_reward,
+                                      'time': episode_time,
+                                      'memory': episode_peak_memory},
+                                     episode_num)
+                self.episode_results_writer.writerow([episode_num,
+                                                      episode_reward,
+                                                      episode_time,
+                                                      episode_peak_memory])
+                self.episode_results_file.flush()
+                # s = self.env.reset()[0]
+                # episode_done = False
+                # episode_reward = 0
+                # episode_timesteps = 0
+                # episode_num += 1
 
         return
