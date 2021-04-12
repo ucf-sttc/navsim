@@ -20,3 +20,5 @@ help:
 	cp ../*.md "$(SOURCEDIR)"
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 	rm "$(SOURCEDIR)"/*.md
+	cp build/latex/navsim.pdf .
+	zip navsim_html_docs.zip build/html/*

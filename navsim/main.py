@@ -41,9 +41,10 @@ def main():
         "base_port": 5005,
         "observation_mode": 2,
         "segmentation_mode": 1,
-        "max_steps": 10,
+        "max_steps": args["episode_max_steps"]+2,
         "task": 0,
         "goal": 0,
+        "goal_distance": args["goal_distance"],
         "reward_for_goal": 50,
         "reward_for_ep": 0.005,
         "reward_for_other": -0.1,
@@ -53,6 +54,7 @@ def main():
         "episode_max_steps": 10,
         "env_path":args["env_path"]
     })
+
     run_conf = ObjDict({
         "env_name": "navsim",
         "episode_max_steps": args["episode_max_steps"],

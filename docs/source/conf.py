@@ -18,7 +18,9 @@ sys.path.insert(0, os.path.abspath('../..'))
 
 # -- Project information -----------------------------------------------------
 
-project = 'NavSim'
+with open('../../navsim/version.txt', 'r') as vf:
+    version = vf.read().strip()
+project = f'NavSim'
 copyright = '2021, Armando Fandango'
 author = 'Armando Fandango, Troyle Thomas'
 
@@ -68,3 +70,11 @@ def setup(app):
         #'auto_toc_tree_section': 'Contents',
     }, True)
     app.add_transform(AutoStructify)
+
+#-- Options for Latex output -------------------------------------------------
+latex_elements = {
+    'releasename':f'{version}',
+    'fncychap': r'\usepackage[Sonny]{fncychap}'
+}
+latex_theme='manual'
+#latex_toplevel_sectioning = 'part'

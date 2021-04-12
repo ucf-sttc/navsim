@@ -2,6 +2,7 @@ import csv
 import cv2
 from pathlib import Path
 
+
 import torch
 from tqdm import tqdm
 import numpy as np
@@ -188,6 +189,7 @@ class Executor:
         print(log_str)
         self.pylog_file.flush()
         self.env.info()
+        #self.env.info_steps(save_visuals=True)
 
     def env_close(self):
         if self.env is None:
@@ -204,12 +206,7 @@ class Executor:
         t_max = int(self.conf.run_conf['episode_max_steps'])
         num_episodes = int(self.conf.run_conf['num_episodes'])
         checkpoint_interval = int(self.conf.run_conf['checkpoint_interval'])
-        num_episode_blocks = int( math.ceil(num_episodes / checkpoint_interval ))
-
-        # get the navigable map and save it as image
-        navigable_map = self.env.get_navigable_map()
-        if navigable_map:
-            cv2.imwrite(str((self.run_base_folder / 'navigable_map.jpg').resolve()),navigable_map)
+        num_episode_blocks = int(math.ceil(num_episodes / checkpoint_interval))
 
         for i in range(0,num_episode_blocks):
             for episode_num in tqdm(iterable=range((i*checkpoint_interval)+1, min((i+1)*checkpoint_interval,num_episodes)+1),
@@ -223,8 +220,16 @@ class Executor:
                 episode_reward = 0
                 t = 0
 
+                self.env.start_navigable_map()
                 # observe initial s
                 s = self.env.reset()  # s comes out of env as a tuple always
+                #self.env.step(self.env.action_space.sample())
+                # get the navigable map and save it as image
+                navigable_map = self.env.get_navigable_map()
+                if navigable_map is not None:
+                    cv2.imwrite(str((self.run_base_folder / f'navigable_map_{episode_num}.jpg').resolve()),navigable_map*255)
+                else:
+                    print(f'Map for episode {episode_num} is None')
                 # TODO: HWC to CHW conversion optimized here
                 # because pytorch can only deal with images in CHW format
                 # we are making the optimization here to convert from HWC to CHW format.

@@ -197,7 +197,7 @@ def storeObservationImage(basepath, observation, grayscale, observationId):
                               'L')
     else:
         img = Image.fromarray((observation * 255).astype('uint8'), 'RGB')
-    img_path = basepath / "visual_observation{}.png".format(observationId)
+    img_path = basepath / f"visual_observation{observationId}.png"
     img.save(img_path)
     # img.show()
 

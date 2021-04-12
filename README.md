@@ -1,9 +1,19 @@
 # Introduction 
-A navigation simulator API built on top of Python, Stable Baselines.
+A navigation simulator API built on top of Python, Stable Baselines 3, Pytorch.
 
-Can use many simulator backends, for now uses the Unity bases Berlin bakend.
+Can use many simulator backends, for now uses the Aurora Simulator, that is a 
+Unity3D GameEngine based Berlin city environment.
 
-# How to use the navsim API
+# How to use the navsim env 
+
+Assuming your code is in a folder defined in environment variable `expdir`. 
+In your code import `NavSimGymEnv` from the `navsim` package. Either use it to
+instantiate env objects or extend it by subclassing.
+
+Follow the instructions in "how to run the navsim training" section below, 
+replace `navsim` command with your own command, for example: `my-training`
+
+# How to run the navsim training
 
 You can either run directly on a host machine or in a container. 
 
@@ -12,12 +22,12 @@ You can either run directly on a host machine or in a container.
 1. Download and extract the unity binary zip file, and 
 set the following, after changing first two lines for your system:
 ```
-envdir="/data/work/unity-envs/Build2.6.0"
-expdir="~/exp"
+envdir="/data/work/unity-envs/Build2.6.2"
+expdir="$HOME/exp"
 envdir=$(realpath "$envdir")
 expdir=$(realpath "$expdir")
 envbin="Berlin_Walk_V2.x86_64"
-ver="1.0.5"
+ver="1.0.6"
 repo="ghcr.io/armando-fandango"
 ```
 2. Run the container:
@@ -51,6 +61,7 @@ For the purpose of navsim container, use `DISPLAY=0.0` and change the last zero 
 * `navsim --env $envdir/$envbin` - executes and/or trains the model
 * `navsim-benchmark $envdir/$envbin` - benchmarks the model
 * `navsim-saturate-gpu $envdir/$envbin` - Saturates the GPU
+* Replace the navsim command with your own command if you are just importing the NavSim env.
 
 ## Option 2: TODO: Run on host directly
 ### Fix the following parts of readme Headless Run with X-Server 

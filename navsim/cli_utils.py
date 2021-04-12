@@ -149,6 +149,14 @@ def _create_argparser() -> argparse.ArgumentParser:
         action=ArgAction,
     )
 
+    env_conf.add_argument(
+        "--goal_distance",
+        default=50,
+        dest="goal_distance",
+        help="DIstance to goal from current location",
+        action=ArgAction,
+    )
+
     return argparser
 
 

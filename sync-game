@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+loc="unity-envs/Build2.6.2"
+rsync -avzhP zemo:~/${loc}/ ~/${loc}
+rsync -avzhP ~/${loc}/ ph:~/${loc}
+rsync -avzhP ~/${loc}/ tball:~/${loc}
