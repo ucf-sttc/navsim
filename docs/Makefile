@@ -19,3 +19,4 @@ help:
 %: Makefile
 	cp ../*.md "$(SOURCEDIR)"
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+	rm "$(SOURCEDIR)"/*.md
