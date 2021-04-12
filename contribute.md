@@ -1,7 +1,7 @@
-# How to setup dev laptop to build navsim API
+# How to setup dev laptop to code for navsim API
 * clone the ai_coop_py repo
   ```
-  git clone
+  git clone <blah blah>
   ```
 * Install miniconda and the env
   ```
