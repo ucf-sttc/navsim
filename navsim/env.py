@@ -3,9 +3,10 @@ from gym_unity.envs import UnityToGymWrapper
 from mlagents_envs.side_channel.engine_configuration_channel import EngineConfigurationChannel
 from mlagents_envs.side_channel.environment_parameters_channel import EnvironmentParametersChannel
 from pathlib import Path
-import attr
-from .util import BaseConfig
-import gym
+from typing import List, Any
+import numpy as np
+import uuid
+import navsim
 
 class NavSimGymEnv(UnityToGymWrapper):
     """NavSimGymEnv Class is a wrapper to Unity2Gym that inherits from the Gym interface
@@ -21,7 +22,7 @@ class NavSimGymEnv(UnityToGymWrapper):
     * VectorVisual 2
 
     Segmentation
-    
+
     * Object Segmentation 0
 
     * Tag Segmentation 1
@@ -86,7 +87,7 @@ class NavSimGymEnv(UnityToGymWrapper):
     Observation Space: [[Agent Position, Agent Rotation, Agent Velocity,Agent Rotation, Goal Position],[Raw Agent Camera],[Depth Agent Camera],[Segmentation Agent Camera]]
 
     """
-    def __init__(self, conf):
+    def __init__(self, conf: navsim.util.ObjDict) -> None:
         """
         conf: ObjDict having Environment Conf
         :param conf:
@@ -96,12 +97,12 @@ class NavSimGymEnv(UnityToGymWrapper):
         self.observation_mode = self.conf['observation_mode']
 
         self.uenv = None
-        self.uenv = self.open_uenv()
+        self.uenv = self.__open_uenv()
         super().__init__(self.uenv, False, False, True)
                     # (Env, uint8_visual, flatten_branched, allow_multiple_obs)
         #self.seed(self.conf['seed']) # unity-gym env seed is not working, seed has to be passed with unity env
 
-    def open_uenv(self):
+    def __open_uenv(self) -> UnityEnvironment:
         if self.uenv:
             raise ValueError('Environment already open')
         else:
@@ -111,7 +112,7 @@ class NavSimGymEnv(UnityToGymWrapper):
             engine_side_channel = EngineConfigurationChannel()
             environment_side_channel = EnvironmentParametersChannel()
             self.map_side_channel = MapSideChannel()
-
+            print(self.map_side_channel)
             engine_side_channel.set_configuration_parameters(time_scale=10, quality_level=0)
 
             environment_side_channel.set_float_parameter("rewardForGoalCollision", self.conf['reward_for_goal'])
@@ -141,11 +142,13 @@ class NavSimGymEnv(UnityToGymWrapper):
 
             return self.uenv
 
+    """
     def close_uenv(self):
         if self.uenv is None:
             print('uenv is None')
         else:
             self.uenv.close()
+    """
 
     def info(self):
         """Prints the information about the environment
@@ -183,18 +186,18 @@ class NavSimGymEnv(UnityToGymWrapper):
         return self
 
     @property
-    def observation_space_shapes(self):
+    def observation_space_shapes(self) -> list:
         """Returns the dimensions of the observation space
         """
         return [obs.shape for obs in self.observation_space.spaces]
 
     @property
-    def observation_space_types(self):
+    def observation_space_types(self) -> list:
         """Returns the dimensions of the observation space
         """
         return [type(obs) for obs in self.observation_space.spaces]
 
-    def render(self,mode=''):
+    def render(self,mode='') -> None:
         """Not implemented yet
 
         Args:
@@ -205,7 +208,7 @@ class NavSimGymEnv(UnityToGymWrapper):
         """
         pass
 
-    def get_navigable_map(self,resolution_x=200,resolution_y=200,cell_occupancy_threshold=0.5):
+    def get_navigable_map(self,resolution_x=200,resolution_y=200,cell_occupancy_threshold=0.5) -> np.ndarray:
         """Get the Navigable Areas map
         Args:
             resolution_x: The size of the x axis of the resulting grid, default = 200
@@ -216,6 +219,7 @@ class NavSimGymEnv(UnityToGymWrapper):
             A numpy array which has 0 for non-navigable and 1 for navigable cells
         """
         self.map_side_channel.send_request("binaryMap", [resolution_x,resolution_y,cell_occupancy_threshold])
+        print('map inside get navigable map',self.map_side_channel.requested_map)
         return self.map_side_channel.requested_map
 
     # Functions added to have parity with Env and RLEnv of habitat lab
@@ -230,8 +234,6 @@ class NavSimGymEnv(UnityToGymWrapper):
         """
         return self
 
-
-import time
 from mlagents_envs.environment import UnityEnvironment
 from mlagents_envs.side_channel.side_channel import (
     SideChannel,
@@ -239,11 +241,8 @@ from mlagents_envs.side_channel.side_channel import (
     OutgoingMessage,
 )
 
-from typing import List
-from PIL import Image
-import numpy as np
 
-import uuid
+
 
 class MapSideChannel(SideChannel):
     """
@@ -258,7 +257,7 @@ class MapSideChannel(SideChannel):
         super().__init__(channel_id)
         self.requested_map = None
 
-    def on_message_received(self, msg: IncomingMessage) -> None:
+    def on_message_received(self, msg: IncomingMessage):
         if self.resolution is None:
             return
 
@@ -268,6 +267,7 @@ class MapSideChannel(SideChannel):
         #timestr = time.strftime("%Y%m%d-%H%M%S")
         #img.save("img-"+timestr+".png")
         self.requested_map = np.array(msg.get_raw_bytes())
+        print('map inside on message received:',self.requested_map)
         self.requested_map = self.requested_map[self.requested_map==255]=1
         return self.requested_map
 

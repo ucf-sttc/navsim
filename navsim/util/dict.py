@@ -66,8 +66,10 @@ def save_to_yaml_file(obj, filename):
 
 
 class ObjDict(dict):
-    """
-        TODO: Create an init method that converts nested dicts in this object.
+    """A data structure that inherits from dict and adds object style member access
+
+    TODO:
+        * Create an init method that converts nested dicts in this object.
     """
     __getattr__ = dict.__getitem__
     __setattr__ = dict.__setitem__
@@ -77,24 +79,70 @@ class ObjDict(dict):
     #    return self.json_dumps()
 
     def to_json(self, sort_keys=False, indent=2):
+        """convert to json
+
+        Args:
+            sort_keys: Sort the keys of dict or not, default False
+            indent: indentation for JSON struct, default 2 spaces
+
+        Returns:
+            json string
+
+        """
         return json.dumps(self, indent=indent, sort_keys=sort_keys, cls=NPJSONEncoder)
 
     def to_dict(self):
+        """convert to dict
+
+        Returns:
+            dict object
+        """
         return cattr.unstructure(self)
 
     def to_yaml(self):
+        """convery to yaml representation
+
+        Returns:
+            yaml string
+        """
         return yaml.dump(json.loads(json.dumps(self)))
 
     def save_to_json_file(self, filename, sort_keys=False, indent=2):
+        """Save to json file
+
+        Args:
+            filename: path or name of the file
+            sort_keys: whether to sort the keys
+            indent: indentation of the spaces
+
+        Returns:
+
+        """
         save_to_json_file(self, filename, sort_keys, indent)
         return self
 
     def save_to_yaml_file(self, filename):
+        """Save to yaml file
+
+        Args:
+            filename: path or name of the file
+
+        Returns:
+
+        """
         save_to_yaml_file(self, filename)
         return self
 
     @staticmethod
     def load_from_file(filename):
+        """load objdict from a file
+
+        Args:
+            filename: path or name of the file
+
+        Returns:
+            ObjDict object
+        """
         filetype = json_or_yaml(filename)
         if filetype == "json":
             obj = ObjDict.load_from_json_file(filename)
@@ -104,13 +152,34 @@ class ObjDict(dict):
 
     @staticmethod
     def load_from_json_file(filename):
+        """load objdict from a file
+
+        Args:
+            filename: path or name of the file
+
+        Returns:
+            ObjDict object
+        """
         obj = ObjDict(load_dict_from_json_file(filename))
         return obj
 
     @staticmethod
     def load_from_yaml_file(filename):
+        """load objdict from a file
+
+        Args:
+            filename: path or name of the file
+
+        Returns:
+            ObjDict object
+        """
         obj = ObjDict(load_dict_from_yaml_file(filename))
         return obj
 
     def deepcopy(self):
+        """Make a deep copy of itself
+
+        Returns:
+            ObjDict object
+        """
         return copy.deepcopy(self)

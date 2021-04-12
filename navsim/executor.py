@@ -1,5 +1,5 @@
 import csv
-import pickle
+import cv2
 from pathlib import Path
 
 import torch
@@ -45,13 +45,13 @@ class Executor:
         """
         self.run_id = run_id
 
-        run_base_folder = Path(self.run_id)
-        run_base_folder_str = str(run_base_folder.resolve())
+        self.run_base_folder = Path(self.run_id)
+        self.run_base_folder_str = str(self.run_base_folder.resolve())
         #        if run_base_folder.is_dir():
         #            raise ValueError(f"{run_base_folder_str} exists as a non-directory. "
         #                             f"Please remove the file or use a different run_id")
-        if resume and run_base_folder.is_dir():
-            self.conf = ObjDict().load_from_json_file(f"{run_base_folder_str}/conf.json")
+        if resume and self.run_base_folder.is_dir():
+            self.conf = ObjDict().load_from_json_file(f"{self.run_base_folder_str}/conf.json")
             self.resume = True
             self.file_mode = 'a+'
 
@@ -59,26 +59,26 @@ class Executor:
         else:
             self.conf = conf
             self.resume = False
-            run_base_folder.mkdir(parents=True, exist_ok=True)
-            self.conf.save_to_json_file(f"{run_base_folder_str}/conf.json")
+            self.run_base_folder.mkdir(parents=True, exist_ok=True)
+            self.conf.save_to_json_file(f"{self.run_base_folder_str}/conf.json")
             self.file_mode = 'w+'
 
         self.run_conf = ObjDict(self.conf.run_conf)
         self.env_conf = ObjDict(self.conf.env_conf)
 
-        pylog_filename = run_base_folder / 'py.log'  # TODO: use logger
+        pylog_filename = self.run_base_folder / 'py.log'  # TODO: use logger
         self.pylog_filename = str(pylog_filename.resolve())
-        step_results_filename = run_base_folder / 'step_results.csv'
+        step_results_filename = self.run_base_folder / 'step_results.csv'
         self.step_results_filename = str(step_results_filename.resolve())
-        episode_results_filename = run_base_folder / 'episode_results.csv'
+        episode_results_filename = self.run_base_folder / 'episode_results.csv'
         self.episode_results_filename = str(episode_results_filename.resolve())
-        env_log_folder = run_base_folder / 'env.log'
+        env_log_folder = self.run_base_folder / 'env.log'
         self.env_conf.log_folder = str(env_log_folder.resolve())
-        self.model_filename = f"{run_base_folder_str}/model_state.pt"
-        self.memory_filename = f"{run_base_folder_str}/memory.pkl"
+        self.model_filename = f"{self.run_base_folder_str}/model_state.pt"
+        self.memory_filename = f"{self.run_base_folder_str}/memory.pkl"
         # TODO: Add the code to delete previous files
         # TODO: Add the code to add categories
-        self.summary_writer = SummaryWriter(f"{run_base_folder_str}/tb")
+        self.summary_writer = SummaryWriter(f"{self.run_base_folder_str}/tb")
 
         self.rc = ResourceCounter()
         self.files_open()
@@ -86,7 +86,7 @@ class Executor:
         try:
             self.env = None
             self.env_open()
-            if resume and run_base_folder.is_dir():
+            if resume and self.run_base_folder.is_dir():
                 self.memory = Memory.load_from_pkl(self.memory_filename)
             else:
                 # TODO: HWC to CHW conversion optimized here
@@ -205,6 +205,11 @@ class Executor:
         num_episodes = int(self.conf.run_conf['num_episodes'])
         checkpoint_interval = int(self.conf.run_conf['checkpoint_interval'])
         num_episode_blocks = int( math.ceil(num_episodes / checkpoint_interval ))
+
+        # get the navigable map and save it as image
+        navigable_map = self.env.get_navigable_map()
+        if navigable_map:
+            cv2.imwrite(str((self.run_base_folder / 'navigable_map.jpg').resolve()),navigable_map)
 
         for i in range(0,num_episode_blocks):
             for episode_num in tqdm(iterable=range((i*checkpoint_interval)+1, min((i+1)*checkpoint_interval,num_episodes)+1),
