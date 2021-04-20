@@ -30,7 +30,7 @@ def main(args : argparse.Namespace):
             unityEnvironmentStr = None
             #Connect to specified binary environment
             #unityEnvironmentStr = "../envs/Berlin_v2/Berlin_Walk_v2.exe"
-            unityEnvironmentStr = "/data/work/unity-envs/Build2.6.2/Berlin_Walk_V2"
+            unityEnvironmentStr = "/data/work/unity-envs/Build2.6.3/Berlin_Walk_V2"
             unity_env = UnityEnvironment(file_name = unityEnvironmentStr, seed = unitySeed, timeout_wait=1000, side_channels =[engine_side_channel, environment_side_channel])
 
             #Engine Side Channels

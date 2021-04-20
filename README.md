@@ -22,19 +22,19 @@ You can either run directly on a host machine or in a container.
 1. Download and extract the unity binary zip file, and 
 set the following, after changing first two lines for your system:
 ```
-envdir="/data/work/unity-envs/Build2.6.2"
-expdir="$HOME/exp"
-envdir=$(realpath "$envdir")
-expdir=$(realpath "$expdir")
+envdir=$(realpath "/data/work/unity-envs/Build2.6.3")
+expdir=$(realpath "$HOME/exp")
 envbin="Berlin_Walk_V2.x86_64"
 ver="1.0.6"
 repo="ghcr.io/armando-fandango"
+cname="$(hostname)_navsim_1"
 ```
 2. Run the container:
 ```
 cd $expdir
 docker run --rm --privileged -it --runtime=nvidia \
---name navsim_1 \
+--name $cname \
+-h $cname \
 -e XAUTHORITY \
 -e NVIDIA_VISIBLE_DEVICES=all -e NVIDIA_DRIVER_CAPABILITIES=all \
 -e USER_ID=$(id -u) -e USER_HOME="$HOME" \
