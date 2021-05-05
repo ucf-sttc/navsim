@@ -41,10 +41,10 @@ def main():
         "base_port": 5005,
         "observation_mode": 2,
         "segmentation_mode": 1,
-        "max_steps": args["episode_max_steps"]+2,
+        "max_steps": int(args["episode_max_steps"])+2,
         "task": 0,
         "goal": 0,
-        "goal_distance": args["goal_distance"],
+        "goal_distance": int(args["goal_distance"]),
         "reward_for_goal": 50,
         "reward_for_ep": 0.005,
         "reward_for_other": -0.1,
@@ -57,16 +57,16 @@ def main():
 
     run_conf = ObjDict({
         "env_name": "navsim",
-        "episode_max_steps": args["episode_max_steps"],
-        "num_episodes": args["num_episodes"],
-        "seed": args["seed"],
-        "discount": args["discount"],
-        "tau": args["tau"],
-        "expl_noise": args["exploration_noise"],
+        "episode_max_steps": int(args["episode_max_steps"]),
+        "num_episodes": int(args["num_episodes"]),
+        "seed": int(args["seed"]),
+        "discount": float(args["discount"]),
+        "tau": float(args["tau"]),
+        "expl_noise": float(args["exploration_noise"]),
         "memory_capacity": 100,
-        "batch_size": args["batch_size"],
+        "batch_size": int(args["batch_size"]),
         "batches_before_train": 2,
-        "checkpoint_interval": args["checkpoint_interval"]
+        "checkpoint_interval": int(args["checkpoint_interval"])
     })
     run_conf["run_id"]=args["run_id"]
 
@@ -83,6 +83,7 @@ def main():
 
     executor.execute()
     print("training finished")
+
     executor.env_close()
     print("env closed")
     executor.files_close()
