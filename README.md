@@ -4,6 +4,13 @@ A navigation simulator API built on top of Python, Stable Baselines 3, Pytorch.
 Can use many simulator backends, for now uses the Aurora Simulator, that is a 
 Unity3D GameEngine based Berlin city environment.
 
+# Pre-requisites
+
+Following should be pre-installed on the host machine:
+* nvidia driver https://github.com/NVIDIA/nvidia-docker/wiki/Frequently-Asked-Questions#how-do-i-install-the-nvidia-driver
+* docker  https://docs.docker.com/get-docker/
+* nvidia container toolkit https://github.com/NVIDIA/nvidia-docker
+
 # How to use the navsim env 
 
 Assuming your code is in a folder defined in environment variable `expdir`. 
@@ -25,7 +32,7 @@ set the following, after changing first two lines for your system:
 envdir=$(realpath "/data/work/unity-envs/Build2.6.3")
 expdir=$(realpath "$HOME/exp")
 envbin="Berlin_Walk_V2.x86_64"
-ver="1.0.6"
+ver="1.0.7"
 repo="ghcr.io/armando-fandango"
 cname="$(hostname)_navsim_1"
 ```
