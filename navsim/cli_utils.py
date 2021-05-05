@@ -139,6 +139,13 @@ def _create_argparser() -> argparse.ArgumentParser:
         action=ArgAction,
         help="",
     )
+    run_conf.add_argument(
+        "--saveimages",
+        default=False,
+        dest="saveimages",
+        action=ArgActionStoreTrue,
+        help="Save the images for visual observations at every step",
+    )
 
     env_conf = argparser.add_argument_group(title="Environment Configuration")
     env_conf.add_argument(

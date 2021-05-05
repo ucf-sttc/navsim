@@ -1,13 +1,26 @@
-from mlagents_envs.environment import UnityEnvironment
-from gym_unity.envs import UnityToGymWrapper
-from mlagents_envs.side_channel.engine_configuration_channel import EngineConfigurationChannel
-from mlagents_envs.side_channel.environment_parameters_channel import EnvironmentParametersChannel
 from pathlib import Path
 from typing import List, Any
 import numpy as np
 import uuid
-import navsim
 import cv2
+
+from gym_unity.envs import UnityToGymWrapper
+
+from mlagents_envs.environment import UnityEnvironment
+from mlagents_envs.side_channel.side_channel import (
+    SideChannel,
+    IncomingMessage,
+    OutgoingMessage,
+)
+from mlagents_envs.side_channel.engine_configuration_channel import \
+    EngineConfigurationChannel
+from mlagents_envs.side_channel.environment_parameters_channel import \
+    EnvironmentParametersChannel
+
+
+def navsimgymenv_creator(env_config):
+    return NavSimGymEnv(env_config)  # return an env instance
+
 
 class NavSimGymEnv(UnityToGymWrapper):
     """NavSimGymEnv Class is a wrapper to Unity2Gym that inherits from the Gym interface
@@ -93,58 +106,84 @@ class NavSimGymEnv(UnityToGymWrapper):
         Agent_Rotation.x, Agent_Rotation.y, Agent_Rotation.z, Agent_Rotation.w,
         Goal_Position.x, Goal_Position.y, Goal_Position.z
     """
-    def __init__(self, conf: navsim.util.ObjDict) -> None:
+
+    def __init__(self, env_config) -> None:
         """
         conf: ObjDict having Environment Conf
-        :param conf:
+        :param env_config:
         """
         # filename: Optional[str] = None, observation_mode: int = 0, max_steps:int = 5):
-        self.conf = conf
-        self.observation_mode = self.conf['observation_mode']
+        self.env_config = env_config
+        self.observation_mode = self.env_config['observation_mode']
 
         self.uenv = None
         self.uenv = self.__open_uenv()
         super().__init__(self.uenv, False, False, True)
-                    # (Env, uint8_visual, flatten_branched, allow_multiple_obs)
-        #self.seed(self.conf['seed']) # unity-gym env seed is not working, seed has to be passed with unity env
+        # (Env, uint8_visual, flatten_branched, allow_multiple_obs)
+        # self.seed(self.conf['seed']) # unity-gym env seed is not working, seed has to be passed with unity env
 
     def __open_uenv(self) -> UnityEnvironment:
         if self.uenv:
             raise ValueError('Environment already open')
         else:
-            log_folder = Path(self.conf['log_folder'])
+            log_folder = Path(self.env_config['log_folder'])
             log_folder.mkdir(parents=True, exist_ok=True)
 
             engine_side_channel = EngineConfigurationChannel()
             environment_side_channel = EnvironmentParametersChannel()
             self.map_side_channel = MapSideChannel()
-            #print(self.map_side_channel)
-            engine_side_channel.set_configuration_parameters(time_scale=10, quality_level=0)
+            # print(self.map_side_channel)
+            engine_side_channel.set_configuration_parameters(time_scale=10,
+                                                             quality_level=0)
 
-            environment_side_channel.set_float_parameter("rewardForGoalCollision", self.conf['reward_for_goal'])
-            environment_side_channel.set_float_parameter("rewardForExplorationPointCollision",
-                                                         self.conf['reward_for_ep'])
-            environment_side_channel.set_float_parameter("rewardForOtherCollision", self.conf['reward_for_other'])
-            environment_side_channel.set_float_parameter("rewardForFallingOffMap",
-                                                         self.conf['reward_for_falling_off_map'])
-            environment_side_channel.set_float_parameter("rewardForEachStep", self.conf['reward_for_step'])
-            environment_side_channel.set_float_parameter("segmentationMode", self.conf['segmentation_mode'])
-            environment_side_channel.set_float_parameter("observationMode", self.conf['observation_mode'])
-            environment_side_channel.set_float_parameter("episodeLength", self.conf['max_steps'])
-            environment_side_channel.set_float_parameter("selectedTaskIndex", self.conf['task'])
-            environment_side_channel.set_float_parameter("goalSelectionIndex", self.conf['goal'])
-            environment_side_channel.set_float_parameter("agentCarPhysics", self.conf['agent_car_physics'])
-            environment_side_channel.set_float_parameter("goalDistance", self.conf['goal_distance'])
+            environment_side_channel.set_float_parameter(
+                "rewardForGoalCollision", self.env_config['reward_for_goal'])
+            environment_side_channel.set_float_parameter(
+                "rewardForExplorationPointCollision",
+                self.env_config['reward_for_ep'])
+            environment_side_channel.set_float_parameter(
+                "rewardForOtherCollision", self.env_config['reward_for_other'])
+            environment_side_channel.set_float_parameter(
+                "rewardForFallingOffMap",
+                self.env_config['reward_for_falling_off_map'])
+            environment_side_channel.set_float_parameter("rewardForEachStep",
+                                                         self.env_config[
+                                                             'reward_for_step'])
+            environment_side_channel.set_float_parameter("segmentationMode",
+                                                         self.env_config[
+                                                             'segmentation_mode'])
+            environment_side_channel.set_float_parameter("observationMode",
+                                                         self.env_config[
+                                                             'observation_mode'])
+            environment_side_channel.set_float_parameter("episodeLength",
+                                                         self.env_config[
+                                                             'max_steps'])
+            environment_side_channel.set_float_parameter("selectedTaskIndex",
+                                                         self.env_config[
+                                                             'task'])
+            environment_side_channel.set_float_parameter("goalSelectionIndex",
+                                                         self.env_config[
+                                                             'goal'])
+            environment_side_channel.set_float_parameter("agentCarPhysics",
+                                                         self.env_config[
+                                                             'agent_car_physics'])
+            environment_side_channel.set_float_parameter("goalDistance",
+                                                         self.env_config[
+                                                             'goal_distance'])
 
-            uenv_file_name = str(Path(self.conf['env_path']).resolve()) if self.conf['env_path'] else None
+            uenv_file_name = str(Path(self.env_config['env_path']).resolve()) if \
+                self.env_config['env_path'] else None
             self.uenv = UnityEnvironment(file_name=uenv_file_name,
                                          log_folder=str(log_folder.resolve()),
-                                         seed=self.conf['seed'],
-                                         timeout_wait=self.conf['timeout'],
-                                         worker_id=self.conf['worker_id'],
+                                         seed=self.env_config['seed'],
+                                         timeout_wait=self.env_config[
+                                             'timeout'],
+                                         worker_id=self.env_config['worker_id'],
                                          # base_port=self.conf['base_port'],
                                          no_graphics=False,
-                                         side_channels=[engine_side_channel, environment_side_channel,self.map_side_channel])
+                                         side_channels=[engine_side_channel,
+                                                        environment_side_channel,
+                                                        self.map_side_channel])
 
             return self.uenv
 
@@ -170,8 +209,8 @@ class NavSimGymEnv(UnityToGymWrapper):
         print('Action Space Low:', self.action_space.low)
         print('Action Space High:', self.action_space.high)
         print('Observation Mode:', self.observation_mode)
-        #print('Gym Observation Space:', self.genv.observation_space)
-        #print('Gym Observation Space Shape:', self.genv.observation_space.shape)
+        # print('Gym Observation Space:', self.genv.observation_space)
+        # print('Gym Observation Space Shape:', self.genv.observation_space.shape)
         print('Observation Space:', self.observation_space)
         print('Observation Space Shape:', self.observation_space.shape)
         print('Observation Space Shapes:', self.observation_space_shapes)
@@ -180,18 +219,18 @@ class NavSimGymEnv(UnityToGymWrapper):
         print('Metadata:', self.metadata)
         return self
 
-    def info_steps(self, save_visuals = False):
+    def info_steps(self, save_visuals=False):
         """Prints the initial state, action sample, first step state
 
         """
         print('Initial State:', self.reset())
         action_sample = self.action_space.sample()
         print('Action sample:', action_sample)
-        s,a,r,s_ = self.step(action_sample)
-        print('First Step s,a,r,s_:', s,a,r,s_)
-        if (self.observation_mode==1) or (self.observation_mode ==2):
-            for i in range(0,3):
-                cv2.imwrite(f'visual_{i}.jpg',(s[i]*255).astype('uint8'))
+        s, a, r, s_ = self.step(action_sample)
+        print('First Step s,a,r,s_:', s, a, r, s_)
+        if (self.observation_mode == 1) or (self.observation_mode == 2):
+            for i in range(0, 3):
+                cv2.imwrite(f'visual_{i}.jpg', (s[i] * 255).astype('uint8'))
         self.reset()
         return self
 
@@ -207,7 +246,7 @@ class NavSimGymEnv(UnityToGymWrapper):
         """
         return [type(obs) for obs in self.observation_space.spaces]
 
-    def render(self,mode='') -> None:
+    def render(self, mode='') -> None:
         """Not implemented yet
 
         Args:
@@ -218,7 +257,8 @@ class NavSimGymEnv(UnityToGymWrapper):
         """
         pass
 
-    def start_navigable_map(self,resolution_x=200,resolution_y=200,cell_occupancy_threshold=0.5):
+    def start_navigable_map(self, resolution_x=200, resolution_y=200,
+                            cell_occupancy_threshold=0.5):
         """Get the Navigable Areas map
 
         Args:
@@ -235,8 +275,10 @@ class NavSimGymEnv(UnityToGymWrapper):
         Note:
             Largest resolution that was found to be working was 2000 x 2000
         """
-        self.map_side_channel.send_request("binaryMap", [resolution_x,resolution_y,cell_occupancy_threshold])
-        #print('Inside get navigable map function:',self.map_side_channel.requested_map)
+        self.map_side_channel.send_request("binaryMap",
+                                           [resolution_x, resolution_y,
+                                            cell_occupancy_threshold])
+        # print('Inside get navigable map function:',self.map_side_channel.requested_map)
 
     def get_navigable_map(self) -> np.ndarray:
         """Get the Navigable Areas map
@@ -269,12 +311,29 @@ class NavSimGymEnv(UnityToGymWrapper):
         """
         return self
 
-from mlagents_envs.environment import UnityEnvironment
-from mlagents_envs.side_channel.side_channel import (
-    SideChannel,
-    IncomingMessage,
-    OutgoingMessage,
-)
+    @staticmethod
+    def register_with_gym():
+        """Registers the environment with gym registry with the name navsim
+
+        """
+        try:
+            from gym.envs.registration import register
+            register(id='navsim', entry_point='navsim.NavSimGymEnv')
+        except Exception as e:
+            print("Can not register NavSim Environment with Gym")
+            print(e.message)
+
+    @staticmethod
+    def register_with_ray():
+        """Registers the environment with ray registry with the name navsim
+
+        """
+        try:
+            from ray.tune.registry import register_env
+            register_env("navsim", navsimgymenv_creator)
+        except Exception as e:
+            print("Can not register NavSim Environment with Ray")
+            print(e.message)
 
 
 class MapSideChannel(SideChannel):
@@ -296,21 +355,23 @@ class MapSideChannel(SideChannel):
 
         # mode as grayscale 'L' and convert to binary '1' because for some reason using only '1' doesn't work (possible bug)
 
-        #img = Image.frombuffer('L', (self.resolution[0],self.resolution[1]), np.array(msg.get_raw_bytes())).convert('1')
-        #timestr = time.strftime("%Y%m%d-%H%M%S")
-        #img.save("img-"+timestr+".png")
+        # img = Image.frombuffer('L', (self.resolution[0],self.resolution[1]), np.array(msg.get_raw_bytes())).convert('1')
+        # timestr = time.strftime("%Y%m%d-%H%M%S")
+        # img.save("img-"+timestr+".png")
 
-        #raw_bytes = msg.get_raw_bytes()
-        #unpacked_array = np.unpackbits(raw_bytes)[0:self.resolution[0]*self.resolution[1]]
+        # raw_bytes = msg.get_raw_bytes()
+        # unpacked_array = np.unpackbits(raw_bytes)[0:self.resolution[0]*self.resolution[1]]
 
         raw_bytes = msg.get_raw_bytes()
-        self.requested_map  = np.unpackbits(raw_bytes)[0:self.resolution[0]*self.resolution[1]]
-        self.requested_map = self.requested_map.reshape((self.resolution[0],self.resolution[1]))
-        #self.requested_map = np.array(msg.get_raw_bytes()).reshape((self.resolution[0],self.resolution[1]))
-        #print('map inside on message received:',self.requested_map, self.requested_map.shape)
+        self.requested_map = np.unpackbits(raw_bytes)[
+                             0:self.resolution[0] * self.resolution[1]]
+        self.requested_map = self.requested_map.reshape(
+            (self.resolution[0], self.resolution[1]))
+        # self.requested_map = np.array(msg.get_raw_bytes()).reshape((self.resolution[0],self.resolution[1]))
+        # print('map inside on message received:',self.requested_map, self.requested_map.shape)
         return self.requested_map
 
-        #np.savetxt("arrayfile", np.asarray(img), fmt='%1d', delimiter='')
+        # np.savetxt("arrayfile", np.asarray(img), fmt='%1d', delimiter='')
 
     def send_request(self, key: str, value: List[float]) -> None:
         """

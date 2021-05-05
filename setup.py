@@ -2,10 +2,12 @@ import setuptools
 
 with open('navsim/version.txt', 'r') as vf:
     __version__ = vf.read().strip()
-#from navsim.version import __version__
+# from navsim.version import __version__
 
-with open("README.md", "r", encoding="utf-8") as fh:
-    long_description = fh.read()
+# TODO: Replace the long description comments once cleared
+# with open("README.md", "r", encoding="utf-8") as fh:
+#    long_description = fh.read()
+long_description = " "
 
 setuptools.setup(
     name="navsim",
@@ -30,7 +32,7 @@ setuptools.setup(
         'Intended Audience :: Science/Research',
     ],
     include_package_data=True,
-    #data_files=[('navsim',['navsim/version.txt'])],
+    # data_files=[('navsim',['navsim/version.txt'])],
     python_requires='>=3.7',
     entry_points={
         "console_scripts": [
