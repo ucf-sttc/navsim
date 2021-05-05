@@ -4,8 +4,9 @@ with open('navsim/version.txt', 'r') as vf:
     __version__ = vf.read().strip()
 #from navsim.version import __version__
 
-with open("README.md", "r", encoding="utf-8") as fh:
-    long_description = fh.read()
+#with open("README.md", "r", encoding="utf-8") as fh:
+#    long_description = fh.read()
+long_description = " "
 
 setuptools.setup(
     name="navsim",

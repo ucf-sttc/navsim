@@ -211,7 +211,7 @@ class Executor:
         for i in range(0,num_episode_blocks):
             for episode_num in tqdm(iterable=range((i*checkpoint_interval)+1, min((i+1)*checkpoint_interval,num_episodes)+1),
                                     desc=f"Episode {(i*checkpoint_interval)+1}-{min((i+1)*checkpoint_interval,num_episodes)}/{num_episodes}",
-                                    unit='episode', ascii=True, ncols=80,bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{rate_fmt}{postfix}]'):
+                                    unit='episode', ascii=True, ncols=80, bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{rate_fmt}{postfix}]'):
                 self.rc.start()
                 episode_resources = [self.rc.snapshot()]  # e0
 
@@ -328,4 +328,5 @@ class Executor:
                 # episode_timesteps = 0
                 # episode_num += 1
 
+        self.agent.save_to_onnx(folder=self.run_base_folder_str, critic=False)
         return
