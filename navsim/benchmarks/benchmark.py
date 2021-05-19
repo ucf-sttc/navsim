@@ -201,7 +201,6 @@ def storeObservationImage(basepath, observation, grayscale, observationId):
     img.save(img_path)
     # img.show()
 
-
 # For python debugger to directly run this script
 if __name__ == "__main__":
     main()

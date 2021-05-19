@@ -71,9 +71,15 @@ class ObjDict(dict):
     TODO:
         * Create an init method that converts nested dicts in this object.
     """
-    __getattr__ = dict.__getitem__
+    #__getattr__ = dict.__getitem__
     __setattr__ = dict.__setitem__
     __delattr__ = dict.__delitem__
+
+    def __getattr__(self, name):
+        try:
+            return self[name]
+        except KeyError:
+            raise AttributeError(name)
 
     #def __str__(self):
     #    return self.json_dumps()

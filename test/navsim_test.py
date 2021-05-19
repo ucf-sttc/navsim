@@ -16,7 +16,7 @@ run_base_folder = Path(conf.run_conf['run_id'])
 run_base_folder.mkdir(parents=True, exist_ok=True)
 
 rl_conf = DictObj(conf.rl_conf)
-env_conf = DictObj(conf.env_conf)
+env_conf = DictObj(conf.env_config)
 
 t_max = env_conf.max_steps
 

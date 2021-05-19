@@ -17,6 +17,9 @@ from mlagents_envs.side_channel.engine_configuration_channel import \
 from mlagents_envs.side_channel.environment_parameters_channel import \
     EnvironmentParametersChannel
 
+from mlagents_envs.side_channel.float_properties_channel import \
+    FloatPropertiesChannel
+
 
 def navsimgymenv_creator(env_config):
     return NavSimGymEnv(env_config)  # return an env instance
@@ -69,7 +72,7 @@ class NavSimGymEnv(UnityToGymWrapper):
 
     .. code-block:: python
 
-        env_conf = ObjDict({
+        env_config = ObjDict({
             "log_folder": "unity.log",
             "seed": 123,
             "timeout": 600,
@@ -114,86 +117,80 @@ class NavSimGymEnv(UnityToGymWrapper):
         """
         # filename: Optional[str] = None, observation_mode: int = 0, max_steps:int = 5):
         self.env_config = env_config
-        self.observation_mode = self.env_config['observation_mode']
+        self.observation_mode = self.env_config.get('observation_mode', 2)
 
-        self.uenv = None
-        self.uenv = self.__open_uenv()
-        super().__init__(self.uenv, False, False, True)
+        super().__init__(unity_env=self.__open_uenv(),
+                         uint8_visual=False,
+                         flatten_branched=False,
+                         allow_multiple_obs=True)
         # (Env, uint8_visual, flatten_branched, allow_multiple_obs)
         # self.seed(self.conf['seed']) # unity-gym env seed is not working, seed has to be passed with unity env
 
     def __open_uenv(self) -> UnityEnvironment:
-        if self.uenv:
-            raise ValueError('Environment already open')
-        else:
-            log_folder = Path(self.env_config['log_folder'])
-            log_folder.mkdir(parents=True, exist_ok=True)
+        # if self._env:
+        #    raise ValueError('Environment already open')
+        # else:
+        log_folder = Path(self.env_config.get('log_folder', '.'))
+        log_folder.mkdir(parents=True, exist_ok=True)
 
-            engine_side_channel = EngineConfigurationChannel()
-            environment_side_channel = EnvironmentParametersChannel()
-            self.map_side_channel = MapSideChannel()
-            # print(self.map_side_channel)
-            engine_side_channel.set_configuration_parameters(time_scale=10,
-                                                             quality_level=0)
+        engine_side_channel = EngineConfigurationChannel()
+        environment_side_channel = EnvironmentParametersChannel()
+        self.map_side_channel = MapSideChannel()
+        self.float_properties_side_channel = FloatPropertiesChannel()
 
-            environment_side_channel.set_float_parameter(
-                "rewardForGoalCollision", self.env_config['reward_for_goal'])
-            environment_side_channel.set_float_parameter(
-                "rewardForExplorationPointCollision",
-                self.env_config['reward_for_ep'])
-            environment_side_channel.set_float_parameter(
-                "rewardForOtherCollision", self.env_config['reward_for_other'])
-            environment_side_channel.set_float_parameter(
-                "rewardForFallingOffMap",
-                self.env_config['reward_for_falling_off_map'])
-            environment_side_channel.set_float_parameter("rewardForEachStep",
-                                                         self.env_config[
-                                                             'reward_for_step'])
-            environment_side_channel.set_float_parameter("segmentationMode",
-                                                         self.env_config[
-                                                             'segmentation_mode'])
-            environment_side_channel.set_float_parameter("observationMode",
-                                                         self.env_config[
-                                                             'observation_mode'])
-            environment_side_channel.set_float_parameter("episodeLength",
-                                                         self.env_config[
-                                                             'max_steps'])
-            environment_side_channel.set_float_parameter("selectedTaskIndex",
-                                                         self.env_config[
-                                                             'task'])
-            environment_side_channel.set_float_parameter("goalSelectionIndex",
-                                                         self.env_config[
-                                                             'goal'])
-            environment_side_channel.set_float_parameter("agentCarPhysics",
-                                                         self.env_config[
-                                                             'agent_car_physics'])
-            environment_side_channel.set_float_parameter("goalDistance",
-                                                         self.env_config[
-                                                             'goal_distance'])
+        # print(self.map_side_channel)
+        engine_side_channel.set_configuration_parameters(time_scale=10,
+                                                         quality_level=0)
 
-            uenv_file_name = str(Path(self.env_config['env_path']).resolve()) if \
-                self.env_config['env_path'] else None
-            self.uenv = UnityEnvironment(file_name=uenv_file_name,
-                                         log_folder=str(log_folder.resolve()),
-                                         seed=self.env_config['seed'],
-                                         timeout_wait=self.env_config[
-                                             'timeout'],
-                                         worker_id=self.env_config['worker_id'],
-                                         # base_port=self.conf['base_port'],
-                                         no_graphics=False,
-                                         side_channels=[engine_side_channel,
-                                                        environment_side_channel,
-                                                        self.map_side_channel])
+        environment_side_channel.set_float_parameter(
+            "rewardForGoalCollision",
+            self.env_config.get('reward_for_goal', 50))
+        environment_side_channel.set_float_parameter(
+            "rewardForExplorationPointCollision",
+            self.env_config.get('reward_for_ep', 0.005))
+        environment_side_channel.set_float_parameter(
+            "rewardForOtherCollision",
+            self.env_config.get('reward_for_other', -0.1))
+        environment_side_channel.set_float_parameter(
+            "rewardForFallingOffMap",
+            self.env_config.get('reward_for_falling_off_map', -50))
+        environment_side_channel.set_float_parameter(
+            "rewardForEachStep",
+            self.env_config.get('reward_for_step', -0.0001))
+        environment_side_channel.set_float_parameter(
+            "segmentationMode", self.env_config.get('segmentation_mode', 1))
+        environment_side_channel.set_float_parameter(
+            "observationMode", self.env_config.get('observation_mode', 2))
+        environment_side_channel.set_float_parameter(
+            "episodeLength",
+            self.env_config.get('episode_max_steps', 100))
+        environment_side_channel.set_float_parameter(
+            "selectedTaskIndex", self.env_config.get('task', 0))
+        environment_side_channel.set_float_parameter(
+            "goalSelectionIndex", self.env_config.get('goal', 0))
+        environment_side_channel.set_float_parameter(
+            "agentCarPhysics", self.env_config.get('agent_car_physics', 0))
+        environment_side_channel.set_float_parameter(
+            "goalDistance", self.env_config.get('goal_distance', 50))
 
-            return self.uenv
+        uenv_file_name = self.env_config.get('env_path')
+        uenv_file_name = str(Path(uenv_file_name).resolve()) if \
+            uenv_file_name is not None else None
+        uenv = UnityEnvironment(file_name=uenv_file_name,
+                                log_folder=str(log_folder.resolve()),
+                                seed=self.env_config.get('seed'),
+                                timeout_wait=self.env_config.get(
+                                    'timeout', 600),
+                                worker_id=self.env_config.get(
+                                    'worker_id', 0),
+                                # base_port=self.conf['base_port'],
+                                no_graphics=False,
+                                side_channels=[engine_side_channel,
+                                               environment_side_channel,
+                                               self.map_side_channel,
+                                               self.float_properties_side_channel])
 
-    """
-    def close_uenv(self):
-        if self.uenv is None:
-            print('uenv is None')
-        else:
-            self.uenv.close()
-    """
+        return uenv
 
     def info(self):
         """Prints the information about the environment
@@ -298,6 +295,9 @@ class NavSimGymEnv(UnityToGymWrapper):
             Largest resolution that was found to be working was 2000 x 2000
         """
         return self.map_side_channel.requested_map
+
+    def get_shortest_path_length(self):
+        return self.float_properties_side_channel.get_property("ShortestPath")
 
     # Functions added to have parity with Env and RLEnv of habitat lab
     @property

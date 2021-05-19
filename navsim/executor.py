@@ -64,8 +64,8 @@ class Executor:
             self.conf.save_to_json_file(f"{self.run_base_folder_str}/conf.json")
             self.file_mode = 'w+'
 
-        self.run_conf = ObjDict(self.conf.run_conf)
-        self.env_conf = ObjDict(self.conf.env_conf)
+        self.run_conf = ObjDict(self.conf.run_config)
+        self.env_config = ObjDict(self.conf.env_config)
 
         pylog_filename = self.run_base_folder / 'py.log'  # TODO: use logger
         self.pylog_filename = str(pylog_filename.resolve())
@@ -74,7 +74,7 @@ class Executor:
         episode_results_filename = self.run_base_folder / 'episode_results.csv'
         self.episode_results_filename = str(episode_results_filename.resolve())
         env_log_folder = self.run_base_folder / 'env.log'
-        self.env_conf.log_folder = str(env_log_folder.resolve())
+        self.env_config.log_folder = str(env_log_folder.resolve())
         self.model_filename = f"{self.run_base_folder_str}/model_state.pt"
         self.memory_filename = f"{self.run_base_folder_str}/memory.pkl"
         # TODO: Add the code to delete previous files
@@ -179,7 +179,7 @@ class Executor:
 
     def env_open(self):
         self.rc.start()
-        self.env = NavSimGymEnv(self.env_conf)
+        self.env = NavSimGymEnv(self.env_config)
         self.env.reset()
         time_since_start, current_memory, peak_memory = self.rc.stop()
         log_str = f'Unity env creation resource usage: \n' \
@@ -203,9 +203,9 @@ class Executor:
         Execute for the number of episodes
         :return:
         """
-        t_max = int(self.conf.run_conf['episode_max_steps'])
-        num_episodes = int(self.conf.run_conf['num_episodes'])
-        checkpoint_interval = int(self.conf.run_conf['checkpoint_interval'])
+        t_max = int(self.run_conf['episode_max_steps'])
+        num_episodes = int(self.run_conf['num_episodes'])
+        checkpoint_interval = int(self.run_conf['checkpoint_interval'])
         num_episode_blocks = int(math.ceil(num_episodes / checkpoint_interval))
 
         for i in range(0,num_episode_blocks):

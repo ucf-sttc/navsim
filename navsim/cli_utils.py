@@ -45,6 +45,13 @@ def _create_argparser() -> argparse.ArgumentParser:
     )
 
     run_conf.add_argument(
+        "--rl_backend",
+        default=None,
+        help="The backend library for RL. Default: rllib",
+        action=ArgAction,
+    )
+
+    run_conf.add_argument(
         "--train",
         default=True,
         dest="train",
