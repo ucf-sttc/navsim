@@ -92,7 +92,7 @@ def _create_argparser() -> argparse.ArgumentParser:
         default=2,
         dest="num_episodes",
         action=ArgAction,
-        help="",
+        help="Number of Episodes",
     )
 
     run_conf.add_argument(
@@ -100,7 +100,7 @@ def _create_argparser() -> argparse.ArgumentParser:
         default=10,
         dest="episode_max_steps",
         action=ArgAction,
-        help="",
+        help="Maximum number of steps in an Episode, aka Episode Length",
     )
 
     run_conf.add_argument(
@@ -167,7 +167,7 @@ def _create_argparser() -> argparse.ArgumentParser:
         "--goal_distance",
         default=50,
         dest="goal_distance",
-        help="DIstance to goal from current location",
+        help="Distance to goal from current location",
         action=ArgAction,
     )
 

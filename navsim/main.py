@@ -35,15 +35,24 @@ def main():
     print('arguments passed:')
     print(non_default_args)
 
+    run_base_folder = Path(args.run_id)
+    run_base_folder_str = str(run_base_folder.resolve())
+    if args.resume and run_base_folder.is_dir():
+        #TODO: Logic for resume here
+        pass
+    # else just start fresh
+    else:
+        run_base_folder.mkdir(parents=True, exist_ok=True)
+
     env_conf = ObjDict({
-        "log_folder": "unity.log",
+        "log_folder": str((run_base_folder / "unity.log").resolve()),
         "seed": 123,
         "timeout": 600,
         "worker_id": 0,
         "base_port": 5005,
         "observation_mode": 2,
         "segmentation_mode": 1,
-        "max_steps": int(args["episode_max_steps"]) + 2,
+        "episode_max_steps": int(args["episode_max_steps"]) + 2,
         "task": 0,
         "goal": 0,
         "goal_distance": int(args["goal_distance"]),
@@ -53,7 +62,6 @@ def main():
         "reward_for_falling_off_map": -50,
         "reward_for_step": -0.0001,
         "agent_car_physics": 0,
-        "episode_max_steps": 10,
         "env_path": args["env_path"]
     })
 
@@ -75,9 +83,13 @@ def main():
     if args["rl_backend"] == "rllib":
         import ray.rllib.agents.ppo as ppo
         conf = ppo.DEFAULT_CONFIG.copy()
-        conf["log_level"] = "WARN"
-        conf["framework"] = "torch"
+        if args.debug:
+            conf["log_level"] = "DEBUG"
+        else:
+            conf["log_level"] = "INFO"
 
+        conf["framework"] = "torch"
+        conf["ignore_worker_failures"] = True
     else:
         conf = ObjDict()
         conf['run_config'] = run_conf
@@ -92,15 +104,6 @@ def main():
     #print("Final Configuration:")
     #print(conf.to_yaml())
 
-    run_base_folder = Path(run_conf.run_id)
-    run_base_folder_str = str(run_base_folder.resolve())
-    if args.resume and run_base_folder.is_dir():
-        #TODO: Logic for resume here
-        pass
-    # else just start fresh
-    else:
-        run_base_folder.mkdir(parents=True, exist_ok=True)
-
     if args["rl_backend"] == "rllib":
         import ray
         ray.shutdown()
@@ -111,14 +114,12 @@ def main():
             config=conf,
             local_dir=run_base_folder_str,
             #stop={"episodes_total": run_conf.num_episodes}
-            stop={"steps_total": run_conf.num_episodes * run_conf.episode_max_steps}
-
+            stop={"timesteps_total": 10}
         )
     else:
         executor = navsim.Executor(run_id=args["run_id"],
                                    resume=args["resume"],
                                    conf=conf)
-
         executor.execute()
     print("training finished")
 
