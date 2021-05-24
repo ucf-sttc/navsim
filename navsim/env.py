@@ -1,10 +1,16 @@
+import csv
 from pathlib import Path
 from typing import List, Any
 import numpy as np
 import uuid
 import cv2
 
-from gym_unity.envs import UnityToGymWrapper
+from typing import Any, Dict, List, Optional, Tuple, Union
+
+from gym_unity.envs import (
+    UnityToGymWrapper,
+    GymStepResult
+)
 
 from mlagents_envs.environment import UnityEnvironment
 from mlagents_envs.side_channel.side_channel import (
@@ -112,12 +118,14 @@ class NavSimGymEnv(UnityToGymWrapper):
 
     def __init__(self, env_config) -> None:
         """
-        conf: ObjDict having Environment Conf
-        :param env_config:
+        env_config: The environment configuration dictionary or ObjDict Object
         """
         # filename: Optional[str] = None, observation_mode: int = 0, max_steps:int = 5):
         self.env_config = env_config
         self.observation_mode = self.env_config.get('observation_mode', 2)
+        self.debug = env_config.get("debug",False)
+        self.run_base_folder_str = env_config.get("run_base_folder_str",'.')
+        self.run_base_folder = Path(self.run_base_folder_str)
 
         super().__init__(unity_env=self.__open_uenv(),
                          uint8_visual=False,
@@ -125,6 +133,18 @@ class NavSimGymEnv(UnityToGymWrapper):
                          allow_multiple_obs=True)
         # (Env, uint8_visual, flatten_branched, allow_multiple_obs)
         # self.seed(self.conf['seed']) # unity-gym env seed is not working, seed has to be passed with unity env
+        if self.debug:
+            # open the debug files
+            #TODO: Fix later
+            self.file_mode = 'w+'
+            self.actions_file = open(str((self.run_base_folder / 'actions.txt').resolve()),
+                                     mode=self.file_mode)
+            self.observations_file = open(str((self.run_base_folder / 'observations.txt').resolve()),
+                                        mode=self.file_mode)
+            self.actions_writer = csv.writer(self.actions_file,
+                                        delimiter=',',
+                                        quotechar='"',
+                                        quoting=csv.QUOTE_MINIMAL)
 
     def __open_uenv(self) -> UnityEnvironment:
         # if self._env:
@@ -191,6 +211,16 @@ class NavSimGymEnv(UnityToGymWrapper):
                                                self.float_properties_side_channel])
 
         return uenv
+
+    def step(self, action: List[Any]) -> GymStepResult:
+        result = super().step(action)
+
+        if self.debug:
+            self.actions_writer.writerow(action)
+            self.actions_file.flush()
+            self.observations_file.write(f"{str(result[0])}\n")
+            self.observations_file.flush()
+        return result
 
     def info(self):
         """Prints the information about the environment

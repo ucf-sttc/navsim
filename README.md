@@ -29,7 +29,7 @@ You can either run directly on a host machine or in a container.
 1. Download and extract the unity binary zip file, and 
 set the following, after changing first two lines for your system:
 ```
-envdir=$(realpath "/data/work/unity-envs/Build2.6.3")
+envdir=$(realpath "/data/work/unity-envs/Build2.6.4")
 expdir=$(realpath "$HOME/exp")
 envbin="Berlin_Walk_V2.x86_64"
 ver="1.0.7"

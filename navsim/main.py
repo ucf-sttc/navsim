@@ -46,11 +46,11 @@ def main():
 
     env_conf = ObjDict({
         "log_folder": str((run_base_folder / "unity.log").resolve()),
-        "seed": 123,
+        "seed": int(args["seed"]),
         "timeout": 600,
         "worker_id": 0,
         "base_port": 5005,
-        "observation_mode": 2,
+        "observation_mode": int(args["observation_mode"]),
         "segmentation_mode": 1,
         "episode_max_steps": int(args["episode_max_steps"]) + 2,
         "task": 0,
@@ -62,7 +62,9 @@ def main():
         "reward_for_falling_off_map": -50,
         "reward_for_step": -0.0001,
         "agent_car_physics": 0,
-        "env_path": args["env_path"]
+        "env_path": args["env_path"],
+        "debug":args["debug"],
+        "run_base_folder_str":run_base_folder_str
     })
 
     run_conf = ObjDict({
@@ -77,7 +79,7 @@ def main():
         "memory_capacity": 100,
         "batch_size": int(args["batch_size"]),
         "batches_before_train": 2,
-        "checkpoint_interval": int(args["checkpoint_interval"])
+        "checkpoint_interval": int(args["checkpoint_interval"]),
     })
 
     if args["rl_backend"] == "rllib":
@@ -121,12 +123,12 @@ def main():
                                    resume=args["resume"],
                                    conf=conf)
         executor.execute()
-    print("training finished")
+        print("training finished")
 
-    executor.env_close()
-    print("env closed")
-    executor.files_close()
-    print("files closed")
+        executor.env_close()
+        print("env closed")
+        executor.files_close()
+        print("files closed")
 
 
 # For python debugger to directly run this script
