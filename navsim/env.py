@@ -123,8 +123,8 @@ class NavSimGymEnv(UnityToGymWrapper):
         # filename: Optional[str] = None, observation_mode: int = 0, max_steps:int = 5):
         self.env_config = env_config
         self.observation_mode = self.env_config.get('observation_mode', 2)
-        self.debug = env_config.get("debug",False)
-        self.run_base_folder_str = env_config.get("run_base_folder_str",'.')
+        self.debug = env_config.get("debug", False)
+        self.run_base_folder_str = env_config.get("run_base_folder_str", '.')
         self.run_base_folder = Path(self.run_base_folder_str)
 
         super().__init__(unity_env=self.__open_uenv(),
@@ -135,16 +135,22 @@ class NavSimGymEnv(UnityToGymWrapper):
         # self.seed(self.conf['seed']) # unity-gym env seed is not working, seed has to be passed with unity env
         if self.debug:
             # open the debug files
-            #TODO: Fix later
+            # TODO: Fix later
             self.file_mode = 'w+'
-            self.actions_file = open(str((self.run_base_folder / 'actions.txt').resolve()),
-                                     mode=self.file_mode)
-            self.observations_file = open(str((self.run_base_folder / 'observations.txt').resolve()),
-                                        mode=self.file_mode)
+            self.actions_file = open(
+                str((self.run_base_folder / 'actions.txt').resolve()),
+                mode=self.file_mode)
+            self.observations_file = open(
+                str((self.run_base_folder / 'observations.txt').resolve()),
+                mode=self.file_mode)
             self.actions_writer = csv.writer(self.actions_file,
-                                        delimiter=',',
-                                        quotechar='"',
-                                        quoting=csv.QUOTE_MINIMAL)
+                                             delimiter=',',
+                                             quotechar='"',
+                                             quoting=csv.QUOTE_MINIMAL)
+            self.observations_writer = csv.writer(self.observations_file,
+                                                  delimiter=',',
+                                                  quotechar='"',
+                                                  quoting=csv.QUOTE_MINIMAL)
 
     def __open_uenv(self) -> UnityEnvironment:
         # if self._env:
@@ -218,8 +224,10 @@ class NavSimGymEnv(UnityToGymWrapper):
         if self.debug:
             self.actions_writer.writerow(action)
             self.actions_file.flush()
-            self.observations_file.write(f"{str(result[0])}\n")
-            self.observations_file.flush()
+            if self.observation_mode in [0, 2]:
+                vector_obs = result[0][-1]
+                self.observations_writer.writerow(vector_obs)
+                self.observations_file.flush()
         return result
 
     def info(self):
