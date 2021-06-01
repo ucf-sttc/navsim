@@ -124,7 +124,7 @@ install_txt () {
   conda config --show-sources
   conda install -y -S --file $condatxt && \
   # install pip with no-deps so it doesnt mess up conda installed versions
-  pip install --no-deps --no-cache-dir -r "$piptxt"
+  pip install --no-cache-dir -r "$piptxt" # --no-deps
   return $?
 }
 

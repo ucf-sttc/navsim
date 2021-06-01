@@ -116,8 +116,23 @@ def main():
             config=conf,
             local_dir=run_base_folder_str,
             #stop={"episodes_total": run_conf.num_episodes}
-            stop={"timesteps_total": 10}
+            stop={"timesteps_total": 10},
+            checkpoint_freq=1,
+            checkpoint_at_end=True
         )
+        best_checkpoint = result.get_last_checkpoint(
+            metric="episode_reward_mean", mode="max"
+        )
+        #best_checkpoint = result.get_trial_checkpoints_paths(
+        #    trial=result.get_best_trial("episode_reward_mean"),
+        #    metric="episode_reward_mean", mode="max")
+
+        print(best_checkpoint)
+        trainer = ppo.PPOTrainer(config=conf)
+        trainer.restore(best_checkpoint)
+        model = trainer.get_policy().model
+        print(type(model))
+        print(model)
     else:
         executor = navsim.Executor(run_id=args["run_id"],
                                    resume=args["resume"],

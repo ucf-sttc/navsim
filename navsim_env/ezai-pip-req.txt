@@ -35,7 +35,7 @@ mlagents_envs==0.23.0
 gym_unity==0.23.0
 # unity end
 stable-baselines3[extra]
-ray[rllib]
+https://s3-us-west-2.amazonaws.com/ray-wheels/latest/ray-2.0.0.dev0-cp38-cp38-manylinux2014_x86_64.whl
 
 sphinx-rtd-theme
 

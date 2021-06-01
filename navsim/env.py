@@ -228,6 +228,7 @@ class NavSimGymEnv(UnityToGymWrapper):
                 vector_obs = result[0][-1]
                 self.observations_writer.writerow(vector_obs)
                 self.observations_file.flush()
+
         return result
 
     def info(self):

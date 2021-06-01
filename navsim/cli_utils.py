@@ -34,7 +34,7 @@ def _create_argparser() -> argparse.ArgumentParser:
     run_conf = argparser.add_argument_group(title="Run Configuration")
 
     run_conf.add_argument(
-        "--run-id",
+        "--run_id",
         default="demo",
         help="The identifier for the training run. This identifier is used to name the "
              "subdirectories in which the trained model and summary statistics are saved as well "
