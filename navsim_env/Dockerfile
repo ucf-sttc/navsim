@@ -1,4 +1,4 @@
-FROM nvidia/cudagl:10.1-devel-ubuntu18.04 as base-image
+FROM nvidia/cudagl:11.1.1-devel-ubuntu18.04 as base-image
 MAINTAINER Armando Fandango <armando@neurasights.com>
 
 #ARG COMPONENTS=Unity,Windows,Windows-Mono,Mac,Mac-Mono,WebGL

@@ -75,7 +75,7 @@ install_cuda () {
   echo "Installing cuda ..."
   conda config --env --prepend channels nvidia
   conda config --show-sources
-  conda install -y -S "cudatoolkit=10.1" "cudnn>=7.6.0" "nccl"
+  conda install -y -S "cudatoolkit=11.1" "cudnn>=7.6.0" "nccl"
   #&& \
   #conda install -y -S "nccl" #"mpi4py>=3.0.0" gxx_linux-64 gcc_linux-64
   return $?
@@ -87,7 +87,7 @@ install_fastai_pytorch () {
   conda config --env --prepend channels fastai
   conda config --show-sources
   # numpy spec due to tensorflow and pillow spec due to gym
-  conda install -y -S "pytorch=1.6" "torchvision=0.7" "numpy>1.19.0"
+  conda install -y -S "pytorch=1.8" "numpy>1.19.0"
   return $?
 }
 
@@ -124,7 +124,7 @@ install_txt () {
   conda config --show-sources
   conda install -y -S --file $condatxt && \
   # install pip with no-deps so it doesnt mess up conda installed versions
-  pip install --no-cache-dir -r "$piptxt" # --no-deps
+  pip install --no-cache-dir -r "$piptxt" --no-deps
   return $?
 }
 
