@@ -85,4 +85,14 @@ pyglet<=1.5.0
 redis-py
 atari_py
 gputil
-
+filelock
+jsonschema
+dm-tree
+tabulate
+lz4
+aiohttp-cors
+tensorboardx
+prometheus_client
+aioredis
+pydantic
+opencensus
