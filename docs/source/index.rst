@@ -9,5 +9,6 @@ Welcome to NavSim |version| documentation
    :maxdepth: 2
 
    README <README.md>
+   Navsim Environment Tutorial <env.md>
    CONTRIBUTE <contribute.md>
    navsim_api
