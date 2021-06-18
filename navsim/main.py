@@ -38,7 +38,7 @@ def main():
     run_base_folder = Path(args.run_id)
     run_base_folder_str = str(run_base_folder.resolve())
     if args.resume and run_base_folder.is_dir():
-        #TODO: Logic for resume here
+        # TODO: Logic for resume here
         pass
     # else just start fresh
     else:
@@ -46,25 +46,25 @@ def main():
 
     env_conf = ObjDict({
         "log_folder": str((run_base_folder / "unity.log").resolve()),
-        "seed": int(args["seed"]),
-        "timeout": 600,
         "worker_id": 0,
         "base_port": 5005,
+        "seed": int(args["seed"]),
+        "timeout": int(args["timeout"]),
         "observation_mode": int(args["observation_mode"]),
-        "segmentation_mode": 1,
-        "episode_max_steps": int(args["episode_max_steps"]) + 2,
-        "task": 0,
-        "goal": 0,
+        "segmentation_mode": int(args["observation_mode"]),
+        "episode_max_steps": int(args["episode_max_steps"]),
+        "task": int(args["task"]),
+        "goal": int(args["goal"]),
         "goal_distance": int(args["goal_distance"]),
-        "reward_for_goal": 50,
-        "reward_for_ep": 0.005,
-        "reward_for_other": -0.1,
-        "reward_for_falling_off_map": -50,
-        "reward_for_step": -0.0001,
-        "agent_car_physics": 0,
+        "agent_car_physics": int(args["agent_car_physics"]),
+        "reward_for_goal": float(args["reward_for_goal"]),
+        "reward_for_ep": float(args["reward_for_ep"]),
+        "reward_for_other": float(args["reward_for_other"]),
+        "reward_for_falling_off_map": float(args["reward_for_falling_off_map"]),
+        "reward_for_step": float(args["reward_for_step"]),
         "env_path": args["env_path"],
-        "debug":args["debug"],
-        "run_base_folder_str":run_base_folder_str
+        "debug": args["debug"],
+        "run_base_folder_str": run_base_folder_str
     })
 
     run_conf = ObjDict({
@@ -100,11 +100,10 @@ def main():
     conf["num_workers"] = 1
     conf['env_config'] = env_conf
 
-
     print("Passed arguments + defaults:")
     print(args.to_yaml())
-    #print("Final Configuration:")
-    #print(conf.to_yaml())
+    # print("Final Configuration:")
+    # print(conf.to_yaml())
 
     if args["rl_backend"] == "rllib":
         import ray
@@ -114,16 +113,18 @@ def main():
         result = ray.tune.run(
             ppo.PPOTrainer,
             config=conf,
+            name=run_conf.run_id,
+            resume=args.resume,
             local_dir=run_base_folder_str,
-            #stop={"episodes_total": run_conf.num_episodes}
-            stop={"timesteps_total": 10},
-            checkpoint_freq=1,
+            # stop={"episodes_total": run_conf.num_episodes}
+            stop={"episodes_total": run_conf.num_episodes},
+            checkpoint_freq=run_conf.checkpoint_interval,
             checkpoint_at_end=True
         )
         best_checkpoint = result.get_last_checkpoint(
             metric="episode_reward_mean", mode="max"
         )
-        #best_checkpoint = result.get_trial_checkpoints_paths(
+        # best_checkpoint = result.get_trial_checkpoints_paths(
         #    trial=result.get_best_trial("episode_reward_mean"),
         #    metric="episode_reward_mean", mode="max")
 

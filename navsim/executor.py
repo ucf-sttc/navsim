@@ -16,7 +16,6 @@ import traceback
 import numpy as np
 from torch.utils.tensorboard import SummaryWriter
 
-
 def s_hwc_to_chw(s):
     # TODO: HWC to CHW conversion optimized here
     # because pytorch can only deal with images in CHW format
@@ -75,8 +74,11 @@ class Executor:
         self.episode_results_filename = str(episode_results_filename.resolve())
         env_log_folder = self.run_base_folder / 'env.log'
         self.env_config.log_folder = str(env_log_folder.resolve())
+
         self.model_filename = f"{self.run_base_folder_str}/model_state.pt"
         self.memory_filename = f"{self.run_base_folder_str}/memory.pkl"
+        self.episode_num_filename = f"{self.run_base_folder_str}/last_checkpointed_episode_num.txt"
+
         # TODO: Add the code to delete previous files
         # TODO: Add the code to add categories
         self.summary_writer = SummaryWriter(f"{self.run_base_folder_str}/tb")
@@ -85,14 +87,27 @@ class Executor:
         self.files_open()
 
         try:
+            if resume and self.run_base_folder.is_dir():
+                with open(self.episode_num_filename, mode='r') as episode_num_file:
+                    self.conf.env_config["start_from_episode"] = int(episode_num_file.read())+1
+            else:
+                self.conf.env_config["start_from_episode"] = 1
             self.env = None
             self.env_open()
+
+            self.max_action = self.env.action_space.high[0]
+            self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+
+            self.agent = DDPGAgent(
+                env=self.env,
+                device=self.device,
+                discount=self.run_conf['discount'], tau=self.run_conf['tau']
+            )
+
             if resume and self.run_base_folder.is_dir():
                 self.memory = Memory.load_from_pkl(self.memory_filename)
+                self.agent.load_checkpoint(self.model_filename)
             else:
-                # TODO: HWC to CHW conversion optimized here
-                # because pytorch can only deal with images in CHW format
-                # we are making the optimization here to convert from HWC to CHW format.
                 memory_observation_space_shapes = []
                 for item in self.env.observation_space_shapes:
                     if len(item) == 3:  # means its an image in HWC
@@ -106,15 +121,6 @@ class Executor:
                     seed=self.run_conf['seed']
                 )
                 self.memory.info()
-
-            self.max_action = self.env.action_space.high[0]
-            self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-
-            self.agent = DDPGAgent(
-                env=self.env,
-                device=self.device,
-                discount=self.run_conf['discount'], tau=self.run_conf['tau']
-            )
 
             # ReplayBuffer(self.vector_state_dimension, self.action_dimension)
 
@@ -209,8 +215,10 @@ class Executor:
         num_episode_blocks = int(math.ceil(num_episodes / checkpoint_interval))
 
         for i in range(0,num_episode_blocks):
-            for episode_num in tqdm(iterable=range((i*checkpoint_interval)+1, min((i+1)*checkpoint_interval,num_episodes)+1),
-                                    desc=f"Episode {(i*checkpoint_interval)+1}-{min((i+1)*checkpoint_interval,num_episodes)}/{num_episodes}",
+            start_episode = (self.conf.env_config["start_from_episode"]-1)+((i*checkpoint_interval)+1)
+            stop_episode = (self.conf.env_config["start_from_episode"]-1)+min((i+1)*checkpoint_interval,num_episodes)
+            for episode_num in tqdm(iterable=range(start_episode, stop_episode+1),
+                                    desc=f"Episode {start_episode}-{stop_episode}/{num_episodes}",
                                     unit='episode', ascii=True, ncols=80, bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{rate_fmt}{postfix}]'):
                 self.rc.start()
                 episode_resources = [self.rc.snapshot()]  # e0
@@ -220,20 +228,20 @@ class Executor:
                 episode_reward = 0
                 t = 0
 
-                self.env.start_navigable_map()
+                #self.env.start_navigable_map()
                 # observe initial s
                 s = self.env.reset()  # s comes out of env as a tuple always
-                #self.env.step(self.env.action_space.sample())
-                # get the navigable map and save it as image
-                navigable_map = self.env.get_navigable_map()
-                if navigable_map is not None:
-                    cv2.imwrite(str((self.run_base_folder / f'navigable_map_{episode_num}.jpg').resolve()),navigable_map*255)
-                else:
-                    print(f'Map for episode {episode_num} is None')
-                # TODO: HWC to CHW conversion optimized here
                 # because pytorch can only deal with images in CHW format
                 # we are making the optimization here to convert from HWC to CHW format.
                 s = s_hwc_to_chw(s)
+
+                #self.env.step(self.env.action_space.sample())
+                # get the navigable map and save it as image
+                #navigable_map = self.env.get_navigable_map()
+                #if navigable_map is not None:
+                #    cv2.imwrite(str((self.run_base_folder / f'navigable_map_{episode_num}.jpg').resolve()),navigable_map*255)
+                #else:
+                #    print(f'Map for episode {episode_num} is None')
 
                 samples_before_training = (self.run_conf['batch_size'] * self.run_conf['batches_before_train'])
                 while not episode_done:
@@ -259,8 +267,6 @@ class Executor:
 
                     step_resources.append(self.rc.snapshot())  # s1
                     s_, r, episode_done, info = self.env.step(a)
-
-                    # TODO: HWC to CHW conversion optimized here
                     # because pytorch can only deal with images in CHW format
                     # we are making the optimization here to convert from HWC to CHW format.
                     s_ = s_hwc_to_chw(s_)
@@ -307,6 +313,9 @@ class Executor:
                 # save every int(self.run_conf['checkpoint_interval'])
                 # TODO: Save the episode_num
                 if (episode_num % int(self.run_conf['checkpoint_interval'])) == 0:
+                    # open the file writing and start the file from beginning
+                    with open(self.episode_num_filename, mode='w') as episode_num_file:
+                        episode_num_file.write(str(episode_num))
                     self.agent.save_checkpoint(self.model_filename)
                     self.memory.save_to_pkl(self.memory_filename)
 

@@ -97,6 +97,7 @@ class NavSimGymEnv(UnityToGymWrapper):
             "reward_for_step": -0.0001,
             "agent_car_physics": 0,
             "episode_max_steps": 10,
+            "start_from_episode":1,
             "env_path":args["env_path"]
         })
 
@@ -123,6 +124,7 @@ class NavSimGymEnv(UnityToGymWrapper):
         # filename: Optional[str] = None, observation_mode: int = 0, max_steps:int = 5):
         self.env_config = env_config
         self.observation_mode = self.env_config.get('observation_mode', 2)
+        self.start_from_episode = self.env_config.get('start_from_episode', 1)
         self.debug = env_config.get("debug", False)
         self.run_base_folder_str = env_config.get("run_base_folder_str", '.')
         self.run_base_folder = Path(self.run_base_folder_str)
@@ -131,6 +133,10 @@ class NavSimGymEnv(UnityToGymWrapper):
                          uint8_visual=False,
                          flatten_branched=False,
                          allow_multiple_obs=True)
+
+        #TODO: Once the environment has capability to start from an episode, then remove this
+        for i in range(1, self.start_from_episode):
+            self.reset()
         # (Env, uint8_visual, flatten_branched, allow_multiple_obs)
         # self.seed(self.conf['seed']) # unity-gym env seed is not working, seed has to be passed with unity env
         if self.debug:

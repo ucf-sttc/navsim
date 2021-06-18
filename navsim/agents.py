@@ -47,18 +47,22 @@ class AirSimNN(object):
         self.model = ModelTorch(conf)
         self.opt_fn = torch.optim.RMSprop(self.model.parameters())
         self.los_fn = torch.nn.MSELoss()
-        self.device = torch.device('cpu')  # 'cuda' if torch.cuda.is_available() else 'cpu')
+        self.device = torch.device(
+            'cpu')  # 'cuda' if torch.cuda.is_available() else 'cpu')
 
     def fit(self, x_train, y_train, x_valid=None, y_valid=None):
         train_generator = torch.utils.data.DataLoader(
             torch.utils.data.TensorDataset(
-                torch.from_numpy(x_train).type(torch.Tensor).view([-1, self.conf.n_x]),
-                torch.from_numpy(y_train).type(torch.Tensor).view([-1, self.conf.n_y])
+                torch.from_numpy(x_train).type(torch.Tensor).view(
+                    [-1, self.conf.n_x]),
+                torch.from_numpy(y_train).type(torch.Tensor).view(
+                    [-1, self.conf.n_y])
             ), batch_size=self.conf.n_batch_size, shuffle=True
         )
         for epoch in range(self.conf.n_epochs):
             for x_batch, y_batch in train_generator:
-                x_batch, y_batch = x_batch.to(self.device), y_batch.to(self.device)
+                x_batch, y_batch = x_batch.to(self.device), y_batch.to(
+                    self.device)
                 y_pred = self.model(x_batch)
                 loss = self.los_fn(y_pred, y_batch)
                 self.opt_fn.zero_grad()
@@ -68,7 +72,8 @@ class AirSimNN(object):
 
     def predict(self, x):
         with torch.no_grad():
-            x = torch.from_numpy(x).type(torch.Tensor).view([-1, self.conf.n_x]).to(self.device)
+            x = torch.from_numpy(x).type(torch.Tensor).view(
+                [-1, self.conf.n_x]).to(self.device)
             y_pred = self.model(x)
             y_pred = y_pred.detach().numpy()
         return y_pred
@@ -93,43 +98,65 @@ def conv2d_output_shape(h_w, kernel_size=1, stride=1, pad=0, dilation=1):
                                               num2tuple(dilation)
     pad = num2tuple(pad[0]), num2tuple(pad[1])
     # print(h_w,kernel_size,stride,pad,dilation)
-    h = math.floor((h_w[0] + sum(pad[0]) - dilation[0] * (kernel_size[0] - 1) - 1) / stride[0] + 1)
-    w = math.floor((h_w[1] + sum(pad[1]) - dilation[1] * (kernel_size[1] - 1) - 1) / stride[1] + 1)
+    h = math.floor(
+        (h_w[0] + sum(pad[0]) - dilation[0] * (kernel_size[0] - 1) - 1) /
+        stride[0] + 1)
+    w = math.floor(
+        (h_w[1] + sum(pad[1]) - dilation[1] * (kernel_size[1] - 1) - 1) /
+        stride[1] + 1)
 
     return h, w
 
 
-def convtransp2d_output_shape(h_w, kernel_size=1, stride=1, pad=0, dilation=1, out_pad=0):
+def convtransp2d_output_shape(h_w, kernel_size=1, stride=1, pad=0, dilation=1,
+                              out_pad=0):
     h_w, kernel_size, stride, pad, dilation, out_pad = num2tuple(h_w), \
-                                                       num2tuple(kernel_size), num2tuple(stride), num2tuple(
+                                                       num2tuple(
+                                                           kernel_size), num2tuple(
+        stride), num2tuple(
         pad), num2tuple(dilation), num2tuple(out_pad)
     pad = num2tuple(pad[0]), num2tuple(pad[1])
 
-    h = (h_w[0] - 1) * stride[0] - sum(pad[0]) + dilation[0] * (kernel_size[0] - 1) + out_pad[0] + 1
-    w = (h_w[1] - 1) * stride[1] - sum(pad[1]) + dilation[1] * (kernel_size[1] - 1) + out_pad[1] + 1
+    h = (h_w[0] - 1) * stride[0] - sum(pad[0]) + dilation[0] * (
+            kernel_size[0] - 1) + out_pad[0] + 1
+    w = (h_w[1] - 1) * stride[1] - sum(pad[1]) + dilation[1] * (
+            kernel_size[1] - 1) + out_pad[1] + 1
 
     return h, w
 
 
 def conv2d_get_padding(h_w_in, h_w_out, kernel_size=1, stride=1, dilation=1):
-    h_w_in, h_w_out, kernel_size, stride, dilation = num2tuple(h_w_in), num2tuple(h_w_out), \
-                                                     num2tuple(kernel_size), num2tuple(stride), num2tuple(dilation)
+    h_w_in, h_w_out, kernel_size, stride, dilation = num2tuple(
+        h_w_in), num2tuple(h_w_out), \
+                                                     num2tuple(
+                                                         kernel_size), num2tuple(
+        stride), num2tuple(dilation)
 
-    p_h = ((h_w_out[0] - 1) * stride[0] - h_w_in[0] + dilation[0] * (kernel_size[0] - 1) + 1)
-    p_w = ((h_w_out[1] - 1) * stride[1] - h_w_in[1] + dilation[1] * (kernel_size[1] - 1) + 1)
+    p_h = ((h_w_out[0] - 1) * stride[0] - h_w_in[0] + dilation[0] * (
+            kernel_size[0] - 1) + 1)
+    p_w = ((h_w_out[1] - 1) * stride[1] - h_w_in[1] + dilation[1] * (
+            kernel_size[1] - 1) + 1)
 
-    return (math.floor(p_h / 2), math.ceil(p_h / 2)), (math.floor(p_w / 2), math.ceil(p_w / 2))
+    return (math.floor(p_h / 2), math.ceil(p_h / 2)), (
+        math.floor(p_w / 2), math.ceil(p_w / 2))
 
 
-def convtransp2d_get_padding(h_w_in, h_w_out, kernel_size=1, stride=1, dilation=1, out_pad=0):
-    h_w_in, h_w_out, kernel_size, stride, dilation, out_pad = num2tuple(h_w_in), num2tuple(h_w_out), \
-                                                              num2tuple(kernel_size), num2tuple(stride), num2tuple(
+def convtransp2d_get_padding(h_w_in, h_w_out, kernel_size=1, stride=1,
+                             dilation=1, out_pad=0):
+    h_w_in, h_w_out, kernel_size, stride, dilation, out_pad = num2tuple(
+        h_w_in), num2tuple(h_w_out), \
+                                                              num2tuple(
+                                                                  kernel_size), num2tuple(
+        stride), num2tuple(
         dilation), num2tuple(out_pad)
 
-    p_h = -(h_w_out[0] - 1 - out_pad[0] - dilation[0] * (kernel_size[0] - 1) - (h_w[0] - 1) * stride[0]) / 2
-    p_w = -(h_w_out[1] - 1 - out_pad[1] - dilation[1] * (kernel_size[1] - 1) - (h_w[1] - 1) * stride[1]) / 2
+    p_h = -(h_w_out[0] - 1 - out_pad[0] - dilation[0] * (kernel_size[0] - 1) - (
+            h_w[0] - 1) * stride[0]) / 2
+    p_w = -(h_w_out[1] - 1 - out_pad[1] - dilation[1] * (kernel_size[1] - 1) - (
+            h_w[1] - 1) * stride[1]) / 2
 
-    return (math.floor(p_h / 2), math.ceil(p_h / 2)), (math.floor(p_w / 2), math.ceil(p_w / 2))
+    return (math.floor(p_h / 2), math.ceil(p_h / 2)), (
+        math.floor(p_w / 2), math.ceil(p_w / 2))
 
 
 class Actor(torch.nn.Module):
@@ -171,7 +198,8 @@ class Actor(torch.nn.Module):
                                     kernel_size=kernel_size,
                                     stride=stride,
                                     padding=padding,
-                                    dilation=dilation),  # [batch_size, n_features_conv, height, width]
+                                    dilation=dilation),
+                    # [batch_size, n_features_conv, height, width]
                     torch.nn.MaxPool2d(kernel_size=kernel_size,
                                        stride=stride,
                                        padding=padding,
@@ -219,7 +247,7 @@ class Actor(torch.nn.Module):
         features = []
         for s, layer in zip(state, self.feature_layers):
             layer = layer(s)
-            if layer.dim()>2:
+            if layer.dim() > 2:
                 layer = layer.view(layer.size(0), -1)
             features.append(layer)
             # print(layer.shape)
@@ -229,7 +257,8 @@ class Actor(torch.nn.Module):
         #        else:
         #            features_
 
-        features_cat = torch.cat(features, dim=1) if len(features) > 1 else features[0]
+        features_cat = torch.cat(features, dim=1) if len(features) > 1 else \
+            features[0]
         a = self.out_layer(features_cat)
         return self.max_action * a
 
@@ -272,7 +301,8 @@ class Critic(torch.nn.Module):
                                     kernel_size=kernel_size,
                                     stride=stride,
                                     padding=padding,
-                                    dilation=dilation),  # [batch_size, n_features_conv, height, width]
+                                    dilation=dilation),
+                    # [batch_size, n_features_conv, height, width]
                     torch.nn.MaxPool2d(kernel_size=kernel_size,
                                        stride=stride,
                                        padding=padding,
@@ -324,18 +354,19 @@ class Critic(torch.nn.Module):
         features = []
         for s, layer in zip(state, self.feature_layers):
             layer = layer(s)
-            if layer.dim()>2:
+            if layer.dim() > 2:
                 layer = layer.view(layer.size(0), -1)
             features.append(layer)
             # print(layer.shape)
 
         layer = self.feature_layers[-1]
         layer = layer(action)
-        if layer.dim()>2:
+        if layer.dim() > 2:
             layer = layer.view(layer.size(0), -1)
         features.append(layer)
 
-        features_cat = torch.cat(features, dim=1) if len(features) > 1 else features[0]
+        features_cat = torch.cat(features, dim=1) if len(features) > 1 else \
+            features[0]
 
         q = self.out_layer(features_cat)
         return q
@@ -374,13 +405,16 @@ class DDPGAgent(object):
     def select_action(self, state):
         # if self.env.observation_mode == 0:
         #    state = torch.FloatTensor(state[0].reshape(1, -1)).to(self.device)
-        state = [torch.FloatTensor(s).unsqueeze(0).to(self.device) for s in state]
+        state = [torch.FloatTensor(s).unsqueeze(0).to(self.device) for s in
+                 state]
         return self.actor(state).cpu().data.numpy().flatten()
 
     @staticmethod
     def soft_update(local_model, target_model, tau):
-        for target_param, local_param in zip(target_model.parameters(), local_model.parameters()):
-            target_param.data.copy_(tau * local_param.data + (1.0 - tau) * target_param.data)
+        for target_param, local_param in zip(target_model.parameters(),
+                                             local_model.parameters()):
+            target_param.data.copy_(
+                tau * local_param.data + (1.0 - tau) * target_param.data)
 
     def save_checkpoint(self, filename):
         state = {
@@ -410,7 +444,8 @@ class DDPGAgent(object):
                 random_input = torch.randn(1, state_dim[0]).to(device)
                 input_name = f'state_{state_dim[0]}'
             else:  # visual
-                random_input = torch.randn(1, state_dim[2], state_dim[0], state_dim[1]).to(device)
+                random_input = torch.randn(1, state_dim[2], state_dim[0],
+                                           state_dim[1]).to(device)
                 input_name = f'state_{state_dim[0]}_{state_dim[1]}_{state_dim[2]}'
 
             input_data.append(random_input)
@@ -502,7 +537,8 @@ class DDPGAgent(object):
         episode_done = torch.FloatTensor(episode_done).to(self.device)
 
         target_q = self.critic_target(next_state, self.actor_target(next_state))
-        target_q = reward + ((1.0 - episode_done) * self.discount * target_q).detach()
+        target_q = reward + (
+                (1.0 - episode_done) * self.discount * target_q).detach()
         current_q = self.critic(state, action)
         critic_loss = F.mse_loss(current_q, target_q)
         self.critic_optimizer.zero_grad()
@@ -519,6 +555,7 @@ class DDPGAgent(object):
         print("Agent Info")
         print('-----------')
         print('Not implemented yet')
+
 
 def evaluate_policy(policy, env, seed, eval_episodes=10, render=False):
     eval_env = env

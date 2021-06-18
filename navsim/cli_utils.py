@@ -92,7 +92,7 @@ def _create_argparser() -> argparse.ArgumentParser:
         default=2,
         dest="num_episodes",
         action=ArgAction,
-        help="Number of Episodes",
+        help="Number of Episodes, default 2",
     )
 
     run_conf.add_argument(
@@ -108,7 +108,7 @@ def _create_argparser() -> argparse.ArgumentParser:
         default=2500,
         dest="episode_max_steps",
         action=ArgAction,
-        help="Maximum number of steps in an Episode, aka Episode Length",
+        help="Maximum number of steps in an Episode, aka Episode Length, default 2500",
     )
 
     run_conf.add_argument(
@@ -116,7 +116,7 @@ def _create_argparser() -> argparse.ArgumentParser:
         default=1,
         dest="seed",
         action=ArgAction,
-        help="",
+        help="Seed, default 1",
     )
 
     run_conf.add_argument(
@@ -145,7 +145,7 @@ def _create_argparser() -> argparse.ArgumentParser:
         default=256,
         dest="batch_size",
         action=ArgAction,
-        help="",
+        help="Batch Size, default 256",
     )
 
     run_conf.add_argument(
@@ -166,18 +166,88 @@ def _create_argparser() -> argparse.ArgumentParser:
     )
 
     env_conf.add_argument(
-        "--goal_distance",
-        default=50,
-        dest="goal_distance",
-        help="Distance to goal from current location",
+        "--timeout",
+        default=600,
+        dest="timeout",
+        help="TimeOut for the Env, default 600",
         action=ArgAction,
     )
-
     env_conf.add_argument(
         "--observation_mode",
         default=0,
         dest="observation_mode",
-        help="Observation Mode : 0,1,2",
+        help="Observation Mode : 0,1,2, default 0",
+        action=ArgAction,
+    )
+
+    env_conf.add_argument(
+        "--segmentation_mode",
+        default=1,
+        dest="segmentation_mode",
+        help="Segmentation Mode : 1 default 1",
+        action=ArgAction,
+    )
+    env_conf.add_argument(
+        "--task",
+        default=0,
+        dest="task",
+        help="Task, default 0",
+        action=ArgAction,
+    )
+    env_conf.add_argument(
+        "--goal",
+        default=0,
+        dest="goal",
+        help="Goal, default 0",
+        action=ArgAction,
+    )
+    env_conf.add_argument(
+        "--goal_distance",
+        default=50,
+        dest="goal_distance",
+        help="Distance to goal from current location, default 50",
+        action=ArgAction,
+    )
+    env_conf.add_argument(
+        "--agent_car_physics",
+        default=0,
+        dest="agent_car_physics",
+        help="Agent Car Physics Levels : 0,1,2,10 default 0",
+        action=ArgAction,
+    )
+    env_conf.add_argument(
+        "--reward_for_goal",
+        default=50,
+        dest="reward_for_goal",
+        help="Reward for Goal, default 50",
+        action=ArgAction,
+    )
+    env_conf.add_argument(
+        "--reward_for_ep",
+        default=0.005,
+        dest="reward_for_ep",
+        help="Reward for Exploration Point, default 0.005",
+        action=ArgAction,
+    )
+    env_conf.add_argument(
+        "--reward_for_other",
+        default=-0.1,
+        dest="reward_for_other",
+        help="Reward for Other, default -0.1",
+        action=ArgAction,
+    )
+    env_conf.add_argument(
+        "--reward_for_falling_off_map",
+        default=-50,
+        dest="reward_for_falling_off_map",
+        help="Reward for Falling off Map, default -50",
+        action=ArgAction,
+    )
+    env_conf.add_argument(
+        "--reward_for_step",
+        default=-0.0001,
+        dest="reward_for_step",
+        help="Reward for Step, default -0.0001",
         action=ArgAction,
     )
 
