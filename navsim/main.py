@@ -42,6 +42,8 @@ def main():
         pass
     # else just start fresh
     else:
+        args.resume=False
+        print("Resume set to True, but nothing to resume from, starting fresh")
         run_base_folder.mkdir(parents=True, exist_ok=True)
 
     env_conf = ObjDict({
@@ -71,7 +73,7 @@ def main():
         "run_id": args["run_id"],
         "env_name": "navsim",
         "episode_max_steps": int(args["episode_max_steps"]),
-        "num_episodes": int(args["num_episodes"]),
+        "total_episodes": int(args["total_episodes"]),
         "seed": int(args["seed"]),
         "discount": float(args["discount"]),
         "tau": float(args["tau"]),
@@ -116,8 +118,7 @@ def main():
             name=run_conf.run_id,
             resume=args.resume,
             local_dir=run_base_folder_str,
-            # stop={"episodes_total": run_conf.num_episodes}
-            stop={"episodes_total": run_conf.num_episodes},
+            stop={"episodes_total": run_conf.total_episodes},
             checkpoint_freq=run_conf.checkpoint_interval,
             checkpoint_at_end=True
         )
@@ -135,6 +136,19 @@ def main():
         print(type(model))
         print(model)
     else:
+        # if resume is passed then read the args from saved conf instead and then overwrite with thhe args passed
+        # TODO: Optimize this with respect to above arg/config setting
+        if args.resume and run_base_folder.is_dir():
+            conf = ObjDict().load_from_json_file(f"{run_base_folder_str}/conf"
+                                                 f".json")
+            for passed_arg in non_default_args:
+                if passed_arg in conf["env_config"]:
+                    conf["env_config"][passed_arg] = args[passed_arg]
+                if passed_arg in conf["run_config"]:
+                    conf["run_config"][passed_arg] = args[passed_arg]
+                if passed_arg in conf:
+                    conf[passed_arg] = args[passed_arg]
+
         executor = navsim.Executor(run_id=args["run_id"],
                                    resume=args["resume"],
                                    conf=conf)

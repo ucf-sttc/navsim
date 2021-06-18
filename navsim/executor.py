@@ -45,20 +45,21 @@ class Executor:
         """
         self.run_id = run_id
 
+        self.conf = conf
+        self.resume = resume
+
         self.run_base_folder = Path(self.run_id)
         self.run_base_folder_str = str(self.run_base_folder.resolve())
         #        if run_base_folder.is_dir():
         #            raise ValueError(f"{run_base_folder_str} exists as a non-directory. "
         #                             f"Please remove the file or use a different run_id")
         if resume and self.run_base_folder.is_dir():
-            self.conf = ObjDict().load_from_json_file(f"{self.run_base_folder_str}/conf.json")
-            self.resume = True
+            #self.conf = ObjDict().load_from_json_file(f"{self.run_base_folder_str}/conf.json")
             self.file_mode = 'a+'
 
         # else just start fresh
         else:
-            self.conf = conf
-            self.resume = False
+
             self.run_base_folder.mkdir(parents=True, exist_ok=True)
             self.conf.save_to_json_file(f"{self.run_base_folder_str}/conf.json")
             self.file_mode = 'w+'
@@ -75,8 +76,6 @@ class Executor:
         env_log_folder = self.run_base_folder / 'env.log'
         self.env_config.log_folder = str(env_log_folder.resolve())
 
-        self.model_filename = f"{self.run_base_folder_str}/model_state.pt"
-        self.memory_filename = f"{self.run_base_folder_str}/memory.pkl"
         self.episode_num_filename = f"{self.run_base_folder_str}/last_checkpointed_episode_num.txt"
 
         # TODO: Add the code to delete previous files
@@ -89,7 +88,8 @@ class Executor:
         try:
             if resume and self.run_base_folder.is_dir():
                 with open(self.episode_num_filename, mode='r') as episode_num_file:
-                    self.conf.env_config["start_from_episode"] = int(episode_num_file.read())+1
+                    episode_num = int(episode_num_file.read())
+                    self.conf.env_config["start_from_episode"] = episode_num+1
             else:
                 self.conf.env_config["start_from_episode"] = 1
             self.env = None
@@ -105,8 +105,10 @@ class Executor:
             )
 
             if resume and self.run_base_folder.is_dir():
-                self.memory = Memory.load_from_pkl(self.memory_filename)
-                self.agent.load_checkpoint(self.model_filename)
+                model_filename = f"{self.run_base_folder_str}/{episode_num}_model_state.pt"
+                memory_filename = f"{self.run_base_folder_str}/{episode_num}_memory.pkl"
+                self.memory = Memory.load_from_pkl(memory_filename)
+                self.agent.load_checkpoint(model_filename)
             else:
                 memory_observation_space_shapes = []
                 for item in self.env.observation_space_shapes:
@@ -210,15 +212,16 @@ class Executor:
         :return:
         """
         t_max = int(self.run_conf['episode_max_steps'])
-        num_episodes = int(self.run_conf['num_episodes'])
+        total_episodes = int(self.run_conf['total_episodes'])
+        num_episodes = total_episodes - (self.conf.env_config["start_from_episode"]-1)
         checkpoint_interval = int(self.run_conf['checkpoint_interval'])
         num_episode_blocks = int(math.ceil(num_episodes / checkpoint_interval))
 
         for i in range(0,num_episode_blocks):
             start_episode = (self.conf.env_config["start_from_episode"]-1)+((i*checkpoint_interval)+1)
-            stop_episode = (self.conf.env_config["start_from_episode"]-1)+min((i+1)*checkpoint_interval,num_episodes)
+            stop_episode = (self.conf.env_config["start_from_episode"]-1)+min((i+1)*checkpoint_interval,total_episodes)
             for episode_num in tqdm(iterable=range(start_episode, stop_episode+1),
-                                    desc=f"Episode {start_episode}-{stop_episode}/{num_episodes}",
+                                    desc=f"Episode {start_episode}-{stop_episode}/{total_episodes}",
                                     unit='episode', ascii=True, ncols=80, bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{rate_fmt}{postfix}]'):
                 self.rc.start()
                 episode_resources = [self.rc.snapshot()]  # e0
@@ -311,13 +314,15 @@ class Executor:
                 episode_time = episode_resources[1][0] - episode_resources[0][0]
                 episode_peak_memory = episode_resources[1][2]
                 # save every int(self.run_conf['checkpoint_interval'])
-                # TODO: Save the episode_num
                 if (episode_num % int(self.run_conf['checkpoint_interval'])) == 0:
                     # open the file writing and start the file from beginning
                     with open(self.episode_num_filename, mode='w') as episode_num_file:
                         episode_num_file.write(str(episode_num))
-                    self.agent.save_checkpoint(self.model_filename)
-                    self.memory.save_to_pkl(self.memory_filename)
+                    model_filename = f"{self.run_base_folder_str}/{episode_num}_model_state.pt"
+                    memory_filename = f"{self.run_base_folder_str}/{episode_num}_memory.pkl"
+
+                    self.agent.save_checkpoint(model_filename)
+                    self.memory.save_to_pkl(memory_filename)
 
                 #            if self.enable_logging:
                 #                self.writer.add_scalar('Episode Reward', episode_reward, t)
