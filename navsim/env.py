@@ -123,12 +123,12 @@ class NavSimGymEnv(UnityToGymWrapper):
         """
         # filename: Optional[str] = None, observation_mode: int = 0, max_steps:int = 5):
         self.env_config = env_config
-        self.observation_mode = self.env_config.get('observation_mode', 2)
-        self.start_from_episode = self.env_config.get('start_from_episode', 1)
+        self.observation_mode = int(self.env_config.get('observation_mode', 2))
+        self.start_from_episode = int(self.env_config.get('start_from_episode', 1))
         self.debug = env_config.get("debug", False)
         self.run_base_folder_str = env_config.get("run_base_folder_str", '.')
         self.run_base_folder = Path(self.run_base_folder_str)
-        seed = self.env_config.get('seed')
+        seed = int(self.env_config.get('seed'))
 
         # if self._env:
         #    raise ValueError('Environment already open')
@@ -148,22 +148,22 @@ class NavSimGymEnv(UnityToGymWrapper):
         env_sfp = env_pc.set_float_parameter
 
         env_sfp("rewardForGoalCollision",
-                self.env_config.get('reward_for_goal', 50))
+                float(self.env_config.get('reward_for_goal', 50)))
         env_sfp("rewardForExplorationPointCollision",
-                self.env_config.get('reward_for_ep', 0.005))
+                float(self.env_config.get('reward_for_ep', 0.005)))
         env_sfp("rewardForOtherCollision",
-                self.env_config.get('reward_for_other', -0.1))
+                float(self.env_config.get('reward_for_other', -0.1)))
         env_sfp("rewardForFallingOffMap",
-                self.env_config.get('reward_for_falling_off_map', -50))
+                float(self.env_config.get('reward_for_falling_off_map', -50)))
         env_sfp("rewardForEachStep",
-                self.env_config.get('reward_for_step', -0.0001))
-        env_sfp("segmentationMode", self.env_config.get('segmentation_mode', 1))
-        env_sfp("observationMode", self.env_config.get('observation_mode', 2))
-        env_sfp("episodeLength", self.env_config.get('episode_max_steps', 100))
-        env_sfp("selectedTaskIndex", self.env_config.get('task', 0))
-        env_sfp("goalSelectionIndex", self.env_config.get('goal', 0))
-        env_sfp("agentCarPhysics", self.env_config.get('agent_car_physics', 0))
-        env_sfp("goalDistance", self.env_config.get('goal_distance', 50))
+                float(self.env_config.get('reward_for_step', -0.0001)))
+        env_sfp("segmentationMode", float(self.env_config.get('segmentation_mode', 1)))
+        env_sfp("observationMode", float(self.env_config.get('observation_mode', 2)))
+        env_sfp("episodeLength", float(self.env_config.get('episode_max_steps', 100)))
+        env_sfp("selectedTaskIndex", float(self.env_config.get('task', 0)))
+        env_sfp("goalSelectionIndex", float(self.env_config.get('goal', 0)))
+        env_sfp("agentCarPhysics", float(self.env_config.get('agent_car_physics', 0)))
+        env_sfp("goalDistance", float(self.env_config.get('goal_distance', 50)))
 
         env_path = self.env_config.get('env_path')
         env_path = None if env_path is None else str(Path(env_path).resolve())

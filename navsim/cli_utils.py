@@ -92,7 +92,7 @@ def _create_argparser() -> argparse.ArgumentParser:
         default=2,
         dest="total_episodes",
         action=ArgAction,
-        help="Total number of episodes to run, default 2. If resume is used, then it will try to read the previously run episodes and continue from there.",
+        help="Total number of episodes to run. If resume is used, then it will try to read the previously run episodes and continue from there.",
     )
 
     run_conf.add_argument(
@@ -100,7 +100,7 @@ def _create_argparser() -> argparse.ArgumentParser:
         default=1,
         dest="checkpoint_interval",
         action=ArgAction,
-        help="Execute the episodes in blocks of checkpoint intervals, default 1",
+        help="Execute the episodes in blocks of checkpoint intervals",
     )
 
     run_conf.add_argument(
@@ -108,7 +108,7 @@ def _create_argparser() -> argparse.ArgumentParser:
         default=2500,
         dest="episode_max_steps",
         action=ArgAction,
-        help="Maximum number of steps in an Episode, aka Episode Length, default 2500",
+        help="Maximum number of steps in an Episode, aka Episode Length",
     )
 
     run_conf.add_argument(
@@ -116,7 +116,7 @@ def _create_argparser() -> argparse.ArgumentParser:
         default=1,
         dest="seed",
         action=ArgAction,
-        help="Seed, default 1",
+        help="Seed",
     )
 
     run_conf.add_argument(
@@ -145,21 +145,21 @@ def _create_argparser() -> argparse.ArgumentParser:
         default=32,
         dest="batch_size",
         action=ArgAction,
-        help="Batch Size, default 32",
+        help="Batch Size",
     )
     run_conf.add_argument(
         "--batches_before_train",
         default=2,
         dest="batches_before_train",
         action=ArgAction,
-        help="Number of batches to generate at least before sampling a batch for training, default 2",
+        help="Number of batches to generate at least before sampling a batch for training",
     )
     run_conf.add_argument(
         "--memory_capacity",
         default=100,
         dest="memory_capacity",
         action=ArgAction,
-        help="Total capacity of memory, default 100, should be > batch_size * batches_before_train",
+        help="Total capacity of memory, should be > batch_size * batches_before_train",
     )
 
     run_conf.add_argument(
@@ -183,14 +183,14 @@ def _create_argparser() -> argparse.ArgumentParser:
         "--timeout",
         default=600,
         dest="timeout",
-        help="TimeOut for the Env, default 600",
+        help="TimeOut for the Env",
         action=ArgAction,
     )
     env_conf.add_argument(
         "--observation_mode",
         default=0,
         dest="observation_mode",
-        help="Observation Mode : 0,1,2, default 0",
+        help="Observation Mode : 0,1,2",
         action=ArgAction,
     )
 
@@ -198,70 +198,70 @@ def _create_argparser() -> argparse.ArgumentParser:
         "--segmentation_mode",
         default=1,
         dest="segmentation_mode",
-        help="Segmentation Mode : 1 default 1",
+        help="Segmentation Mode : 1",
         action=ArgAction,
     )
     env_conf.add_argument(
         "--task",
         default=0,
         dest="task",
-        help="Task, default 0",
+        help="Task",
         action=ArgAction,
     )
     env_conf.add_argument(
         "--goal",
         default=0,
         dest="goal",
-        help="Goal, default 0",
+        help="Goal",
         action=ArgAction,
     )
     env_conf.add_argument(
         "--goal_distance",
         default=50,
         dest="goal_distance",
-        help="Distance to goal from current location, default 50",
+        help="Distance to goal from current location",
         action=ArgAction,
     )
     env_conf.add_argument(
         "--agent_car_physics",
         default=0,
         dest="agent_car_physics",
-        help="Agent Car Physics Levels : 0,1,2,10 default 0",
+        help="Agent Car Physics Levels : 0,1,2,10",
         action=ArgAction,
     )
     env_conf.add_argument(
         "--reward_for_goal",
         default=50,
         dest="reward_for_goal",
-        help="Reward for Goal, default 50",
+        help="Reward for Goal",
         action=ArgAction,
     )
     env_conf.add_argument(
         "--reward_for_ep",
         default=0.005,
         dest="reward_for_ep",
-        help="Reward for Exploration Point, default 0.005",
+        help="Reward for Exploration Point",
         action=ArgAction,
     )
     env_conf.add_argument(
         "--reward_for_other",
         default=-0.1,
         dest="reward_for_other",
-        help="Reward for Other, default -0.1",
+        help="Reward for Other",
         action=ArgAction,
     )
     env_conf.add_argument(
         "--reward_for_falling_off_map",
         default=-50,
         dest="reward_for_falling_off_map",
-        help="Reward for Falling off Map, default -50",
+        help="Reward for Falling off Map",
         action=ArgAction,
     )
     env_conf.add_argument(
         "--reward_for_step",
         default=-0.0001,
         dest="reward_for_step",
-        help="Reward for Step, default -0.0001",
+        help="Reward for Step",
         action=ArgAction,
     )
 
