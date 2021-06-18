@@ -1,7 +1,7 @@
 import csv
 import cv2
 from pathlib import Path
-
+import json
 
 import torch
 from tqdm import tqdm
@@ -16,6 +16,19 @@ import traceback
 import numpy as np
 from torch.utils.tensorboard import SummaryWriter
 
+
+class TorchJSONEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, torch.Tensor):
+            return obj.tolist()
+        # elif isinstance(obj, np.floating):
+        #    return float(obj)
+        # elif isinstance(obj, np.ndarray):
+        #    return obj.tolist()
+        else:
+            return super(TorchJSONEncoder, self).default(obj)
+
+
 def s_hwc_to_chw(s):
     # TODO: HWC to CHW conversion optimized here
     # because pytorch can only deal with images in CHW format
@@ -24,7 +37,8 @@ def s_hwc_to_chw(s):
         s = image_layout(s, 'hwc', 'chw')
     elif isinstance(s, list):  # state is a list of states
         for i in range(len(s)):
-            if isinstance(s[i], np.ndarray) and (s[i].ndim > 2):  # state is ndarray
+            if isinstance(s[i], np.ndarray) and (
+                    s[i].ndim > 2):  # state is ndarray
                 s[i] = image_layout(s[i], 'hwc', 'chw')
     return s
 
@@ -54,7 +68,7 @@ class Executor:
         #            raise ValueError(f"{run_base_folder_str} exists as a non-directory. "
         #                             f"Please remove the file or use a different run_id")
         if resume and self.run_base_folder.is_dir():
-            #self.conf = ObjDict().load_from_json_file(f"{self.run_base_folder_str}/conf.json")
+            # self.conf = ObjDict().load_from_json_file(f"{self.run_base_folder_str}/conf.json")
             self.file_mode = 'a+'
 
         # else just start fresh
@@ -87,16 +101,18 @@ class Executor:
 
         try:
             if resume and self.run_base_folder.is_dir():
-                with open(self.episode_num_filename, mode='r') as episode_num_file:
+                with open(self.episode_num_filename,
+                          mode='r') as episode_num_file:
                     episode_num = int(episode_num_file.read())
-                    self.conf.env_config["start_from_episode"] = episode_num+1
+                    self.conf.env_config["start_from_episode"] = episode_num + 1
             else:
                 self.conf.env_config["start_from_episode"] = 1
             self.env = None
             self.env_open()
 
             self.max_action = self.env.action_space.high[0]
-            self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+            self.device = torch.device(
+                'cuda:0' if torch.cuda.is_available() else 'cpu')
 
             self.agent = DDPGAgent(
                 env=self.env,
@@ -113,7 +129,8 @@ class Executor:
                 memory_observation_space_shapes = []
                 for item in self.env.observation_space_shapes:
                     if len(item) == 3:  # means its an image in HWC
-                        memory_observation_space_shapes.append((item[2], item[1], item[0]))
+                        memory_observation_space_shapes.append(
+                            (item[2], item[1], item[0]))
                     else:
                         memory_observation_space_shapes.append(item)
                 self.memory = Memory(
@@ -145,14 +162,16 @@ class Executor:
             self.summary_writer.flush()
 
     def apply_seed(self):
-        self.env.seed(self.run_conf['seed'])  # TODO: not needed because env is seeded at time of creation
+        self.env.seed(self.run_conf[
+                          'seed'])  # TODO: not needed because env is seeded at time of creation
         torch.manual_seed(self.run_conf['seed'])
         np.random.seed(self.run_conf['seed'])
 
     def files_open(self):
         self.pylog_file = open(self.pylog_filename, mode=self.file_mode)
 
-        self.step_results_file = open(self.step_results_filename, mode=self.file_mode)
+        self.step_results_file = open(self.step_results_filename,
+                                      mode=self.file_mode)
         self.step_results_writer = csv.writer(self.step_results_file,
                                               delimiter=',',
                                               quotechar='"',
@@ -167,7 +186,8 @@ class Executor:
                  'peak_memory'])
         self.step_results_file.flush()
 
-        self.episode_results_file = open(self.episode_results_filename, mode=self.file_mode)
+        self.episode_results_file = open(self.episode_results_filename,
+                                         mode=self.file_mode)
         self.episode_results_writer = csv.writer(self.episode_results_file,
                                                  delimiter=',',
                                                  quotechar='"',
@@ -191,13 +211,14 @@ class Executor:
         self.env.reset()
         time_since_start, current_memory, peak_memory = self.rc.stop()
         log_str = f'Unity env creation resource usage: \n' \
-                  f'time:{time_since_start},peak_memory:{sizeof_fmt(peak_memory)},' \
+                  f'time:{time_since_start},' \
+                  f'peak_memory:{sizeof_fmt(peak_memory)},' \
                   f'current_memory:{sizeof_fmt(current_memory)}\n'
         self.pylog_file.write(log_str)
         print(log_str)
         self.pylog_file.flush()
         self.env.info()
-        #self.env.info_steps(save_visuals=True)
+        # self.env.info_steps(save_visuals=True)
 
     def env_close(self):
         if self.env is None:
@@ -213,16 +234,31 @@ class Executor:
         """
         t_max = int(self.run_conf['episode_max_steps'])
         total_episodes = int(self.run_conf['total_episodes'])
-        num_episodes = total_episodes - (self.conf.env_config["start_from_episode"]-1)
+        num_episodes = total_episodes - (
+                    self.conf.env_config["start_from_episode"] - 1)
         checkpoint_interval = int(self.run_conf['checkpoint_interval'])
         num_episode_blocks = int(math.ceil(num_episodes / checkpoint_interval))
 
-        for i in range(0,num_episode_blocks):
-            start_episode = (self.conf.env_config["start_from_episode"]-1)+((i*checkpoint_interval)+1)
-            stop_episode = (self.conf.env_config["start_from_episode"]-1)+min((i+1)*checkpoint_interval,total_episodes)
-            for episode_num in tqdm(iterable=range(start_episode, stop_episode+1),
-                                    desc=f"Episode {start_episode}-{stop_episode}/{total_episodes}",
-                                    unit='episode', ascii=True, ncols=80, bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{rate_fmt}{postfix}]'):
+        # save the state json at start of run
+        model_filename = f"{self.run_base_folder_str}/" \
+                         f"{self.conf.env_config['start_from_episode']}_" \
+                         f"{total_episodes}_start_agent_state.json"
+        json.dump(self.agent.get_state_dict(), open(model_filename, 'w'),
+                  indent=2, sort_keys=True, cls=TorchJSONEncoder)
+
+        print("Debugging training loop")
+        print(f"{num_episode_blocks},{num_episodes},{self.conf.env_config['start_from_episode']}")
+        for i in range(0, num_episode_blocks):
+            start_episode = (self.conf.env_config["start_from_episode"] - 1) + (
+                        (i * checkpoint_interval) + 1)
+            stop_episode = (self.conf.env_config[
+                                "start_from_episode"] - 1) + min(
+                (i + 1) * checkpoint_interval, total_episodes)
+            for episode_num in tqdm(
+                    iterable=range(start_episode, stop_episode + 1),
+                    desc=f"Episode {start_episode}-{stop_episode}/{total_episodes}",
+                    unit='episode', ascii=True, ncols=80,
+                    bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{rate_fmt}{postfix}]'):
                 self.rc.start()
                 episode_resources = [self.rc.snapshot()]  # e0
 
@@ -231,22 +267,24 @@ class Executor:
                 episode_reward = 0
                 t = 0
 
-                #self.env.start_navigable_map()
+                # self.env.start_navigable_map()
                 # observe initial s
                 s = self.env.reset()  # s comes out of env as a tuple always
                 # because pytorch can only deal with images in CHW format
                 # we are making the optimization here to convert from HWC to CHW format.
                 s = s_hwc_to_chw(s)
 
-                #self.env.step(self.env.action_space.sample())
+                # self.env.step(self.env.action_space.sample())
                 # get the navigable map and save it as image
-                #navigable_map = self.env.get_navigable_map()
-                #if navigable_map is not None:
+                # navigable_map = self.env.get_navigable_map()
+                # if navigable_map is not None:
                 #    cv2.imwrite(str((self.run_base_folder / f'navigable_map_{episode_num}.jpg').resolve()),navigable_map*255)
-                #else:
+                # else:
                 #    print(f'Map for episode {episode_num} is None')
 
-                samples_before_training = (self.run_conf['batch_size'] * self.run_conf['batches_before_train'])
+                samples_before_training = (
+                            self.run_conf['batch_size'] * self.run_conf[
+                        'batches_before_train'])
                 while not episode_done:
                     step_resources = [self.rc.snapshot()]  # s0
                     t += 1
@@ -256,13 +294,15 @@ class Executor:
                         a = self.env.action_space.sample()
                     else:
                         # TODO: Find the best place to train, moved here for now
-                        batch_s, batch_a, batch_r, batch_s_, batch_d = self.memory.sample(self.run_conf['batch_size'])
+                        batch_s, batch_a, batch_r, batch_s_, batch_d = self.memory.sample(
+                            self.run_conf['batch_size'])
                         # print('training the agent')
-                        self.agent.train(batch_s, batch_a, batch_r, batch_s_, batch_d)
+                        self.agent.train(batch_s, batch_a, batch_r, batch_s_,
+                                         batch_d)
 
                         a = (self.agent.select_action(s) + np.random.normal(
                             0, self.max_action * self.run_conf['expl_noise'],
-                            size=self.env.action_space_shape[0])
+                            size=self.env.action_space.shape[0])
                              ).clip(
                             -self.max_action,
                             self.max_action
@@ -298,12 +338,14 @@ class Executor:
                     step_resources.append(self.rc.snapshot())  # 3
 
                     step_time = step_resources[3][0] - step_resources[0][0]
-                    unity_step_time = step_resources[2][0] - step_resources[1][0]
+                    unity_step_time = step_resources[2][0] - step_resources[1][
+                        0]
                     peak_memory = step_resources[3][2]
 
                     # TODO: Collect these through tensorboard
                     self.step_results_writer.writerow(
-                        [episode_num, t, r, step_time, unity_step_time, peak_memory])
+                        [episode_num, t, r, step_time, unity_step_time,
+                         peak_memory])
                     self.step_results_file.flush()
                     if (t_max and t >= t_max):
                         break
@@ -314,9 +356,11 @@ class Executor:
                 episode_time = episode_resources[1][0] - episode_resources[0][0]
                 episode_peak_memory = episode_resources[1][2]
                 # save every int(self.run_conf['checkpoint_interval'])
-                if (episode_num % int(self.run_conf['checkpoint_interval'])) == 0:
+                if (episode_num % int(
+                        self.run_conf['checkpoint_interval'])) == 0:
                     # open the file writing and start the file from beginning
-                    with open(self.episode_num_filename, mode='w') as episode_num_file:
+                    with open(self.episode_num_filename,
+                              mode='w') as episode_num_file:
                         episode_num_file.write(str(episode_num))
                     model_filename = f"{self.run_base_folder_str}/{episode_num}_model_state.pt"
                     memory_filename = f"{self.run_base_folder_str}/{episode_num}_memory.pkl"
@@ -341,6 +385,13 @@ class Executor:
                 # episode_reward = 0
                 # episode_timesteps = 0
                 # episode_num += 1
+
+        # save the state json at end of run
+        model_filename = f"{self.run_base_folder_str}/" \
+                         f"{self.conf.env_config['start_from_episode']}_" \
+                         f"{total_episodes}_stop_agent_state.json"
+        json.dump(self.agent.get_state_dict(), open(model_filename, 'w'),
+                  indent=2, sort_keys=True, cls=TorchJSONEncoder)
 
         self.agent.save_to_onnx(folder=self.run_base_folder_str, critic=False)
         return

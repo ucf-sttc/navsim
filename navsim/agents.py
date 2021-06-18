@@ -416,7 +416,7 @@ class DDPGAgent(object):
             target_param.data.copy_(
                 tau * local_param.data + (1.0 - tau) * target_param.data)
 
-    def save_checkpoint(self, filename):
+    def get_state_dict(self):
         state = {
             "critic": self.critic.state_dict(),
             "critic_optimizer": self.critic_optimizer.state_dict(),
@@ -424,7 +424,11 @@ class DDPGAgent(object):
             "actor_optimizer": self.actor_optimizer.state_dict()
 
         }
-        torch.save(state, filename)
+        return state
+
+    def save_checkpoint(self, filename):
+
+        torch.save(self.get_state_dict(), filename)
         """
         torch.save(self.critic.state_dict(), filename + '_critic')
         torch.save(self.critic_optimizer.state_dict(), filename + '_critic_optimizer')

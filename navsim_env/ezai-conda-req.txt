@@ -72,6 +72,9 @@ grpcio=1.32.0
 markdown
 werkzeug
 google-auth-oauthlib
+tensorboard-data-server
+tensorboard-plugin-wit
+tensorboard
 # required by tensorboard
 
 # required by gym

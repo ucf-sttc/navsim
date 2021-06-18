@@ -128,20 +128,74 @@ class NavSimGymEnv(UnityToGymWrapper):
         self.debug = env_config.get("debug", False)
         self.run_base_folder_str = env_config.get("run_base_folder_str", '.')
         self.run_base_folder = Path(self.run_base_folder_str)
+        seed = self.env_config.get('seed')
 
-        super().__init__(unity_env=self.__open_uenv(),
+        # if self._env:
+        #    raise ValueError('Environment already open')
+        # else:
+        log_folder = Path(self.env_config.get('log_folder', '.'))
+        log_folder.mkdir(parents=True, exist_ok=True)
+
+        self.map_side_channel = MapSideChannel()
+        self.fpc = FloatPropertiesChannel()
+
+        # print(self.map_side_channel)
+
+        eng_sc = EngineConfigurationChannel()
+        eng_sc.set_configuration_parameters(time_scale=10, quality_level=0)
+
+        env_pc = EnvironmentParametersChannel()
+        env_sfp = env_pc.set_float_parameter
+
+        env_sfp("rewardForGoalCollision",
+                self.env_config.get('reward_for_goal', 50))
+        env_sfp("rewardForExplorationPointCollision",
+                self.env_config.get('reward_for_ep', 0.005))
+        env_sfp("rewardForOtherCollision",
+                self.env_config.get('reward_for_other', -0.1))
+        env_sfp("rewardForFallingOffMap",
+                self.env_config.get('reward_for_falling_off_map', -50))
+        env_sfp("rewardForEachStep",
+                self.env_config.get('reward_for_step', -0.0001))
+        env_sfp("segmentationMode", self.env_config.get('segmentation_mode', 1))
+        env_sfp("observationMode", self.env_config.get('observation_mode', 2))
+        env_sfp("episodeLength", self.env_config.get('episode_max_steps', 100))
+        env_sfp("selectedTaskIndex", self.env_config.get('task', 0))
+        env_sfp("goalSelectionIndex", self.env_config.get('goal', 0))
+        env_sfp("agentCarPhysics", self.env_config.get('agent_car_physics', 0))
+        env_sfp("goalDistance", self.env_config.get('goal_distance', 50))
+
+        env_path = self.env_config.get('env_path')
+        env_path = None if env_path is None else str(Path(env_path).resolve())
+
+        uenv = UnityEnvironment(file_name=env_path,
+                                log_folder=str(log_folder.resolve()),
+                                seed=seed,
+                                timeout_wait=self.env_config.get(
+                                    'timeout', 600),
+                                worker_id=self.env_config.get(
+                                    'worker_id', 0),
+                                # base_port=self.conf['base_port'],
+                                no_graphics=False,
+                                side_channels=[eng_sc, env_pc,
+                                               self.map_side_channel, self.fpc])
+
+        super().__init__(unity_env=uenv,
                          uint8_visual=False,
                          flatten_branched=False,
-                         allow_multiple_obs=True)
+                         allow_multiple_obs=True,
+                         action_space_seed=seed
+                         )
 
-        #TODO: Once the environment has capability to start from an episode, then remove this
+        # TODO: Once the environment has capability to start from an episode, then remove this
         for i in range(1, self.start_from_episode):
             self.reset()
+            
         # (Env, uint8_visual, flatten_branched, allow_multiple_obs)
         # self.seed(self.conf['seed']) # unity-gym env seed is not working, seed has to be passed with unity env
         if self.debug:
             # open the debug files
-            # TODO: Fix later
+            # TODO: the filenames should be prefixed with specific id of this instance of env
             self.file_mode = 'w+'
             self.actions_file = open(
                 str((self.run_base_folder / 'actions.txt').resolve()),
@@ -157,72 +211,6 @@ class NavSimGymEnv(UnityToGymWrapper):
                                                   delimiter=',',
                                                   quotechar='"',
                                                   quoting=csv.QUOTE_MINIMAL)
-
-    def __open_uenv(self) -> UnityEnvironment:
-        # if self._env:
-        #    raise ValueError('Environment already open')
-        # else:
-        log_folder = Path(self.env_config.get('log_folder', '.'))
-        log_folder.mkdir(parents=True, exist_ok=True)
-
-        engine_side_channel = EngineConfigurationChannel()
-        environment_side_channel = EnvironmentParametersChannel()
-        self.map_side_channel = MapSideChannel()
-        self.float_properties_side_channel = FloatPropertiesChannel()
-
-        # print(self.map_side_channel)
-        engine_side_channel.set_configuration_parameters(time_scale=10,
-                                                         quality_level=0)
-
-        environment_side_channel.set_float_parameter(
-            "rewardForGoalCollision",
-            self.env_config.get('reward_for_goal', 50))
-        environment_side_channel.set_float_parameter(
-            "rewardForExplorationPointCollision",
-            self.env_config.get('reward_for_ep', 0.005))
-        environment_side_channel.set_float_parameter(
-            "rewardForOtherCollision",
-            self.env_config.get('reward_for_other', -0.1))
-        environment_side_channel.set_float_parameter(
-            "rewardForFallingOffMap",
-            self.env_config.get('reward_for_falling_off_map', -50))
-        environment_side_channel.set_float_parameter(
-            "rewardForEachStep",
-            self.env_config.get('reward_for_step', -0.0001))
-        environment_side_channel.set_float_parameter(
-            "segmentationMode", self.env_config.get('segmentation_mode', 1))
-        environment_side_channel.set_float_parameter(
-            "observationMode", self.env_config.get('observation_mode', 2))
-        environment_side_channel.set_float_parameter(
-            "episodeLength",
-            self.env_config.get('episode_max_steps', 100))
-        environment_side_channel.set_float_parameter(
-            "selectedTaskIndex", self.env_config.get('task', 0))
-        environment_side_channel.set_float_parameter(
-            "goalSelectionIndex", self.env_config.get('goal', 0))
-        environment_side_channel.set_float_parameter(
-            "agentCarPhysics", self.env_config.get('agent_car_physics', 0))
-        environment_side_channel.set_float_parameter(
-            "goalDistance", self.env_config.get('goal_distance', 50))
-
-        uenv_file_name = self.env_config.get('env_path')
-        uenv_file_name = str(Path(uenv_file_name).resolve()) if \
-            uenv_file_name is not None else None
-        uenv = UnityEnvironment(file_name=uenv_file_name,
-                                log_folder=str(log_folder.resolve()),
-                                seed=self.env_config.get('seed'),
-                                timeout_wait=self.env_config.get(
-                                    'timeout', 600),
-                                worker_id=self.env_config.get(
-                                    'worker_id', 0),
-                                # base_port=self.conf['base_port'],
-                                no_graphics=False,
-                                side_channels=[engine_side_channel,
-                                               environment_side_channel,
-                                               self.map_side_channel,
-                                               self.float_properties_side_channel])
-
-        return uenv
 
     def step(self, action: List[Any]) -> GymStepResult:
         result = super().step(action)
@@ -342,7 +330,7 @@ class NavSimGymEnv(UnityToGymWrapper):
         return self.map_side_channel.requested_map
 
     def get_shortest_path_length(self):
-        return self.float_properties_side_channel.get_property("ShortestPath")
+        return self.fpc.get_property("ShortestPath")
 
     # Functions added to have parity with Env and RLEnv of habitat lab
     @property

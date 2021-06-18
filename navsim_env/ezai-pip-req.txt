@@ -7,8 +7,6 @@ torchsummary
 
 # needed for tensorflow
 tensorflow-estimator
-tensorboard
-tensorboard-plugin-wit
 keras-applications
 keras-preprocessing
 keras-tuner
@@ -30,9 +28,10 @@ opencv-python
 gym==0.18.0
 
 # unity begin  release_12 c# v1.7.2 py 0.23
-mlagents==0.23.0
-mlagents_envs==0.23.0
-gym_unity==0.23.0
+# release 18, c# 1.5.0, py 0.27
+mlagents==0.27.0
+mlagents_envs==0.27.0
+gym_unity==0.27.0
 # unity end
 stable-baselines3[extra]
 https://s3-us-west-2.amazonaws.com/ray-wheels/latest/ray-2.0.0.dev0-cp38-cp38-manylinux2014_x86_64.whl

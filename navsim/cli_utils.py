@@ -142,10 +142,24 @@ def _create_argparser() -> argparse.ArgumentParser:
     )
     run_conf.add_argument(
         "--batch_size",
-        default=256,
+        default=32,
         dest="batch_size",
         action=ArgAction,
-        help="Batch Size, default 256",
+        help="Batch Size, default 32",
+    )
+    run_conf.add_argument(
+        "--batches_before_train",
+        default=2,
+        dest="batches_before_train",
+        action=ArgAction,
+        help="Number of batches to generate at least before sampling a batch for training, default 2",
+    )
+    run_conf.add_argument(
+        "--memory_capacity",
+        default=100,
+        dest="memory_capacity",
+        action=ArgAction,
+        help="Total capacity of memory, default 100, should be > batch_size * batches_before_train",
     )
 
     run_conf.add_argument(

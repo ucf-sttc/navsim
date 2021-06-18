@@ -78,9 +78,9 @@ def main():
         "discount": float(args["discount"]),
         "tau": float(args["tau"]),
         "expl_noise": float(args["exploration_noise"]),
-        "memory_capacity": 100,
+        "memory_capacity": int(args["memory_capacity"]),
         "batch_size": int(args["batch_size"]),
-        "batches_before_train": 2,
+        "batches_before_train": int(args["batches_before_train"]),
         "checkpoint_interval": int(args["checkpoint_interval"]),
     })
 
