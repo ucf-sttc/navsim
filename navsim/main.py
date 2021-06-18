@@ -42,7 +42,7 @@ def main():
         pass
     # else just start fresh
     else:
-        args.resume=False
+        args.resume = False
         print("Resume set to True, but nothing to resume from, starting fresh")
         run_base_folder.mkdir(parents=True, exist_ok=True)
 
@@ -53,7 +53,7 @@ def main():
         "seed": int(args["seed"]),
         "timeout": int(args["timeout"]),
         "observation_mode": int(args["observation_mode"]),
-        "segmentation_mode": int(args["observation_mode"]),
+        "segmentation_mode": int(args["segmentation_mode"]),
         "episode_max_steps": int(args["episode_max_steps"]),
         "task": int(args["task"]),
         "goal": int(args["goal"]),
@@ -148,6 +148,19 @@ def main():
                     conf["run_config"][passed_arg] = args[passed_arg]
                 if passed_arg in conf:
                     conf[passed_arg] = args[passed_arg]
+
+            for arg in ["seed", "memory_capacity", "batch_size",
+                        "batches_before_train", "checkpoint_interval"]:
+                conf["run_config"][arg] = int(conf["run_config"][arg])
+            for arg in ["discount", "tau", "expl_noise"]:
+                conf["run_config"][arg] = float(conf["run_config"][arg])
+            for arg in ["seed", "timeout", "base_port", "observation_mode",
+                        "segmentation_mode", "episode_max_steps", "task",
+                        "goal","goal_distance", "agent_car_physics"]:
+                conf["env_config"][arg] = int(conf["env_config"][arg])
+            for arg in ["reward_for_goal", "reward_for_ep", "reward_for_other",
+                        "reward_for_falling_off_map", "reward_for_step"]:
+                conf["env_config"][arg] = float(conf["env_config"][arg])
 
         executor = navsim.Executor(run_id=args["run_id"],
                                    resume=args["resume"],
