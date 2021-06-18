@@ -246,8 +246,8 @@ class Executor:
         json.dump(self.agent.get_state_dict(), open(model_filename, 'w'),
                   indent=2, sort_keys=True, cls=TorchJSONEncoder)
 
-        print("Debugging training loop")
-        print(f"{num_episode_blocks},{num_episodes},{self.conf.env_config['start_from_episode']}")
+        #        print("Debugging training loop")
+        #        print(f"{num_episode_blocks},{num_episodes},{self.conf.env_config['start_from_episode']}")
         for i in range(0, num_episode_blocks):
             start_episode = (self.conf.env_config["start_from_episode"] - 1) + (
                         (i * checkpoint_interval) + 1)
