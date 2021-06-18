@@ -9,6 +9,8 @@ from gym import spaces
 from gym_unity.envs import UnityToGymWrapper
 from mlagents_envs.side_channel.engine_configuration_channel import EngineConfigurationChannel
 from mlagents_envs.side_channel.environment_parameters_channel import EnvironmentParametersChannel
+from mlagents_envs.side_channel.float_properties_channel import FloatPropertiesChannel
+from ..env import MapSideChannel
 
 timerEntries = []
 
@@ -60,13 +62,15 @@ def main():
 
     engine_side_channel = EngineConfigurationChannel()
     environment_side_channel = EnvironmentParametersChannel()
+    map_side_channel = MapSideChannel()
+    float_properties_side_channel = FloatPropertiesChannel()
 
     # Connect to Unity Editor environment
     unityEnvironmentStr = str(args.binary) if args.binary else None
     # Connect to specified binary environment
     unity_env = UnityEnvironment(file_name=unityEnvironmentStr, worker_id=args.worker_id, seed=args.seed,
                                  timeout_wait=args.timeout,
-                                 side_channels=[engine_side_channel, environment_side_channel])
+                                 side_channels=[engine_side_channel, environment_side_channel, map_side_channel, float_properties_side_channel])
 
     # Engine Side Channels
     engine_side_channel.set_configuration_parameters(time_scale=args.timescale, quality_level=args.quality_level)
