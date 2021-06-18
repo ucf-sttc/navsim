@@ -251,9 +251,9 @@ class Executor:
         for i in range(0, num_episode_blocks):
             start_episode = (self.conf.env_config["start_from_episode"] - 1) + (
                         (i * checkpoint_interval) + 1)
-            stop_episode = (self.conf.env_config[
-                                "start_from_episode"] - 1) + min(
-                (i + 1) * checkpoint_interval, total_episodes)
+            stop_episode = min((self.conf.env_config["start_from_episode"] - 1)
+                               + ((i + 1) * checkpoint_interval),
+                               total_episodes)
             for episode_num in tqdm(
                     iterable=range(start_episode, stop_episode + 1),
                     desc=f"Episode {start_episode}-{stop_episode}/{total_episodes}",
