@@ -156,9 +156,9 @@ class Executor:
             # print(e)
 
     # TODO: Find a better name for  this function
-    def write_tb(self, values, t: int):
+    def write_tb(self, group, values, t: int):
         for key, value in values.items():
-            self.summary_writer.add_scalar(key, value, t)
+            self.summary_writer.add_scalar(f'{group}/{key}', value, t)
             self.summary_writer.flush()
 
     def apply_seed(self):
@@ -372,13 +372,14 @@ class Executor:
                     current_memory = step_res[9][1]
 
                     # TODO: Collect these through tensorboard
-                    self.write_tb({'step_reward': r,
-                                          'step_time': step_time,
-                                          'env_step_time': env_step_time,
-                                          'memory_append_time': memory_append_time,
-                                          'memory_sample_time': memory_sample_time,
-                                          'agent_train_time': agent_train_time,
-                                          'current_memory': current_memory},
+                    self.write_tb('step',
+                                  {'step_reward': r,
+                                   'step/step_time': step_time,
+                                   'env_step_time': env_step_time,
+                                   'memory_append_time': memory_append_time,
+                                   'memory_sample_time': memory_sample_time,
+                                   'agent_train_time': agent_train_time,
+                                   'current_memory': current_memory},
                                   t_global)
                     self.step_results_writer.writerow(
                         [episode_num, t, r, step_time, env_step_time,
@@ -409,9 +410,10 @@ class Executor:
                 #            if self.enable_logging:
                 #                self.writer.add_scalar('Episode Reward', episode_reward, t)
                 #            episode_rewards.append(episode_reward)
-                self.write_tb({'reward': episode_reward,
-                                      'time': episode_time,
-                                      'memory': episode_peak_memory},
+                self.write_tb('episode',
+                              {'reward': episode_reward,
+                               'time': episode_time,
+                               'peak_memory': episode_peak_memory},
                               episode_num)
                 self.episode_results_writer.writerow([episode_num,
                                                       episode_reward,
