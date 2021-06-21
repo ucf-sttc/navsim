@@ -52,11 +52,11 @@ def _create_argparser() -> argparse.ArgumentParser:
     )
 
     run_conf.add_argument(
-        "--train",
-        default=True,
-        dest="train",
-        help="Train the models or just infer",
-        action=ArgActionStoreTrue,
+        "--train_interval",
+        default=1,
+        dest="train_interval",
+        help="Train the model after these many episodes. If set to 0 then model wont train",
+        action=ArgAction,
     )
 
     run_conf.add_argument(
@@ -105,7 +105,7 @@ def _create_argparser() -> argparse.ArgumentParser:
 
     run_conf.add_argument(
         "--episode_max_steps",
-        default=2500,
+        default=100,
         dest="episode_max_steps",
         action=ArgAction,
         help="Maximum number of steps in an Episode, aka Episode Length",

@@ -178,12 +178,9 @@ class Executor:
                                               quoting=csv.QUOTE_MINIMAL)
         if not self.resume:
             self.step_results_writer.writerow(
-                ['episode_num',
-                 't',
-                 'r',
-                 'step_time',
-                 'unity_step_time',
-                 'peak_memory'])
+                ['episode_num', 't', 'r', 'step_time', 'env_step_time',
+                 'memory_append_time', 'memory_sample_time',
+                 'agent_train_time', 'current_memory'])
         self.step_results_file.flush()
 
         self.episode_results_file = open(self.episode_results_filename,
@@ -235,7 +232,8 @@ class Executor:
         t_max = int(self.run_conf['episode_max_steps'])
         total_episodes = int(self.run_conf['total_episodes'])
         num_episodes = total_episodes - (
-                    self.conf.env_config["start_from_episode"] - 1)
+                self.conf.env_config["start_from_episode"] - 1)
+        train_interval = int(self.run_conf['train_interval'])
         checkpoint_interval = int(self.run_conf['checkpoint_interval'])
         num_episode_blocks = int(math.ceil(num_episodes / checkpoint_interval))
 
@@ -248,9 +246,12 @@ class Executor:
 
         #        print("Debugging training loop")
         #        print(f"{num_episode_blocks},{num_episodes},{self.conf.env_config['start_from_episode']}")
+        t_global = 0
+
+        episode_resources = [[0] * 3] * 2
         for i in range(0, num_episode_blocks):
             start_episode = (self.conf.env_config["start_from_episode"] - 1) + (
-                        (i * checkpoint_interval) + 1)
+                    (i * checkpoint_interval) + 1)
             stop_episode = min((self.conf.env_config["start_from_episode"] - 1)
                                + ((i + 1) * checkpoint_interval),
                                total_episodes)
@@ -260,7 +261,7 @@ class Executor:
                     unit='episode', ascii=True, ncols=80,
                     bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{rate_fmt}{postfix}]'):
                 self.rc.start()
-                episode_resources = [self.rc.snapshot()]  # e0
+                episode_resources[0] = self.rc.snapshot()  # e0
 
                 # initialise the episode counters
                 episode_done = False
@@ -281,24 +282,39 @@ class Executor:
                 #    cv2.imwrite(str((self.run_base_folder / f'navigable_map_{episode_num}.jpg').resolve()),navigable_map*255)
                 # else:
                 #    print(f'Map for episode {episode_num} is None')
-
+                step_res = [[0, 0, 0]] * 10
                 samples_before_training = (
-                            self.run_conf['batch_size'] * self.run_conf[
-                        'batches_before_train'])
+                        self.run_conf['batch_size'] * self.run_conf[
+                    'batches_before_train'])
                 while not episode_done:
-                    step_resources = [self.rc.snapshot()]  # s0
-                    t += 1
+                    # s0: start of overall_step
+                    # s1,2: before and after memory.sample()
+                    # s3,4: before and after agent.train()
+                    # s5,6: before and after env.step()
+                    # s7,8: before and after memory.append()
+                    # s9: end of step
 
+                    step_res[0] = self.rc.snapshot()  # s0
+                    t += 1
+                    t_global += 1
                     # do the random sampling until enough memory is full
                     if self.memory.size < samples_before_training:
                         a = self.env.action_space.sample()
+                        step_res[1:5] = [[0] * 3] * 4  # s1-4
                     else:
                         # TODO: Find the best place to train, moved here for now
-                        batch_s, batch_a, batch_r, batch_s_, batch_d = self.memory.sample(
-                            self.run_conf['batch_size'])
-                        # print('training the agent')
-                        self.agent.train(batch_s, batch_a, batch_r, batch_s_,
-                                         batch_d)
+                        if train_interval and ((t % train_interval) == 0):  # comparing to one here to make sure that first step gets trained
+                            step_res[1] = self.rc.snapshot()  # s1
+                            batch_s, batch_a, batch_r, batch_s_, batch_d = \
+                                self.memory.sample(self.run_conf['batch_size'])
+                            step_res[2] = self.rc.snapshot()  # s2
+                            # print('training the agent')
+                            step_res[3] = self.rc.snapshot()  # s3
+                            self.agent.train(batch_s, batch_a, batch_r,
+                                             batch_s_, batch_d)
+                            step_res[4] = self.rc.snapshot()  # s4
+                        else:
+                            step_res[1:5] = [[0] * 3] * 4  # s1-4
 
                         a = (self.agent.select_action(s) + np.random.normal(
                             0, self.max_action * self.run_conf['expl_noise'],
@@ -308,8 +324,10 @@ class Executor:
                             self.max_action
                         )
 
-                    step_resources.append(self.rc.snapshot())  # s1
+                    step_res[5] = self.rc.snapshot()  # s5
                     s_, r, episode_done, info = self.env.step(a)
+                    step_res[6] = self.rc.snapshot()  # s6
+
                     # because pytorch can only deal with images in CHW format
                     # we are making the optimization here to convert from HWC to CHW format.
                     s_ = s_hwc_to_chw(s_)
@@ -321,12 +339,12 @@ class Executor:
                     # s_ = [s_]
                     # for item in s_:
 
-                    step_resources.append(self.rc.snapshot())  # s2
-
+                    step_res[7] = self.rc.snapshot()  # s7
                     self.memory.append(
                         s=s, a=a, s_=s_, r=r,
                         d=float(episode_done))  # if t < t_max -1 else 1)
                     s = s_
+                    step_res[8] = self.rc.snapshot()  # s8
 
                     episode_reward += r
 
@@ -335,24 +353,35 @@ class Executor:
                     #                    if (t >= self.config['batch_size'] * self.config['batches_before_train']) and (t % 1000 == 0):
                     # episode_evaluations.append(evaluate_policy(self.agent, self.env, self.config['seed']))
 
-                    step_resources.append(self.rc.snapshot())  # 3
+                    step_res[9] = self.rc.snapshot()  # s9
 
-                    step_time = step_resources[3][0] - step_resources[0][0]
-                    unity_step_time = step_resources[2][0] - step_resources[1][
-                        0]
-                    peak_memory = step_resources[3][2]
+                    # s0: start of overall_step
+                    # s1,2: before and after memory.sample()
+                    # s3,4: before and after agent.train()
+                    # s5,6: before and after env.step()
+                    # s7,8: before and after memory.append()
+                    # s9: end of step
+
+                    step_time = step_res[9][0] - step_res[0][0]
+                    memory_sample_time = step_res[2][0] - step_res[1][0]
+                    agent_train_time = step_res[4][0] - step_res[3][0]
+                    env_step_time = step_res[6][0] - step_res[5][0]
+                    memory_append_time = step_res[8][0] - step_res[7][0]
+                    # peak_memory = step_res[3][2]
+                    current_memory = step_res[9][1]
 
                     # TODO: Collect these through tensorboard
                     self.step_results_writer.writerow(
-                        [episode_num, t, r, step_time, unity_step_time,
-                         peak_memory])
+                        [episode_num, t, r, step_time, env_step_time,
+                         memory_append_time, memory_sample_time,
+                         agent_train_time, current_memory])
                     self.step_results_file.flush()
-                    if (t_max and t >= t_max):
+                    if t_max and (t >= t_max):
                         break
                     # t += 1
-                # end of while loop
+                # end of while loop for one episode
                 # episode end processing
-                episode_resources.append(self.rc.stop())  # e1
+                episode_resources[1] = self.rc.stop()  # e1
                 episode_time = episode_resources[1][0] - episode_resources[0][0]
                 episode_peak_memory = episode_resources[1][2]
                 # save every int(self.run_conf['checkpoint_interval'])

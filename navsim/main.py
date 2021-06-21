@@ -82,6 +82,7 @@ def main():
         "batch_size": int(args["batch_size"]),
         "batches_before_train": int(args["batches_before_train"]),
         "checkpoint_interval": int(args["checkpoint_interval"]),
+        "train_interval": int(args["train_interval"])
     })
 
     if args["rl_backend"] == "rllib":
@@ -150,7 +151,8 @@ def main():
                     conf[passed_arg] = args[passed_arg]
 
             for arg in ["seed", "memory_capacity", "batch_size",
-                        "batches_before_train", "checkpoint_interval"]:
+                        "batches_before_train", "checkpoint_interval",
+                        "train_interval"]:
                 conf["run_config"][arg] = int(conf["run_config"][arg])
             for arg in ["discount", "tau", "expl_noise"]:
                 conf["run_config"][arg] = float(conf["run_config"][arg])
