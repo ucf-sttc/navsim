@@ -49,12 +49,14 @@ class Memory:
         # mt = MT19937(seed)
         # rs = RandomState(mt)
         # rg = Generator(mt)
-        self.rng = np.random.default_rng(seed)
+        self.rng = np.random.default_rng(seed=seed)
 
         # if isinstance(state_shapes, (list, tuple)):  # state_dims is an int
         if isinstance(state_shapes, (int, float)):  # state_dims is an int
-            state_shapes = [[state_shapes]]  # make state_dims a list of sequences
-        elif isinstance(state_shapes[0], (int, float)):  # state_dims first member is an int
+            state_shapes = [
+                [state_shapes]]  # make state_dims a list of sequences
+        elif isinstance(state_shapes[0],
+                        (int, float)):  # state_dims first member is an int
             state_shapes = [state_shapes]  # make state_dims a list of sequences
         # else state_dims is a list of sequences, i.e. [[state_shape], [state_shap], [state_shape]]
 
@@ -103,10 +105,10 @@ class Memory:
             idx = self.rng.integers(low=0, high=self.size, size=size)
             s_len = len(self.s)
             return [self.s[i][idx] for i in range(s_len)], \
-                   self.a[idx], \
-                   self.r[idx], \
-                   [self.s_[i][idx] for i in range(s_len)], \
-                   self.d[idx]
+                self.a[idx], \
+                self.r[idx], \
+                [self.s_[i][idx] for i in range(s_len)], \
+                self.d[idx]
 
     def info(self):
         print('-----------')
@@ -139,7 +141,8 @@ class Memory:
         return f'capacity={self.capacity} \nlength={len(self.mem)} \ncurrent pointer={self.ptr} \nmemory contents:\n{self.mem}'
 
     def __getitem__(self, sliced):
-        return Memory(capacity=self.capacity, seed=self.seed, mem=self.mem[sliced])
+        return Memory(capacity=self.capacity, seed=self.seed,
+                      mem=self.mem[sliced])
 
     def save_to_pkl(self, filename):
         with open(filename, "wb") as out_file:
