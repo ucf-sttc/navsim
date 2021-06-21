@@ -156,7 +156,7 @@ class Executor:
             # print(e)
 
     # TODO: Find a better name for  this function
-    def write_tb_values(self, values, t: int):
+    def write_tb(self, values, t: int):
         for key, value in values.items():
             self.summary_writer.add_scalar(key, value, t)
             self.summary_writer.flush()
@@ -303,7 +303,8 @@ class Executor:
                         step_res[1:5] = [[0] * 3] * 4  # s1-4
                     else:
                         # TODO: Find the best place to train, moved here for now
-                        if train_interval and ((t % train_interval) == 0):  # comparing to one here to make sure that first step gets trained
+                        if train_interval and ((
+                                                       t % train_interval) == 0):  # comparing to one here to make sure that first step gets trained
                             step_res[1] = self.rc.snapshot()  # s1
                             batch_s, batch_a, batch_r, batch_s_, batch_d = \
                                 self.memory.sample(self.run_conf['batch_size'])
@@ -371,6 +372,14 @@ class Executor:
                     current_memory = step_res[9][1]
 
                     # TODO: Collect these through tensorboard
+                    self.write_tb({'step_reward': r,
+                                          'step_time': step_time,
+                                          'env_step_time': env_step_time,
+                                          'memory_append_time': memory_append_time,
+                                          'memory_sample_time': memory_sample_time,
+                                          'agent_train_time': agent_train_time,
+                                          'current_memory': current_memory},
+                                  t_global)
                     self.step_results_writer.writerow(
                         [episode_num, t, r, step_time, env_step_time,
                          memory_append_time, memory_sample_time,
@@ -400,10 +409,10 @@ class Executor:
                 #            if self.enable_logging:
                 #                self.writer.add_scalar('Episode Reward', episode_reward, t)
                 #            episode_rewards.append(episode_reward)
-                self.write_tb_values({'reward': episode_reward,
+                self.write_tb({'reward': episode_reward,
                                       'time': episode_time,
                                       'memory': episode_peak_memory},
-                                     episode_num)
+                              episode_num)
                 self.episode_results_writer.writerow([episode_num,
                                                       episode_reward,
                                                       episode_time,
