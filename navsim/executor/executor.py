@@ -374,7 +374,7 @@ class Executor:
                     # TODO: Collect these through tensorboard
                     self.write_tb('step',
                                   {'step_reward': r,
-                                   'step/step_time': step_time,
+                                   'step_time': step_time,
                                    'env_step_time': env_step_time,
                                    'memory_append_time': memory_append_time,
                                    'memory_sample_time': memory_sample_time,
