@@ -119,6 +119,8 @@ class Executor:
                 device=self.device,
                 discount=self.run_conf['discount'], tau=self.run_conf['tau']
             )
+            self.summary_writer.add_graph(self.agent.actor)
+            self.summary_writer.add_graph(self.agent.critic)
 
             if resume and self.run_base_folder.is_dir():
                 model_filename = f"{self.run_base_folder_str}/{episode_num}_model_state.pt"
@@ -162,8 +164,8 @@ class Executor:
             self.summary_writer.flush()
 
     def apply_seed(self):
-        self.env.seed(self.run_conf[
-                          'seed'])  # TODO: not needed because env is seeded at time of creation
+        self.env.seed(self.run_conf['seed'])
+        # TODO: not needed because env is seeded at time of creation
         torch.manual_seed(self.run_conf['seed'])
         np.random.seed(self.run_conf['seed'])
 
@@ -303,8 +305,7 @@ class Executor:
                         step_res[1:5] = [[0] * 3] * 4  # s1-4
                     else:
                         # TODO: Find the best place to train, moved here for now
-                        if train_interval and ((
-                                                       t % train_interval) == 0):  # comparing to one here to make sure that first step gets trained
+                        if train_interval and ((t % train_interval) == 0):
                             step_res[1] = self.rc.snapshot()  # s1
                             batch_s, batch_a, batch_r, batch_s_, batch_d = \
                                 self.memory.sample(self.run_conf['batch_size'])
