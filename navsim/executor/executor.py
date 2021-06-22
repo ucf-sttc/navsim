@@ -119,8 +119,8 @@ class Executor:
                 device=self.device,
                 discount=self.run_conf['discount'], tau=self.run_conf['tau']
             )
-            self.summary_writer.add_graph(self.agent.actor)
-            self.summary_writer.add_graph(self.agent.critic)
+            #self.summary_writer.add_graph(self.agent.actor)
+            #self.summary_writer.add_graph(self.agent.critic)
 
             if resume and self.run_base_folder.is_dir():
                 model_filename = f"{self.run_base_folder_str}/{episode_num}_model_state.pt"
