@@ -11,6 +11,14 @@ Following should be pre-installed on the host machine:
 * docker  https://docs.docker.com/get-docker/
 * nvidia container toolkit https://github.com/NVIDIA/nvidia-docker
 
+# Versions
+
+There are three components: navsim binary, navsim python api, navsim container
+You can use any version of each of them as long as first two digits match. These are latest releases of each of them:
+* binary 2.8.1
+* python api 2.8.1
+* container 2.8.1
+
 # How to use the navsim env 
 
 Assuming your code is in a folder defined in environment variable `expdir`. 
@@ -29,8 +37,8 @@ You can either run directly on a host machine or in a container.
 1. Download and extract the unity binary zip file, and 
 set the following, after changing first two lines for your system:
 ```
-envdir=$(realpath "/data/work/unity-envs/Build2.8.0"); envbin="Berlin_Walk_V2.x86_64"; expdir=$(realpath "$HOME/exp");
-ver="2.8.1"; repo="ghcr.io/armando-fandango"; cname="$(hostname)_navsim_1"
+envdir=$(realpath "/data/work/unity-envs/Build2.8.1"); envbin="Berlin_Walk_V2.x86_64"; expdir=$(realpath "$HOME/exp");
+repo="ghcr.io/armando-fandango"; cname="$(hostname)_navsim_1"
 ```
 2. Run the container:
 ```
@@ -48,7 +56,7 @@ docker run --rm --privileged -it --runtime=nvidia \
 -v $envdir:$envdir \
 -v $expdir:$expdir \
 -w $expdir \
-$repo/navsim:$ver DISPLAY=:0.0 <navsim command>
+$repo/navsim:2.8 DISPLAY=:0.0 <navsim command>
 ```
 
 ### The Variable `DISPLAY=:0.0`
