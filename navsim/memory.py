@@ -130,6 +130,7 @@ class Memory:
         print('r:', sizeof_fmt(sys.getsizeof(self.r)))
         print('s_:', sizeof_fmt(sys.getsizeof(self.s_)))
         print('d:', sizeof_fmt(sys.getsizeof(self.d)))
+        print('----------------------------------------')
 
     def __len__(self):
         return len(self.mem)

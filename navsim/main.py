@@ -71,6 +71,7 @@ def main():
 
     run_conf = ObjDict({
         "run_id": args["run_id"],
+        "agent_gpu_id": int(args["agent_gpu_id"]),
         "env_name": "navsim",
         "episode_max_steps": int(args["episode_max_steps"]),
         "total_episodes": int(args["total_episodes"]),
@@ -152,13 +153,13 @@ def main():
 
             for arg in ["seed", "memory_capacity", "batch_size",
                         "batches_before_train", "checkpoint_interval",
-                        "train_interval"]:
+                        "train_interval", "agent_gpu_id"]:
                 conf["run_config"][arg] = int(conf["run_config"][arg])
             for arg in ["discount", "tau", "expl_noise"]:
                 conf["run_config"][arg] = float(conf["run_config"][arg])
             for arg in ["seed", "timeout", "base_port", "observation_mode",
                         "segmentation_mode", "episode_max_steps", "task",
-                        "goal","goal_distance", "agent_car_physics"]:
+                        "goal", "goal_distance", "agent_car_physics"]:
                 conf["env_config"][arg] = int(conf["env_config"][arg])
             for arg in ["reward_for_goal", "reward_for_ep", "reward_for_other",
                         "reward_for_falling_off_map", "reward_for_step"]:

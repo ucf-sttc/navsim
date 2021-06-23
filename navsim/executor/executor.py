@@ -111,9 +111,19 @@ class Executor:
             self.env_open()
 
             self.max_action = self.env.action_space.high[0]
-            self.device = torch.device(
-                'cuda:0' if torch.cuda.is_available() else 'cpu')
+            if torch.cuda.is_available():
+                self.device = torch.device(f"cuda:{self.run_conf['agent_gpu_id']}")
+                torch.set_num_threads(1)
+                torch.set_num_interop_threads(1)
+            else:
+                self.device = torch.device('cpu')
+                torch.set_num_threads(8)
+                torch.set_num_interop_threads(8)
+
             print(f'The device selected is {self.device}')
+            print(f'Torch is using {torch.get_num_threads()} threads and '
+                  f'{torch.get_num_interop_threads()} interop threads')
+
             self.agent = DDPGAgent(
                 env=self.env,
                 device=self.device,

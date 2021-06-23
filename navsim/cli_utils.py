@@ -104,6 +104,14 @@ def _create_argparser() -> argparse.ArgumentParser:
     )
 
     run_conf.add_argument(
+        "--agent_gpu_id",
+        default=0,
+        dest="agent_gpu_id",
+        action=ArgAction,
+        help="Which GPU to run models in agent on",
+    )
+
+    run_conf.add_argument(
         "--episode_max_steps",
         default=100,
         dest="episode_max_steps",
