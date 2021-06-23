@@ -178,12 +178,6 @@ class Executor:
                                               delimiter=',',
                                               quotechar='"',
                                               quoting=csv.QUOTE_MINIMAL)
-        if not self.resume:
-            self.step_results_writer.writerow(
-                ['episode_num', 't', 'r', 'step_time', 'env_step_time',
-                 'memory_append_time', 'memory_sample_time',
-                 'agent_train_time', 'current_memory'])
-        self.step_results_file.flush()
 
         self.episode_results_file = open(self.episode_results_filename,
                                          mode=self.file_mode)
@@ -192,11 +186,18 @@ class Executor:
                                                  quotechar='"',
                                                  quoting=csv.QUOTE_MINIMAL)
         if not self.resume:
+            self.step_results_writer.writerow(
+                ['episode_num', 't', 'r', 'step_time', 'env_step_time',
+                 'memory_append_time', 'memory_sample_time',
+                 'agent_train_time', 'current_memory'])
+
             self.episode_results_writer.writerow(
                 ['episode_num',
                  'episode_reward',
                  'episode_time',
                  'episode_peak_memory'])
+
+        self.step_results_file.flush()
         self.episode_results_file.flush()
 
     def files_close(self):

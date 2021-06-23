@@ -56,7 +56,7 @@ docker run --rm --privileged -it --runtime=nvidia \
 -v $envdir:$envdir \
 -v $expdir:$expdir \
 -w $expdir \
-$repo/navsim:2.8 DISPLAY=:0.0 <navsim command>
+$repo/navsim:2.8.1 DISPLAY=:0.0 <navsim command>
 ```
 
 ### The Variable `DISPLAY=:0.0`
