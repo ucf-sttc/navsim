@@ -113,14 +113,14 @@ class Executor:
             self.max_action = self.env.action_space.high[0]
             self.device = torch.device(
                 'cuda:0' if torch.cuda.is_available() else 'cpu')
-
+            print(f'The device selected is {self.device}')
             self.agent = DDPGAgent(
                 env=self.env,
                 device=self.device,
                 discount=self.run_conf['discount'], tau=self.run_conf['tau']
             )
-            #self.summary_writer.add_graph(self.agent.actor)
-            #self.summary_writer.add_graph(self.agent.critic)
+            # self.summary_writer.add_graph(self.agent.actor)
+            # self.summary_writer.add_graph(self.agent.critic)
 
             if resume and self.run_base_folder.is_dir():
                 model_filename = f"{self.run_base_folder_str}/{episode_num}_model_state.pt"

@@ -247,6 +247,7 @@ class NavSimGymEnv(UnityToGymWrapper):
         print('Observation Space Types:', self.observation_space_types)
         print('Reward Range:', self.reward_range)
         print('Metadata:', self.metadata)
+        print('--------------------------------------')
         return self
 
     def info_steps(self, save_visuals=False):
@@ -368,6 +369,21 @@ class NavSimGymEnv(UnityToGymWrapper):
             print("Can not register NavSim Environment with Ray")
             print(e.message)
 
+    def get_observation_sample(self):
+        # prepare input data
+        input_data = []
+        input_names = []
+        for state_dim in self.env.observation_space_shapes:
+            if len(state_dim) == 1:
+                random_input = torch.randn(1, state_dim[0]).to(device)
+                input_name = f'state_{state_dim[0]}'
+            else:  # visual
+                random_input = torch.randn(1, state_dim[2], state_dim[0],
+                                           state_dim[1]).to(device)
+                input_name = f'state_{state_dim[0]}_{state_dim[1]}_{state_dim[2]}'
+
+            input_data.append(random_input)
+            input_names.append(input_name)
 
 class MapSideChannel(SideChannel):
     """
