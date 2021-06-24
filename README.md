@@ -7,10 +7,19 @@ Unity3D GameEngine based Berlin city environment.
 ## Pre-requisites
 
 Following should be pre-installed on the host machine:
+
+### For running inside the containers
+
 * [nvidia driver](https://github.com/NVIDIA/nvidia-docker/wiki/Frequently-Asked-Questions#how-do-i-install-the-nvidia-driver)
 * [docker](https://docs.docker.com/get-docker/)
 * [nvidia container toolkit](https://github.com/NVIDIA/nvidia-docker)
 
+### For directly running on the host
+  
+* Anaconda or Miniconda  
+* X-window system  
+* nvidia drivers  
+  
 ## Versions
 
 There are three components: navsim binary, navsim python api, navsim container
@@ -37,8 +46,11 @@ first follow the instructions to setup the host.
 
 1. Download and extract the unity binary zip file, and
 2. The following environment variables need to be set in both cases:
-`envdir=$(realpath "/data/work/unity-envs/Build2.8.1"); envbin="Berlin_Walk_V2.x86_64"; expdir=$(realpath "$HOME/exp");`
-`repo="ghcr.io/armando-fandango"; cname="$(hostname)_navsim_1"`
+```
+envdir=$(realpath "/data/work/unity-envs/Build2.8.1"); envbin="Berlin_Walk_V2.x86_64"; expdir=$(realpath "$HOME/exp");
+repo="ghcr.io/armando-fandango"; cname="$(hostname)_navsim_1"
+
+```
    
 3. Now follow the container, or the host option below.
    
@@ -68,12 +80,12 @@ The display variable points to X Display server, and takes a value of `hostname:
 * `D` refers to the display index, which is 0 generally.
 * `S` refers to the screen index, which is 0 generally but in a GPU based system, each GPU might be connected to a different screen. In our container, this number refers to the GPU on which the environment binary will run.
 
-For the purpose of navsim container, use `DISPLAY=0.0` and change the last zero to the index number if GPU where environment binary can run.
+For the purpose of navsim container, use `DISPLAY=:0.0` and change the last zero to the index number if GPU where environment binary can run.
 
 ### Option 2: Run on host directly - doesn't run headless.
 
-To run on the host, activate the `navsim` virtual environment only once:
-`conda activate navsim || source activate navsim`.
+To run on the host, activate the `navsim` virtual environment, only once, 
+with following command: `conda activate navsim || source activate navsim`.
 
 Now the navsim env should be activated. If not then go to host setup steps 
 and troubleshoot.
@@ -90,7 +102,7 @@ Run the `navsim` command as described in its section below.
 
 ## Setup the host to run directly
 ### Assumptions
-* Following are installed: X, nvidia drivers, nvidia cuda toolkit.
+* Following are installed: X, nvidia drivers
 * Miniconda or Anaconda is installed, and is in the path.
 
 ### Steps
@@ -103,7 +115,10 @@ Run the `navsim` command as described in its section below.
 * `ezai-conda-req.txt`
 * `ezai-pip-req.txt`
 
-4. `source ezai-conda.sh && ezai_conda_create --venv "$CONDA_DIR/envs/navsim"`
+4. Run the following command:
+```   
+source ezai-conda.sh && ezai_conda_create --venv "$CONDA_DIR/envs/navsim"`
+```
 
 ## TODO: Clean up the following section
 
@@ -121,8 +136,8 @@ Note: Do it on a partition that has at least 10GB space as the next step will cr
 
 singularity pull docker://$repo/navsim:$ver
 singularity shell --nv \
--B <absolute path of sim binary folder> # not needed if path to binary is inside $HOME folder  
--B <absolute path of current folder> # not needed if path to current folder is inside $HOME folder
+-B <absolute path of sim binary folder>  not needed if path to binary is inside $HOME folder  
+-B <absolute path of current folder>  not needed if path to current folder is inside $HOME folder
 navsim_$ver.sif
 
 

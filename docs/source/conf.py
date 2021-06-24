@@ -13,8 +13,8 @@
 import os
 import sys
 import sphinx_rtd_theme
-sys.path.insert(0, os.path.abspath('../..'))
 
+sys.path.insert(0, os.path.abspath('../..'))
 
 # -- Project information -----------------------------------------------------
 
@@ -23,7 +23,6 @@ with open('../../navsim/version.txt', 'r') as vf:
 project = f'NavSim'
 copyright = '2021, Armando Fandango'
 author = 'Armando Fandango, Troyle Thomas'
-
 
 # -- General configuration ---------------------------------------------------
 
@@ -39,7 +38,7 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx_rtd_theme',
               #'recommonmark',
               'myst_parser',
-            ]
+              ]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -49,34 +48,52 @@ templates_path = ['_templates']
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = []
 
-
 # -- Options for HTML output -------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'sphinx_rtd_theme' #'alabaster'
+html_theme = 'sphinx_rtd_theme'  # 'alabaster'
+html_theme_options = {
+#    'analytics_id': 'G-XXXXXXXXXX',  #  Provided by Google in your dashboard
+#    'analytics_anonymize_ip': False,
+#    'logo_only': False,
+#    'display_version': True,
+#    'prev_next_buttons_location': 'bottom',
+#    'style_external_links': False,
+#    'vcs_pageview_mode': '',
+#    'style_nav_header_background': 'white',
+    # Toc options
+#    'collapse_navigation': True,
+#    'sticky_navigation': True,
+    'navigation_depth': 2,
+#    'includehidden': True,
+#    'titles_only': False
+}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
 
-import recommonmark
-from recommonmark.transform import AutoStructify
+#import recommonmark
+#from recommonmark.transform import AutoStructify
+
 
 # At the bottom of conf.py
 def setup(app):
     app.add_config_value('recommonmark_config', {
-        #'url_resolver': lambda url: github_doc_root + url,
-        #'auto_toc_tree_section': 'Contents',
+        # 'url_resolver': lambda url: github_doc_root + url,
+        # 'auto_toc_tree_section': 'Contents',
     }, True)
-    app.add_transform(AutoStructify)
 
-#-- Options for Latex output -------------------------------------------------
+#    app.add_transform(AutoStructify)
+
+
+# -- Options for Latex output -------------------------------------------------
 latex_elements = {
-    'releasename':f'{version}',
+    'releasename': f'{version}',
     'fncychap': r'\usepackage[Sonny]{fncychap}'
 }
-latex_theme='manual'
-#latex_toplevel_sectioning = 'part'
+latex_theme = 'manual'
+# latex_toplevel_sectioning = 'part'
