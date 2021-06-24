@@ -4,22 +4,23 @@ A navigation simulator API built on top of Python, Stable Baselines 3, Pytorch.
 Can use many simulator backends, for now uses the Aurora Simulator, that is a 
 Unity3D GameEngine based Berlin city environment.
 
-# Pre-requisites
+## Pre-requisites
 
 Following should be pre-installed on the host machine:
-* nvidia driver https://github.com/NVIDIA/nvidia-docker/wiki/Frequently-Asked-Questions#how-do-i-install-the-nvidia-driver
-* docker  https://docs.docker.com/get-docker/
-* nvidia container toolkit https://github.com/NVIDIA/nvidia-docker
+* [nvidia driver](https://github.com/NVIDIA/nvidia-docker/wiki/Frequently-Asked-Questions#how-do-i-install-the-nvidia-driver)
+* [docker](https://docs.docker.com/get-docker/)
+* [nvidia container toolkit](https://github.com/NVIDIA/nvidia-docker)
 
-# Versions
+## Versions
 
 There are three components: navsim binary, navsim python api, navsim container
-You can use any version of each of them as long as first two digits match. These are latest releases of each of them:
-* binary 2.8.1
-* python api 2.8.1
-* container 2.8.1
+You can use any version of each of them as long as first two digits match. 
+These are latest releases of each of them:  
+* binary 2.8.1  
+* python api 2.8.1  
+* container 2.8.1  
 
-# How to use the navsim env 
+## How to use the navsim env 
 
 Assuming your code is in a folder defined in environment variable `expdir`. 
 In your code import `NavSimGymEnv` from the `navsim` package. Either use it to
@@ -28,7 +29,7 @@ instantiate env objects or extend it by subclassing.
 Follow the instructions in "how to run the navsim training" section below, 
 replace `navsim` command with your own command, for example: `my-training`
 
-# How to run the navsim training
+## How to run the navsim training
 
 You can either run directly on a host machine or in a container. 
 If you are running on a host directly, 
@@ -41,7 +42,7 @@ first follow the instructions to setup the host.
    
 3. Now follow the container, or the host option below.
    
-## Option 1: Container
+### Option 1: Container
 
 ```
 cd $expdir
@@ -61,7 +62,7 @@ docker run --rm --privileged -it --runtime=nvidia \
 $repo/navsim:2.8.1 DISPLAY=:0.0 <navsim command>
 ```
 
-### The Variable `DISPLAY=:0.0`
+#### The Variable `DISPLAY=:0.0`
 The display variable points to X Display server, and takes a value of `hostname:D.S`, where:
 * `hostname` can be empty.
 * `D` refers to the display index, which is 0 generally.
@@ -69,7 +70,7 @@ The display variable points to X Display server, and takes a value of `hostname:
 
 For the purpose of navsim container, use `DISPLAY=0.0` and change the last zero to the index number if GPU where environment binary can run.
 
-## Option 2: Run on host directly - doesn't run headless.
+### Option 2: Run on host directly - doesn't run headless.
 
 To run on the host, activate the `navsim` virtual environment only once:
 `conda activate navsim || source activate navsim`.
@@ -79,7 +80,7 @@ and troubleshoot.
 
 Run the `navsim` command as described in its section below.
 
-## The `<navsim command>`
+### The `<navsim command>`
 
 * `navsim --help` shows the options
 * `navsim --env $envdir/$envbin` - executes and/or trains the model
@@ -87,7 +88,7 @@ Run the `navsim` command as described in its section below.
 * `navsim-saturate-gpu $envdir/$envbin` - Saturates the GPU
 * Replace the navsim command with your own command if you are just importing the NavSim env.
 
-# Setup the host to run directly
+## Setup the host to run directly
 ### Assumptions
 * Following are installed: X, nvidia drivers, nvidia cuda toolkit.
 * Miniconda or Anaconda is installed, and is in the path.
@@ -104,7 +105,7 @@ Run the `navsim` command as described in its section below.
 
 4. `source ezai-conda.sh && ezai_conda_create --venv "$CONDA_DIR/envs/navsim"`
 
-# TODO: Clean up the following section
+## TODO: Clean up the following section
 
 For tmux hotkeys press ctrl+b then following key  
 
@@ -115,7 +116,7 @@ For tmux hotkeys press ctrl+b then following key
 * Attach to existing tmux session: tmux attach -t <session name>
 * Exit Session: Type exit into all open shells within session
 
-# TODO: To run the singularity container
+## TODO: To run the singularity container
 Note: Do it on a partition that has at least 10GB space as the next step will create navsim_0.0.1.sif file of ~10GB.
 
 singularity pull docker://$repo/navsim:$ver

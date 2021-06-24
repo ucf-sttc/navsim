@@ -34,87 +34,7 @@ def navsimgymenv_creator(env_config):
 class NavSimGymEnv(UnityToGymWrapper):
     """NavSimGymEnv Class is a wrapper to Unity2Gym that inherits from the Gym interface
 
-    The configuration provided is as follows:
-
-    Observation Mode
-
-    * Vector 0
-
-    * Visual 1
-
-    * VectorVisual 2
-
-    Segmentation Mode
-
-    * Object Segmentation 0
-
-    * Tag Segmentation 1
-
-    * Layer Segmentation 2
-
-    Task
-
-    * PointNav 0
-
-    * SimpleObjectNav 1
-
-    * ObjectNav 2
-
-    Goal
-
-    * 0 - Tocus
-
-    * 1 - sedan1
-
-    * 2 - Car1
-
-    * 3 - Car2
-
-    * 4 - City Bus
-
-    * 5 - Sporty_Hatchback
-
-    * Else - SEDAN
-
-    .. code-block:: python
-
-        env_config = ObjDict({
-            "log_folder": "unity.log",
-            "seed": 123,
-            "timeout": 600,
-            "worker_id": 0,
-            "base_port": 5005,
-            "observation_mode": 2,
-            "segmentation_mode": 1,
-            "task": 0,
-            "goal": 0,
-            "goal_distance":50
-            "max_steps": 10,
-            "reward_for_goal": 50,
-            "reward_for_ep": 0.005,
-            "reward_for_other": -0.1,
-            "reward_for_falling_off_map": -50,
-            "reward_for_step": -0.0001,
-            "agent_car_physics": 0,
-            "episode_max_steps": 10,
-            "start_from_episode":1,
-            "env_path":args["env_path"]
-        })
-
-    Action Space: [Throttle, Steering, Brake]
-
-    * Throttle: -1.0 to 1.0
-
-    * Steering: -1.0 to 1.0
-
-    * Brake: 0.0 to 1.0
-
-    Observation Space: [[Raw Agent Camera],[Depth Agent Camera],[Segmentation Agent Camera],[Agent Position, Agent Velocity, Agent Rotation, Goal Position]]
-    The vector observation space:
-        Agent_Position.x, Agent_Position.y, Agent_Position.z,
-        Agent_Velocity.x, Agent_Velocity.y, Agent_Velocity.z,
-        Agent_Rotation.x, Agent_Rotation.y, Agent_Rotation.z, Agent_Rotation.w,
-        Goal_Position.x, Goal_Position.y, Goal_Position.z
+    Read the **NavSim Environment Tutorial** on how to use this class.
     """
 
     def __init__(self, env_config) -> None:
@@ -128,7 +48,11 @@ class NavSimGymEnv(UnityToGymWrapper):
         self.debug = env_config.get("debug", False)
         self.run_base_folder_str = env_config.get("run_base_folder_str", '.')
         self.run_base_folder = Path(self.run_base_folder_str)
-        seed = int(self.env_config.get('seed'))
+        seed = self.env_config.get('seed')
+        if seed is None:
+            seed = 0
+        else:
+            seed = int(seed)
 
         # if self._env:
         #    raise ValueError('Environment already open')
@@ -233,7 +157,7 @@ class NavSimGymEnv(UnityToGymWrapper):
         print("Env Info")
         print('-----------')
         if self.spec is not None:
-            print(self.genv.spec.id)
+            print(self.spec.id)
         print('Action Space:', self.action_space)
         print('Action Space Shape:', self.action_space.shape)
         print('Action Space Low:', self.action_space.low)

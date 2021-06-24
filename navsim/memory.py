@@ -4,6 +4,52 @@ import pickle
 import sys
 from navsim.util import sizeof_fmt, image_layout
 
+class CupyMemory:
+    def __init__(self, capacity: int,
+                 state_shapes: Union[list, tuple, int],
+                 action_shape: Union[list, tuple, int],
+                 seed: Optional[float] = None):
+        """
+
+        :param capacity: total capacity of the memory
+        :param state_shapes: a tuple of state dimensions
+        :param action_shape: int representing number of actions
+        :param seed: seed to provide to numpy
+        """
+        self.capacity = capacity
+        self.ptr: int = 0
+        self.size: int = 0
+
+        self.seed: Optional[float] = seed
+        # from numpy.random import MT19937, RandomState, Generator
+        # mt = MT19937(seed)
+        # rs = RandomState(mt)
+        # rg = Generator(mt)
+        self.rng = np.random.default_rng(seed=seed)
+
+        # if isinstance(state_shapes, (list, tuple)):  # state_dims is an int
+        if isinstance(state_shapes, (int, float)):  # state_dims is an int
+            state_shapes = [
+                [state_shapes]]  # make state_dims a list of sequences
+        elif isinstance(state_shapes[0],
+                        (int, float)):  # state_dims first member is an int
+            state_shapes = [state_shapes]  # make state_dims a list of sequences
+        # else state_dims is a list of sequences, i.e. [[state_shape], [state_shap], [state_shape]]
+
+        s_len = len(state_shapes)
+        self.s = [None] * s_len
+        self.s_ = [None] * s_len
+
+        for i in range(s_len):
+            state_shapes[i] = [capacity] + list(state_shapes[i])
+            self.s[i] = np.full(state_shapes[i], 0.0)
+            self.s_[i] = np.full(state_shapes[i], 0.0)
+
+        action_shape = [capacity] + list(action_shape)
+        self.a = np.full(action_shape, 0.0)
+
+        self.r = np.full((capacity, 1), 0.0)
+        self.d = np.full((capacity, 1), False)
 
 class Memory:
     """

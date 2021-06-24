@@ -6,9 +6,9 @@
 Welcome to NavSim |version| documentation
 *******************************************
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
-   README <README.md>
+   Introduction <README.md>
    Navsim Environment Tutorial <env.md>
-   CONTRIBUTE <contribute.md>
+   Contributing <contribute.md>
    navsim_api
