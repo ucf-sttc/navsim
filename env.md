@@ -77,6 +77,11 @@ activated. This will also result in a reset.
 `reward_for_step` : This reward will be given at every step in addition to any 
 other reward recieved at the same step.  
 
+### Agent Car Physics
+`0` - Simple : Collisions and gravity only - An agent that moves by a specific distance and direction scaled by the provided action. This agent only experiences collision and gravity forces  
+`1` - Intermediate 1 : Addition of wheel torque   
+`2` - Intermediate 2 : Addition of suspension, downforce, and sideslip  
+`10` - Complex : Addition of traction control and varying surface friction  
 
 ## Action Space: 
 \[Throttle, Steering, Brake]  
