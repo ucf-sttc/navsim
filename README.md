@@ -31,16 +31,18 @@ replace `navsim` command with your own command, for example: `my-training`
 # How to run the navsim training
 
 You can either run directly on a host machine or in a container. 
+If you are running on a host directly, 
+first follow the instructions to setup the host.
 
+1. Download and extract the unity binary zip file, and
+2. The following environment variables need to be set in both cases:
+`envdir=$(realpath "/data/work/unity-envs/Build2.8.1"); envbin="Berlin_Walk_V2.x86_64"; expdir=$(realpath "$HOME/exp");`
+`repo="ghcr.io/armando-fandango"; cname="$(hostname)_navsim_1"`
+   
+3. Now follow the container, or the host option below.
+   
 ## Option 1: Container
 
-1. Download and extract the unity binary zip file, and 
-set the following, after changing first two lines for your system:
-```
-envdir=$(realpath "/data/work/unity-envs/Build2.8.1"); envbin="Berlin_Walk_V2.x86_64"; expdir=$(realpath "$HOME/exp");
-repo="ghcr.io/armando-fandango"; cname="$(hostname)_navsim_1"
-```
-2. Run the container:
 ```
 cd $expdir
 docker run --rm --privileged -it --runtime=nvidia \
@@ -67,19 +69,42 @@ The display variable points to X Display server, and takes a value of `hostname:
 
 For the purpose of navsim container, use `DISPLAY=0.0` and change the last zero to the index number if GPU where environment binary can run.
 
-### The `<navsim command>`
+## Option 2: Run on host directly - doesn't run headless.
 
+To run on the host, activate the `navsim` virtual environment only once:
+`conda activate navsim || source activate navsim`.
+
+Now the navsim env should be activated. If not then go to host setup steps 
+and troubleshoot.
+
+Run the `navsim` command as described in its section below.
+
+## The `<navsim command>`
+
+* `navsim --help` shows the options
 * `navsim --env $envdir/$envbin` - executes and/or trains the model
 * `navsim-benchmark $envdir/$envbin` - benchmarks the model
 * `navsim-saturate-gpu $envdir/$envbin` - Saturates the GPU
 * Replace the navsim command with your own command if you are just importing the NavSim env.
 
-## Option 2: TODO: Run on host directly
-### Fix the following parts of readme Headless Run with X-Server 
+# Setup the host to run directly
+### Assumptions
+* Following are installed: X, nvidia drivers, nvidia cuda toolkit.
+* Miniconda or Anaconda is installed, and is in the path.
 
-Assumption: X is installed, nvidia-drivers
+### Steps
+1. set the shell variable CONDA_DIR to the location of Miniconda or Anaconda
+   install. For example on my laptop it is set as CONDA_DIR="/opt/conda".
 
-Install tmux (useful for persistence and shell management) (Cheat Sheet: https://gist.github.com/MohamedAlaa/2961058)  
+2. `sudo chmod 777 $CONDA_DIR/envs`
+3. Download following files:
+* `ezai-conda.sh`
+* `ezai-conda-req.txt`
+* `ezai-pip-req.txt`
+
+4. `source ezai-conda.sh && ezai_conda_create --venv "$CONDA_DIR/envs/navsim"`
+
+# TODO: Clean up the following section
 
 For tmux hotkeys press ctrl+b then following key  
 
@@ -90,7 +115,7 @@ For tmux hotkeys press ctrl+b then following key
 * Attach to existing tmux session: tmux attach -t <session name>
 * Exit Session: Type exit into all open shells within session
 
-### TODO: To run the singularity container
+# TODO: To run the singularity container
 Note: Do it on a partition that has at least 10GB space as the next step will create navsim_0.0.1.sif file of ~10GB.
 
 singularity pull docker://$repo/navsim:$ver
