@@ -9,18 +9,24 @@
   ```
   git clone <blah blah>
   ```
-* Install miniconda and the env
+* Install miniconda (if not already installed)
   ```
   NAVSIM_ROOT=~/projects/ai_coop_py
   cd $NAVSIM_ROOT/navsim_env
-  sudo mkdir /opt/conda
-  sudo chown $(id -u) /opt/conda
-  source ezai-conda.sh && install-miniconda
+  CONDA_ROOT=/opt/conda
+  sudo mkdir $CONDA_ROOT
+  sudo chown $(id -u) $CONDA_ROOT
+  source ezai-conda.sh && install_miniconda
   exit
+  ```
   
+* Create the conda env for `navsim`
+  
+  ```
   NAVSIM_ROOT=~/projects/ai_coop_py
   cd $NAVSIM_ROOT/navsim_env
-  rm -rf /opt/conda/envs/navsim; source ezai-conda.sh; ezai_conda_create --venv "/opt/conda/envs/navsim"
+  ENVS_ROOT=/opt/conda/envs
+  source ezai-conda.sh; ezai_conda_create --venv "$ENVS_ROOT/navsim"
   conda activate navsim
   cd $NAVSIM_ROOT
   pip install -e .

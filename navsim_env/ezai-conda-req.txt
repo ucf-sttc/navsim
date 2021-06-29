@@ -16,6 +16,7 @@ sphinx # for docs
 sphinx_rtd_theme
 recommonmark
 myst-parser
+docutils<0.17 #docutils > 0.17 has bug and doesnt format correctly
 
 # basic data science
 hypothesis>=3.58 # needed by pandas but doesnt install on win64

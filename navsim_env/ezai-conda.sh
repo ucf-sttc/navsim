@@ -8,26 +8,6 @@ deactivate () {
   conda deactivate || source deactivate
 }
 
-install_jupyter () {
-  echo "Installing jupyter ..."
-  conda install -y -S -c conda-forge "ipython>=7.0.0" "notebook>=6.0.0" jupyter_contrib_nbextensions jupyter_nbextensions_configurator yapf ipywidgets ipykernel ipympl
-  return $?
-}
-
-install_jupyter_extensions () {
-  echo "Setting jupyter extensions ..."
-  conda install -y -S -c conda-forge jupyter_contrib_nbextensions jupyter_nbextensions_configurator yapf ipywidgets && \
-  jupyter nbextension enable --sys-prefix code_prettify/code_prettify  && \
-  jupyter nbextension enable --sys-prefix toc2/main && \
-  jupyter nbextension enable --sys-prefix varInspector/main && \
-  jupyter nbextension enable --sys-prefix execute_time/ExecuteTime && \
-  jupyter nbextension enable --sys-prefix spellchecker/main && \
-  jupyter nbextension enable --sys-prefix scratchpad/main && \
-  jupyter nbextension enable --sys-prefix collapsible_headings/main && \
-  jupyter nbextension enable --sys-prefix codefolding/main
-  return $?
-}
-
 # sets passed prefix env as jupyter kernel
 install_jupyter_kernel () {
   kernel_name='ezai'
@@ -57,25 +37,25 @@ config_env () {
   return $?
 }
 
-#install_jupyter () {
-#  echo "Installing jupyter ..."
-#  conda install -y -S -c conda-forge "ipython>=7.0.0" "notebook>=6.0.0" jupyter_contrib_nbextensions jupyter_nbextensions_configurator yapf ipywidgets ipykernel && \
-#  jupyter nbextension enable --user code_prettify/code_prettify  && \
-#  jupyter nbextension enable --user toc2/main && \
-#  jupyter nbextension enable --user varInspector/main && \
-#  jupyter nbextension enable --user execute_time/ExecuteTime && \
-#  jupyter nbextension enable --user spellchecker/main && \
-#  jupyter nbextension enable --user scratchpad/main && \
-#  jupyter nbextension enable --user collapsible_headings/main && \
-#  jupyter nbextension enable --user codefolding/main && \
-#  return $?
-#}
+install_jupyter () {
+  echo "Installing jupyter ..."
+  conda install -y -S -c conda-forge "ipython>=7.0.0" "notebook>=6.0.0" jupyter_contrib_nbextensions jupyter_nbextensions_configurator yapf ipywidgets ipykernel && \
+  jupyter nbextension enable --user code_prettify/code_prettify  && \
+  jupyter nbextension enable --user toc2/main && \
+  jupyter nbextension enable --user varInspector/main && \
+  jupyter nbextension enable --user execute_time/ExecuteTime && \
+  jupyter nbextension enable --user spellchecker/main && \
+  jupyter nbextension enable --user scratchpad/main && \
+  jupyter nbextension enable --user collapsible_headings/main && \
+  jupyter nbextension enable --user codefolding/main && \
+  return $?
+}
 
 install_cuda () {
   echo "Installing cuda ..."
-  conda config --env --prepend channels nvidia
+  #conda config --env --prepend channels nvidia
   conda config --show-sources
-  conda install -y -S "cudatoolkit=11.1" "cudnn>=7.6.0" "nccl" "cupy"
+  conda install -y -S "cudatoolkit=11.1" "cudnn>=7.6.0" "nccl" "cudnn" "cutensor" "cupy" "cusparselt" "mkl" "libblas=*=*mkl"
   #&& \
   #conda install -y -S "nccl" #"mpi4py>=3.0.0" gxx_linux-64 gcc_linux-64
   return $?
@@ -84,7 +64,7 @@ install_cuda () {
 install_fastai_pytorch () {
   echo "Installing fastai and pytorch ..."
   conda config --env --prepend channels pytorch
-  conda config --env --prepend channels fastai
+  #conda config --env --prepend channels fastai
   conda config --show-sources
   # numpy spec due to tensorflow and pillow spec due to gym
   conda install -y -S "pytorch=1.8" "numpy>1.19.0"

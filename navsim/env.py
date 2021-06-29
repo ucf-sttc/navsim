@@ -1,9 +1,7 @@
 import csv
 from pathlib import Path
-from typing import List, Any
 import numpy as np
 import uuid
-import cv2
 
 from typing import Any, Dict, List, Optional, Tuple, Union
 
@@ -174,21 +172,6 @@ class NavSimGymEnv(UnityToGymWrapper):
         print('--------------------------------------')
         return self
 
-    def info_steps(self, save_visuals=False):
-        """Prints the initial state, action sample, first step state
-
-        """
-        print('Initial State:', self.reset())
-        action_sample = self.action_space.sample()
-        print('Action sample:', action_sample)
-        s, a, r, s_ = self.step(action_sample)
-        print('First Step s,a,r,s_:', s, a, r, s_)
-        if (self.observation_mode == 1) or (self.observation_mode == 2):
-            for i in range(0, 3):
-                cv2.imwrite(f'visual_{i}.jpg', (s[i] * 255).astype('uint8'))
-        self.reset()
-        return self
-
     @property
     def observation_space_shapes(self) -> list:
         """Returns the dimensions of the observation space
@@ -297,8 +280,8 @@ class NavSimGymEnv(UnityToGymWrapper):
         # prepare input data
         input_data = []
         input_names = []
-        for state_dim in self.env.observation_space_shapes:
-            if len(state_dim) == 1:
+        for state_dim in self.observation_space_shapes:
+            if len(self.observation_space_shapes) == 1:
                 random_input = torch.randn(1, state_dim[0]).to(device)
                 input_name = f'state_{state_dim[0]}'
             else:  # visual

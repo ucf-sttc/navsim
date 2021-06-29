@@ -1,4 +1,4 @@
-FROM nvidia/cudagl:11.1.1-devel-ubuntu18.04 as base-image
+FROM nvidia/cudagl:11.1.1-devel-ubuntu20.04 as base-image
 MAINTAINER Armando Fandango <armando@neurasights.com>
 
 #ARG COMPONENTS=Unity,Windows,Windows-Mono,Mac,Mac-Mono,WebGL
@@ -31,6 +31,7 @@ RUN apt-get -qq update && \
 	  tmux \
 	  nano \
 	  vim \
+	  gdebi-core \
 	  # for webdriver - folium
 	  firefox-geckodriver \
 	  # for matplotlib
@@ -61,6 +62,9 @@ RUN apt-get -qq update && \
 	  x11vnc \
       ffmpeg \
       kmod \
+      # for phoronix
+      php-cli \
+      php-xml \
       pciutils && \
     apt-get autoremove --purge && apt-get clean && rm -rf /var/lib/apt/lists/*
 
@@ -79,6 +83,12 @@ RUN apt-get -qq update && \
 
 WORKDIR /root/
 SHELL ["/bin/bash", "-c"]
+
+#install phoronix
+RUN wget http://phoronix-test-suite.com/releases/repo/pts.debian/files/phoronix-test-suite_10.4.0_all.deb
+RUN gdebi phoronix-test-suite_10.4.0_all.deb
+RUN dpkg -i phoronix-test-suite_10.4.0_all.deb
+COPY test-profiles/local /var/lib/phoronix-test-suite/test-profiles/
 
 #Install MINICONDA and navsim_env in base
 COPY scripts/* ezai-conda* ezai-pip-* /root/

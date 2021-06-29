@@ -180,6 +180,7 @@ class Actor(torch.nn.Module):
         kernel_size = 2
         out_channels = 4
 
+        # input layer
         for state_dim in state_dimensions:
             if len(state_dim) == 1:  # means we have vector observation
                 out_size = state_dim[0] * 2  # make sure its always int

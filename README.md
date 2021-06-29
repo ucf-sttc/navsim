@@ -16,7 +16,6 @@ Following should be pre-installed on the host machine:
 
 ### For directly running on the host
   
-* Anaconda or Miniconda  
 * X-window system  
 * nvidia drivers  
   
@@ -103,21 +102,28 @@ Run the `navsim` command as described in its section below.
 ## Setup the host to run directly
 ### Assumptions
 * Following are installed: X, nvidia drivers
-* Miniconda or Anaconda is installed, and is in the path.
 
 ### Steps
-1. set the shell variable CONDA_DIR to the location of Miniconda or Anaconda
-   install. For example on my laptop it is set as CONDA_DIR="/opt/conda".
 
-2. `sudo chmod 777 $CONDA_DIR/envs`
-3. Download following files:
+1. Download following files:
 * `ezai-conda.sh`
 * `ezai-conda-req.txt`
 * `ezai-pip-req.txt`
 
-4. Run the following command:
-```   
-source ezai-conda.sh && ezai_conda_create --venv "$CONDA_DIR/envs/navsim"`
+2. Install miniconda (if not already installed)
+  
+```
+CONDA_ROOT=/opt/conda
+sudo mkdir $CONDA_ROOT
+sudo chown $(id -u) $CONDA_ROOT
+source ezai-conda.sh && install_miniconda
+```
+
+3. Create the conda env for `navsim`
+
+```
+ENVS_ROOT=/opt/conda/envs
+source ezai-conda.sh; ezai_conda_create --venv "$ENVS_ROOT/navsim"
 ```
 
 ## TODO: Clean up the following section
