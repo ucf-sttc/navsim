@@ -65,8 +65,11 @@ def main():
         "reward_for_falling_off_map": float(args["reward_for_falling_off_map"]),
         "reward_for_step": float(args["reward_for_step"]),
         "env_path": args["env_path"],
+        "env_gpu_id": int(args["env_gpu_id"]),
         "debug": args["debug"],
-        "run_base_folder_str": run_base_folder_str
+        "save_vector_obs": args["save_vector_obs"],
+        "save_visual_obs": args["save_visual_obs"]
+        #"run_base_folder_str": run_base_folder_str
     })
 
     run_conf = ObjDict({
@@ -81,9 +84,9 @@ def main():
         "expl_noise": float(args["exploration_noise"]),
         "memory_capacity": int(args["memory_capacity"]),
         "batch_size": int(args["batch_size"]),
-        "batches_before_train": int(args["batches_before_train"]),
         "checkpoint_interval": int(args["checkpoint_interval"]),
-        "train_interval": int(args["train_interval"])
+        "train_interval": int(args["train_interval"]),
+        "mem_backend": args["mem_backend"]
     })
 
     if args["rl_backend"] == "rllib":
@@ -152,12 +155,13 @@ def main():
                     conf[passed_arg] = args[passed_arg]
 
             for arg in ["seed", "memory_capacity", "batch_size",
-                        "batches_before_train", "checkpoint_interval",
+                        "checkpoint_interval",
                         "train_interval", "agent_gpu_id"]:
                 conf["run_config"][arg] = int(conf["run_config"][arg])
             for arg in ["discount", "tau", "expl_noise"]:
                 conf["run_config"][arg] = float(conf["run_config"][arg])
-            for arg in ["seed", "timeout", "base_port", "observation_mode",
+            for arg in ["env_gpu_id", "seed", "timeout", "base_port",
+                        "observation_mode",
                         "segmentation_mode", "episode_max_steps", "task",
                         "goal", "goal_distance", "agent_car_physics"]:
                 conf["env_config"][arg] = int(conf["env_config"][arg])

@@ -47,7 +47,14 @@ def _create_argparser() -> argparse.ArgumentParser:
     run_conf.add_argument(
         "--rl_backend",
         default=None,
-        help="The backend library for RL. Default: rllib",
+        help="The backend library for RL.",
+        action=ArgAction,
+    )
+
+    run_conf.add_argument(
+        "--mem_backend",
+        default="cupy",
+        help="The backend library for Rollback Memory.",
         action=ArgAction,
     )
 
@@ -55,7 +62,7 @@ def _create_argparser() -> argparse.ArgumentParser:
         "--train_interval",
         default=1,
         dest="train_interval",
-        help="Train the model after these many episodes. If set to 0 then model wont train",
+        help="Train the model after these many steps. If set to 0 then model wont train",
         action=ArgAction,
     )
 
@@ -155,27 +162,13 @@ def _create_argparser() -> argparse.ArgumentParser:
         action=ArgAction,
         help="Batch Size",
     )
-    run_conf.add_argument(
-        "--batches_before_train",
-        default=2,
-        dest="batches_before_train",
-        action=ArgAction,
-        help="Number of batches to generate at least before sampling a batch for training",
-    )
+
     run_conf.add_argument(
         "--memory_capacity",
         default=100,
         dest="memory_capacity",
         action=ArgAction,
-        help="Total capacity of memory, should be > batch_size * batches_before_train",
-    )
-
-    run_conf.add_argument(
-        "--saveimages",
-        default=False,
-        dest="saveimages",
-        action=ArgActionStoreTrue,
-        help="Save the images for visual observations at every step",
+        help="Total capacity of memory, should be > batch_size",
     )
 
     env_conf = argparser.add_argument_group(title="Environment Configuration")
@@ -187,6 +180,13 @@ def _create_argparser() -> argparse.ArgumentParser:
         action=ArgAction,
     )
 
+    run_conf.add_argument(
+        "--env_gpu_id",
+        default=0,
+        dest="env_gpu_id",
+        action=ArgAction,
+        help="Which GPU to run env on",
+    )
     env_conf.add_argument(
         "--timeout",
         default=600,
@@ -272,7 +272,18 @@ def _create_argparser() -> argparse.ArgumentParser:
         help="Reward for Step",
         action=ArgAction,
     )
-
+    run_conf.add_argument(
+        "--save_visual_obs",
+        default=False,
+        action=ArgActionStoreTrue,
+        help="Save the visual observations at every step",
+    )
+    run_conf.add_argument(
+        "--save_vector_obs",
+        default=False,
+        action=ArgActionStoreTrue,
+        help="Save the vector observations at every step",
+    )
     return argparser
 
 

@@ -6,7 +6,7 @@ class ResourceCounter:
     """
     This class allows to monitor the following resources for the purpose of logging:
     1. Time:
-    2. Memory
+    2. NumpyMemory
 
     Usage:
     1. Create the rc object:

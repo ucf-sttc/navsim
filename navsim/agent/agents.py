@@ -406,7 +406,7 @@ class DDPGAgent(object):
     def select_action(self, state):
         # if self.env.observation_mode == 0:
         #    state = torch.FloatTensor(state[0].reshape(1, -1)).to(self.device)
-        state = [torch.FloatTensor(s).unsqueeze(0).to(self.device) for s in
+        state = [torch.as_tensor(s,dtype=torch.float,device=self.device).unsqueeze(0) for s in
                  state]
         return self.actor(state).cpu().data.numpy().flatten()
 
@@ -531,15 +531,15 @@ class DDPGAgent(object):
         # print('agent train state ',state.shape)
         # print('agent train next_state',next_state.shape)
         # convert state to lit of tensors on GPU
-        state = [torch.FloatTensor(s).to(self.device) for s in state]
-        next_state = [torch.FloatTensor(s).to(self.device) for s in next_state]
+        state = [torch.as_tensor(s,dtype=torch.float,device=self.device) for s in state]
+        next_state = [torch.as_tensor(s,dtype=torch.float,device=self.device) for s in next_state]
         #        if self.env.observation_mode == 0:
         #            state = torch.FloatTensor(state[0]).to(self.device)
-        #            next_state = torch.FloatTensor(next_state[0]).to(self.device)
+        #            next_state = torch.FloatTe,nsor(next_state[0]).to(self.device)
         # print('agent train',next_state.shape)
-        action = torch.FloatTensor(action).to(self.device)
-        reward = torch.FloatTensor(reward).to(self.device)
-        episode_done = torch.FloatTensor(episode_done).to(self.device)
+        action = torch.as_tensor(action,dtype=torch.float,device=self.device)
+        reward = torch.as_tensor(reward,dtype=torch.float,device=self.device)
+        episode_done = torch.as_tensor(episode_done,dtype=torch.float,device=self.device)
 
         target_q = self.critic_target(next_state, self.actor_target(next_state))
         target_q = reward + (

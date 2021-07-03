@@ -2,14 +2,17 @@ import csv
 from pathlib import Path
 import numpy as np
 import uuid
+import cv2
 
 from typing import Any, Dict, List, Optional, Tuple, Union
 
+import time
 from gym_unity.envs import (
     UnityToGymWrapper,
     GymStepResult
 )
 
+from mlagents_envs.exception import UnityWorkerInUseException
 from mlagents_envs.environment import UnityEnvironment
 from mlagents_envs.side_channel.side_channel import (
     SideChannel,
@@ -34,6 +37,7 @@ class NavSimGymEnv(UnityToGymWrapper):
 
     Read the **NavSim Environment Tutorial** on how to use this class.
     """
+    metadata = {'render.modes': ['rgb_array', 'depth', 'segmentation']}
 
     def __init__(self, env_config) -> None:
         """
@@ -42,22 +46,29 @@ class NavSimGymEnv(UnityToGymWrapper):
         # filename: Optional[str] = None, observation_mode: int = 0, max_steps:int = 5):
         self.env_config = env_config
         self.observation_mode = int(self.env_config.get('observation_mode', 2))
-        self.start_from_episode = int(self.env_config.get('start_from_episode', 1))
+        self.start_from_episode = int(
+            self.env_config.get('start_from_episode', 1))
         self.debug = env_config.get("debug", False)
-        self.run_base_folder_str = env_config.get("run_base_folder_str", '.')
-        self.run_base_folder = Path(self.run_base_folder_str)
-        seed = self.env_config.get('seed')
-        if seed is None:
-            seed = 0
-        else:
-            seed = int(seed)
+        self.obs = None
+        self.save_visual_obs = env_config.get("save_visual_obs", False)
+        self.save_vector_obs = env_config.get("save_vector_obs", False)
+        if self.save_vector_obs:
+            self.keep_es_num = True
+
+        if self.keep_es_num:
+            self.e_num = self.start_from_episode - 1
+            self.s_num = 0
+
+        # self.run_base_folder_str = env_config.get("run_base_folder_str", '.')
+        # self.run_base_folder = Path(self.run_base_folder_str)
+        seed = int(self.env_config.get('seed') or 0)
 
         # if self._env:
         #    raise ValueError('Environment already open')
         # else:
-        log_folder = Path(self.env_config.get('log_folder', '.'))
+        log_folder = Path(self.env_config.get('log_folder', '.')).resolve()
         log_folder.mkdir(parents=True, exist_ok=True)
-
+        log_folder_str = str(log_folder)
         self.map_side_channel = MapSideChannel()
         self.fpc = FloatPropertiesChannel()
 
@@ -79,28 +90,48 @@ class NavSimGymEnv(UnityToGymWrapper):
                 float(self.env_config.get('reward_for_falling_off_map', -50)))
         env_sfp("rewardForEachStep",
                 float(self.env_config.get('reward_for_step', -0.0001)))
-        env_sfp("segmentationMode", float(self.env_config.get('segmentation_mode', 1)))
-        env_sfp("observationMode", float(self.env_config.get('observation_mode', 2)))
-        env_sfp("episodeLength", float(self.env_config.get('episode_max_steps', 100)))
+        env_sfp("segmentationMode",
+                float(self.env_config.get('segmentation_mode', 1)))
+        env_sfp("observationMode",
+                float(self.env_config.get('observation_mode', 2)))
+        env_sfp("episodeLength",
+                float(self.env_config.get('episode_max_steps', 100)))
         env_sfp("selectedTaskIndex", float(self.env_config.get('task', 0)))
         env_sfp("goalSelectionIndex", float(self.env_config.get('goal', 0)))
-        env_sfp("agentCarPhysics", float(self.env_config.get('agent_car_physics', 0)))
+        env_sfp("agentCarPhysics",
+                float(self.env_config.get('agent_car_physics', 0)))
         env_sfp("goalDistance", float(self.env_config.get('goal_distance', 50)))
 
         env_path = self.env_config.get('env_path')
         env_path = None if env_path is None else str(Path(env_path).resolve())
 
-        uenv = UnityEnvironment(file_name=env_path,
-                                log_folder=str(log_folder.resolve()),
-                                seed=seed,
-                                timeout_wait=self.env_config.get(
-                                    'timeout', 600),
-                                worker_id=self.env_config.get(
-                                    'worker_id', 0),
-                                # base_port=self.conf['base_port'],
-                                no_graphics=False,
-                                side_channels=[eng_sc, env_pc,
-                                               self.map_side_channel, self.fpc])
+        self._navsim_base_port = self.env_config.get('base_port', None)
+        if self._navsim_base_port is None:
+            self._navsim_base_port = UnityEnvironment.BASE_ENVIRONMENT_PORT if env_path else UnityEnvironment.DEFAULT_EDITOR_PORT
+        self._navsim_worker_id = self.env_config.get('worker_id', 0)
+
+        while True:
+            try:
+                uenv = UnityEnvironment(file_name=env_path,
+                                        log_folder=log_folder_str,
+                                        seed=seed,
+                                        timeout_wait=self.env_config.get(
+                                            'timeout', 600),
+                                        worker_id=self._navsim_worker_id,
+                                        base_port=self._navsim_base_port,
+                                        no_graphics=False,
+                                        side_channels=[eng_sc, env_pc,
+                                                       self.map_side_channel,
+                                                       self.fpc],
+                                        additional_args=[
+                                            f"-force-device-index {self.env_config.get('env_gpu_id', 0)}"])
+            except UnityWorkerInUseException:
+                time.sleep(2)
+                self._navsim_base_port += 1
+            else:
+                print(f"Created UnityEnvironment at port "
+                      f"{self._navsim_base_port + self._navsim_worker_id}")
+                break
 
         super().__init__(unity_env=uenv,
                          uint8_visual=False,
@@ -112,40 +143,76 @@ class NavSimGymEnv(UnityToGymWrapper):
         # TODO: Once the environment has capability to start from an episode, then remove this
         for i in range(1, self.start_from_episode):
             self.reset()
-            
+
         # (Env, uint8_visual, flatten_branched, allow_multiple_obs)
         # self.seed(self.conf['seed']) # unity-gym env seed is not working, seed has to be passed with unity env
         if self.debug:
             # open the debug files
             # TODO: the filenames should be prefixed with specific id of this instance of env
-            self.file_mode = 'w+'
-            self.actions_file = open(
-                str((self.run_base_folder / 'actions.txt').resolve()),
-                mode=self.file_mode)
-            self.observations_file = open(
-                str((self.run_base_folder / 'observations.txt').resolve()),
-                mode=self.file_mode)
+            file_mode = 'a'
+            self.actions_file = (log_folder / 'actions.csv').open(
+                mode=file_mode)
             self.actions_writer = csv.writer(self.actions_file,
                                              delimiter=',',
                                              quotechar='"',
                                              quoting=csv.QUOTE_MINIMAL)
-            self.observations_writer = csv.writer(self.observations_file,
-                                                  delimiter=',',
-                                                  quotechar='"',
-                                                  quoting=csv.QUOTE_MINIMAL)
+        if self.save_visual_obs:
+            if self.observation_mode in [1, 2]:
+                self.rgb_folder = log_folder / 'rgb_obs'
+                self.rgb_folder.mkdir(parents=True, exist_ok=True)
+                self.dep_folder = log_folder / 'dep_obs'
+                self.dep_folder.mkdir(parents=True, exist_ok=True)
+                self.seg_folder = log_folder / 'seg_obs'
+                self.seg_folder.mkdir(parents=True, exist_ok=True)
+            else:
+                self.save_visual_obs = False
+
+        if self.save_vector_obs:
+            if self.observation_mode in [0, 2]:
+                self.vec_file = (log_folder / 'vec_obs.csv').open(mode='a')
+                self.vec_writer = csv.writer(self.vec_file,
+                                             delimiter=',',
+                                             quotechar='"',
+                                             quoting=csv.QUOTE_MINIMAL)
+            else:
+                self.save_vector_obs = False
+
+    def save_obs(self, obs):
+        if self.save_vector_obs:
+            self.vec_writer.writerow(obs[-1])
+            self.vec_file.flush()
+        if self.save_visual_obs:
+            filename=f'{self.e_num}_{self.s_num}.jpg'
+            cv2.imwrite(str(self.rgb_folder / filename), obs[0]*255)
+            cv2.imwrite(str(self.dep_folder / filename), obs[1]*255)
+            cv2.imwrite(str(self.seg_folder / filename), obs[2]*255)
+
+    def reset(self) -> Union[List[np.ndarray], np.ndarray]:
+        result = super().reset()
+        self.obs = result
+        if self.keep_es_num:
+            self.e_num += 1
+            self.s_num=0
+        self.save_obs(self.obs)
+
+        return result
 
     def step(self, action: List[Any]) -> GymStepResult:
         result = super().step(action)
-
+        self.obs = result[0]
+        if self.keep_es_num:
+            self.s_num += 1
         if self.debug:
             self.actions_writer.writerow(action)
             self.actions_file.flush()
-            if self.observation_mode in [0, 2]:
-                vector_obs = result[0][-1]
-                self.observations_writer.writerow(vector_obs)
-                self.observations_file.flush()
+        self.save_obs(self.obs)
 
         return result
+
+    def close(self):
+        if self.save_vector_obs:
+            self.vec_file.close()
+        super().close()
 
     def info(self):
         """Prints the information about the environment
@@ -184,24 +251,36 @@ class NavSimGymEnv(UnityToGymWrapper):
         """
         return [type(obs) for obs in self.observation_space.spaces]
 
-    def render(self, mode='') -> None:
-        """Not implemented yet
+    def render(self, mode='rgb_array') -> None:
+        """Returns the image array based on the render mode
 
         Args:
-            mode:
+            mode: 'rgb_array' or 'depth' or 'segmentation'
 
         Returns:
-
+            For Observation Modes 1 and 2:
+                For each render mode returns a numpy array of the image.
+            For Observation Mode 0:
+                None
         """
-        pass
+        if self.observation_mode in [1, 2]:
+            if mode == 'rgb_array':
+                visual_obs = self.obs[0:3][0]
+            if mode == 'rgb_array':
+                visual_obs = self.obs[0:3][1]
+            if mode == 'rgb_array':
+                visual_obs = self.obs[0:3][2]
+        else:
+            visual_obs = None
+        return visual_obs
 
-    def start_navigable_map(self, resolution_x=200, resolution_y=200,
+    def start_navigable_map(self, resolution_x=256, resolution_y=256,
                             cell_occupancy_threshold=0.5):
         """Get the Navigable Areas map
 
         Args:
-            resolution_x: The size of the x axis of the resulting grid, default = 200
-            resolution_y: The size of the y axis of the resulting grid, default = 200
+            resolution_x: The size of the x axis of the resulting grid, default = 256
+            resolution_y: The size of the y axis of the resulting grid, default = 256
             cell_occupancy_threshold: If at least this much % of the cell is occupied, then it will be marked as non-navigable, default = 50%
 
         Returns:
@@ -291,6 +370,7 @@ class NavSimGymEnv(UnityToGymWrapper):
 
             input_data.append(random_input)
             input_names.append(input_name)
+
 
 class MapSideChannel(SideChannel):
     """

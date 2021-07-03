@@ -52,7 +52,7 @@ def helper(env_conf):
             env.info()
 
             # create a memory for random play
-            #memory = airsim.Memory(capacity = rl_conf.memory_capacity,
+            #memory = airsim.NumpyMemory(capacity = rl_conf.memory_capacity,
             #                       state_shapes = env.observation_space_shapes,
             #                       action_shape = env.action_space_shape,
             #                       seed = env.seed)
@@ -107,7 +107,7 @@ def helper(env_conf):
 
                 # sample the memory
                 #s,a,r,s_,d = memory.sample(100)
-                #airsim.Memory.sample_info(s,a,r,s_,d)
+                #airsim.NumpyMemory.sample_info(s,a,r,s_,d)
                     step_resources.append(rc.snapshot())  #3
 
                     print(step_resources)

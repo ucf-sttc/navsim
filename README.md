@@ -46,11 +46,10 @@ first follow the instructions to setup the host.
 1. Download and extract the unity binary zip file, and
 2. The following environment variables need to be set in both cases:
 ```
-envdir=$(realpath "/data/work/unity-envs/Build2.8.1"); envbin="Berlin_Walk_V2.x86_64"; expdir=$(realpath "$HOME/exp");
-repo="ghcr.io/armando-fandango"; cname="$(hostname)_navsim_1"
-
+envdir=$(realpath "/data/work/unity-envs/Build2.8.1"); envbin="Berlin_Walk_V2.x86_64"; 
+expdir=$(realpath "$HOME/exp"); runid="navsim_demo"
+repo="ghcr.io/armando-fandango";
 ```
-   
 3. Now follow the container, or the host option below.
    
 ### Option 1: Container
@@ -59,7 +58,7 @@ repo="ghcr.io/armando-fandango"; cname="$(hostname)_navsim_1"
 cd $expdir
 docker run --rm --privileged -it --runtime=nvidia \
 --name $cname \
--h $cname \
+-h $runid \
 -e XAUTHORITY \
 -e NVIDIA_VISIBLE_DEVICES=all -e NVIDIA_DRIVER_CAPABILITIES=all \
 -e USER_ID=$(id -u) -e USER_HOME="$HOME" \
@@ -94,7 +93,7 @@ Run the `navsim` command as described in its section below.
 ### The `<navsim command>`
 
 * `navsim --help` shows the options
-* `navsim --env $envdir/$envbin` - executes and/or trains the model
+* `navsim --run_id $runid --env $envdir/$envbin` - executes and/or trains the model
 * `navsim-benchmark $envdir/$envbin` - benchmarks the model
 * `navsim-saturate-gpu $envdir/$envbin` - Saturates the GPU
 * Replace the navsim command with your own command if you are just importing the NavSim env.
@@ -106,25 +105,24 @@ Run the `navsim` command as described in its section below.
 ### Steps
 
 1. Download following files:
-* `ezai-conda.sh`
-* `ezai-conda-req.txt`
-* `ezai-pip-req.txt`
-
-2. Install miniconda (if not already installed)
-  
-```
-CONDA_ROOT=/opt/conda
-sudo mkdir $CONDA_ROOT
-sudo chown $(id -u) $CONDA_ROOT
-source ezai-conda.sh && install_miniconda
-```
-
+    * `ezai-conda.sh`
+    * `ezai-conda-req.txt`
+    * `ezai-pip-req.txt`
+2. miniconda: We suggest you install miniconda from our script, but if you have 
+   miniconda installed already then you can skip to next step to create conda 
+   environment. If next step doesn't work, then come back and follow the 
+   instructions to install miniconda.
+    ```
+    CONDA_ROOT=/opt/conda
+    sudo mkdir $CONDA_ROOT
+    sudo chown $(id -u) $CONDA_ROOT
+    source ezai-conda.sh && install_miniconda
+    ```
 3. Create the conda env for `navsim`
-
-```
-ENVS_ROOT=/opt/conda/envs
-source ezai-conda.sh; ezai_conda_create --venv "$ENVS_ROOT/navsim"
-```
+    ```
+    ENVS_ROOT=$(conda info --base)/envs
+    source ezai-conda.sh && ezai_conda_create --venv "$ENVS_ROOT/navsim"
+    ```
 
 ## TODO: Clean up the following section
 
