@@ -60,9 +60,9 @@ def _create_argparser() -> argparse.ArgumentParser:
 
     run_conf.add_argument(
         "--train_interval",
-        default=1,
+        default=16,
         dest="train_interval",
-        help="Train the model after these many steps. If set to 0 then model wont train",
+        help="Train the model after these many global steps. If set to 0 then model wont train",
         action=ArgAction,
     )
 
