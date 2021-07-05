@@ -54,7 +54,9 @@ class NavSimGymEnv(UnityToGymWrapper):
         self.save_vector_obs = env_config.get("save_vector_obs", False)
         if self.save_vector_obs:
             self.keep_es_num = True
-
+        else:
+            self.keep_es_num=False
+            
         if self.keep_es_num:
             self.e_num = self.start_from_episode - 1
             self.s_num = 0
@@ -182,17 +184,17 @@ class NavSimGymEnv(UnityToGymWrapper):
             self.vec_writer.writerow(obs[-1])
             self.vec_file.flush()
         if self.save_visual_obs:
-            filename=f'{self.e_num}_{self.s_num}.jpg'
-            cv2.imwrite(str(self.rgb_folder / filename), obs[0]*255)
-            cv2.imwrite(str(self.dep_folder / filename), obs[1]*255)
-            cv2.imwrite(str(self.seg_folder / filename), obs[2]*255)
+            filename = f'{self.e_num}_{self.s_num}.jpg'
+            cv2.imwrite(str(self.rgb_folder / filename), obs[0] * 255)
+            cv2.imwrite(str(self.dep_folder / filename), obs[1] * 255)
+            cv2.imwrite(str(self.seg_folder / filename), obs[2] * 255)
 
     def reset(self) -> Union[List[np.ndarray], np.ndarray]:
         result = super().reset()
         self.obs = result
         if self.keep_es_num:
             self.e_num += 1
-            self.s_num=0
+            self.s_num = 0
         self.save_obs(self.obs)
 
         return result
@@ -266,9 +268,9 @@ class NavSimGymEnv(UnityToGymWrapper):
         if self.observation_mode in [1, 2]:
             if mode == 'rgb_array':
                 visual_obs = self.obs[0:3][0]
-            if mode == 'rgb_array':
+            elif mode == 'depth':
                 visual_obs = self.obs[0:3][1]
-            if mode == 'rgb_array':
+            elif mode == 'segmentation':
                 visual_obs = self.obs[0:3][2]
         else:
             visual_obs = None
@@ -336,24 +338,16 @@ class NavSimGymEnv(UnityToGymWrapper):
         """Registers the environment with gym registry with the name navsim
 
         """
-        try:
-            from gym.envs.registration import register
-            register(id='navsim', entry_point='navsim.NavSimGymEnv')
-        except Exception as e:
-            print("Can not register NavSim Environment with Gym")
-            print(e.message)
+        from gym.envs.registration import register
+        register(id='navsim-v0', entry_point='navsim:NavSimGymEnv')
 
     @staticmethod
     def register_with_ray():
         """Registers the environment with ray registry with the name navsim
 
         """
-        try:
-            from ray.tune.registry import register_env
-            register_env("navsim", navsimgymenv_creator)
-        except Exception as e:
-            print("Can not register NavSim Environment with Ray")
-            print(e.message)
+        from ray.tune.registry import register_env
+        register_env("navsim-v0", navsimgymenv_creator)
 
     def get_observation_sample(self):
         # prepare input data

@@ -75,7 +75,6 @@ def main():
     run_conf = ObjDict({
         "run_id": args["run_id"],
         "agent_gpu_id": int(args["agent_gpu_id"]),
-        "env_name": "navsim",
         "episode_max_steps": int(args["episode_max_steps"]),
         "total_episodes": int(args["total_episodes"]),
         "seed": int(args["seed"]),
@@ -103,7 +102,7 @@ def main():
         conf = ObjDict()
         conf['run_config'] = run_conf
 
-    conf["env"] = "navsim"
+    conf["env"] = "navsim-v0"
     conf["num_workers"] = 1
     conf['env_config'] = env_conf
 
@@ -169,6 +168,7 @@ def main():
                         "reward_for_falling_off_map", "reward_for_step"]:
                 conf["env_config"][arg] = float(conf["env_config"][arg])
 
+        navsim.NavSimGymEnv.register_with_gym()
         executor = navsim.Executor(run_id=args["run_id"],
                                    resume=args["resume"],
                                    conf=conf)

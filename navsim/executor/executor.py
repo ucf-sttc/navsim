@@ -8,12 +8,12 @@ from tqdm import tqdm
 import numpy as np
 import math
 
-from navsim import NavSimGymEnv, DDPGAgent, NumpyMemory
+import gym
+from navsim import DDPGAgent
 from navsim.util import sizeof_fmt, image_layout, s_hwc_to_chw
 from navsim.util import ObjDict, ResourceCounter
 
 import traceback
-import numpy as np
 from torch.utils.tensorboard import SummaryWriter
 
 
@@ -112,6 +112,9 @@ class Executor:
             self.env_open()
 
             self.max_action = self.env.action_space.high[0]
+
+            # Let us set the GPU or CPU
+
             if torch.cuda.is_available():
                 torch.set_num_threads(1)
                 torch.set_num_interop_threads(1)
@@ -119,24 +122,27 @@ class Executor:
                     f"cuda:{self.run_conf['agent_gpu_id']}")
                 torch.cuda.set_device(self.run_conf['agent_gpu_id'])
                 torch.cuda.empty_cache()
-
             else:
                 self.device = torch.device('cpu')
                 torch.set_num_threads(8)
                 torch.set_num_interop_threads(8)
-
-            print(f'The device selected is {self.device}')
-            print(f'Torch is using {torch.get_num_threads()} threads and '
+            print(f'Torch is using {self.device}, '
+                  f'{torch.get_num_threads()} threads and '
                   f'{torch.get_num_interop_threads()} interop threads')
-
 
             # self.summary_writer.add_graph(self.agent.actor)
             # self.summary_writer.add_graph(self.agent.critic)
             if self.run_conf["mem_backend"] == "cupy":
-                from navsim import CupyMemory
-                CupyMemory.set_device(self.run_conf['agent_gpu_id'])
-                mem_backend = CupyMemory
+                if torch.cuda.is_available():
+                    from navsim import CupyMemory
+                    CupyMemory.set_device(self.run_conf['agent_gpu_id'])
+                    mem_backend = CupyMemory
+                else:
+                    raise ValueError(
+                        "mem_backend=cupy but GPU is not available")
             elif self.run_conf["mem_backend"] == "numpy":
+                if torch.cuda.is_available():
+                    print("Warning: GPU is available but mem_backend=numpy")
                 from navsim import NumpyMemory
                 mem_backend = NumpyMemory
 
@@ -174,10 +180,6 @@ class Executor:
             torch.manual_seed(self.run_conf['seed'])
             np.random.seed(self.run_conf['seed'])
 
-        # TODO: Enable tensorboard logging
-        #        if self.enable_logging:
-        #            from torch.utils.tensorboard import SummaryWriter
-        #            self.writer = SummaryWriter('./logs/' + self.run_conf['env_name'] + '/')
         except Exception as e:
             self.env_close()
             self.files_close()
@@ -228,7 +230,8 @@ class Executor:
 
     def env_open(self):
         self.rc.start()
-        self.env = NavSimGymEnv(self.env_config)
+
+        self.env = gym.make(self.conf["env"], env_config=self.env_config)
         time_since_start, current_memory, peak_memory = self.rc.stop()
         log_str = f'Unity env creation resource usage: \n' \
                   f'time:{time_since_start},' \
@@ -272,11 +275,11 @@ class Executor:
         #        print(f"{num_episode_blocks},{num_episodes},{self.conf.env_config['start_from_episode']}")
         t_global = 1
 
-        episode_resources = np.full((checkpoint_interval, 2,3), 0.0)
-        #[[[0] * 3] * 2] * checkpoint_interval
+        episode_resources = np.full((checkpoint_interval, 2, 3), 0.0)
+        # [[[0] * 3] * 2] * checkpoint_interval
         episode_steps = [0] * checkpoint_interval
-        step_res = np.full((checkpoint_interval, t_max,10,3), 0.0)
-        #[[[[0] * 3] * 10] * t_max] * checkpoint_interval
+        step_res = np.full((checkpoint_interval, t_max, 10, 3), 0.0)
+        # [[[[0] * 3] * 10] * t_max] * checkpoint_interval
         step_rew = np.full((checkpoint_interval, t_max), 0.0)
 
         for i in range(0, num_episode_blocks):
@@ -285,8 +288,8 @@ class Executor:
             stop_episode = min((self.conf.env_config["start_from_episode"] - 1)
                                + ((i + 1) * checkpoint_interval),
                                total_episodes)
-            episodes_in_block = stop_episode-start_episode+1
-            #episode_rewards = np.full(episodes_in_block, 0.0)
+            episodes_in_block = stop_episode - start_episode + 1
+            # episode_rewards = np.full(episodes_in_block, 0.0)
             checkpoint_counter = 0
 
             for episode_num in tqdm(
@@ -296,11 +299,12 @@ class Executor:
                     bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{rate_fmt}{postfix}]'):
                 self.rc.start()
                 episode_counter = episode_num - start_episode
-                episode_resources[checkpoint_counter,0] = self.rc.snapshot()  # e0
+                episode_resources[
+                    checkpoint_counter, 0] = self.rc.snapshot()  # e0
 
                 # initialise the episode counters
                 episode_done = False
-                #episode_reward = 0
+                # episode_reward = 0
                 t = 1
 
                 # self.env.start_navigable_map()
@@ -317,7 +321,7 @@ class Executor:
                 #    cv2.imwrite(str((self.run_base_folder / f'navigable_map_{episode_num}.jpg').resolve()),navigable_map*255)
                 # else:
                 #    print(f'Map for episode {episode_num} is None')
-                #step_res = [[0, 0, 0]] * 10
+                # step_res = [[0, 0, 0]] * 10
 
                 while not episode_done:
                     # s0: start of overall_step
@@ -327,26 +331,34 @@ class Executor:
                     # s7,8: before and after memory.append()
                     # s9: end of step
 
-                    step_res[checkpoint_counter,t-1,0] = self.rc.snapshot()  # s0
+                    step_res[
+                        checkpoint_counter, t - 1, 0] = self.rc.snapshot()  # s0
 
                     # do the random sampling until enough memory is full
                     if self.memory.size < batch_size:
                         a = self.env.action_space.sample()
-                        step_res[checkpoint_counter,t-1,1:5] = [[0.0] * 3] * 4  # s1-4
+                        step_res[checkpoint_counter, t - 1, 1:5] = [[
+                                                                        0.0] * 3] * 4  # s1-4
                     else:
                         # TODO: Find the best place to train, moved here for now
-                        if train_interval and ((t_global % train_interval) == 0):
-                            step_res[checkpoint_counter,t-1,1] = self.rc.snapshot()  # s1
+                        if train_interval and (
+                                (t_global % train_interval) == 0):
+                            step_res[
+                                checkpoint_counter, t - 1, 1] = self.rc.snapshot()  # s1
                             batch_s, batch_a, batch_r, batch_s_, batch_d = \
                                 self.memory.sample(batch_size)
-                            step_res[checkpoint_counter,t-1,2] = self.rc.snapshot()  # s2
+                            step_res[
+                                checkpoint_counter, t - 1, 2] = self.rc.snapshot()  # s2
                             # print('training the agent')
-                            step_res[checkpoint_counter,t-1,3] = self.rc.snapshot()  # s3
+                            step_res[
+                                checkpoint_counter, t - 1, 3] = self.rc.snapshot()  # s3
                             self.agent.train(batch_s, batch_a, batch_r,
                                              batch_s_, batch_d)
-                            step_res[checkpoint_counter,t-1,4] = self.rc.snapshot()  # s4
+                            step_res[
+                                checkpoint_counter, t - 1, 4] = self.rc.snapshot()  # s4
                         else:
-                            step_res[checkpoint_counter,t-1,1:5] = [[0.0] * 3] * 4  # s1-4
+                            step_res[checkpoint_counter, t - 1, 1:5] = [[
+                                                                            0.0] * 3] * 4  # s1-4
 
                         a = (self.agent.select_action(s) + np.random.normal(
                             0, self.max_action * self.run_conf['expl_noise'],
@@ -356,9 +368,11 @@ class Executor:
                             self.max_action
                         )
 
-                    step_res[checkpoint_counter,t-1,5] = self.rc.snapshot()  # s5
+                    step_res[
+                        checkpoint_counter, t - 1, 5] = self.rc.snapshot()  # s5
                     s_, r, episode_done, info = self.env.step(a)
-                    step_res[checkpoint_counter,t-1,6] = self.rc.snapshot()  # s6
+                    step_res[
+                        checkpoint_counter, t - 1, 6] = self.rc.snapshot()  # s6
 
                     # because pytorch can only deal with images in CHW format
                     # we are making the optimization here to convert from HWC to CHW format.
@@ -371,33 +385,36 @@ class Executor:
                     # s_ = [s_]
                     # for item in s_:
 
-                    step_res[checkpoint_counter,t-1,7] = self.rc.snapshot()  # s7
+                    step_res[
+                        checkpoint_counter, t - 1, 7] = self.rc.snapshot()  # s7
                     self.memory.append(
                         s=s, a=a, s_=s_, r=r,
                         d=float(episode_done))  # if t < t_max -1 else 1)
                     s = s_
-                    step_res[checkpoint_counter,t-1,8] = self.rc.snapshot()  # s8
+                    step_res[
+                        checkpoint_counter, t - 1, 8] = self.rc.snapshot()  # s8
 
-                    step_rew[checkpoint_counter, t-1] = r
-                    #episode_rewards[checkpoint_counter] += r
+                    step_rew[checkpoint_counter, t - 1] = r
+                    # episode_rewards[checkpoint_counter] += r
 
                     # if self.memory.size >= self.run_conf['batch_size'] * self.run_conf['batches_before_train']:
 
                     #                    if (t >= self.config['batch_size'] * self.config['batches_before_train']) and (t % 1000 == 0):
                     # episode_evaluations.append(evaluate_policy(self.agent, self.env, self.config['seed']))
 
-                    step_res[checkpoint_counter,t-1,9] = self.rc.snapshot()  # s9
-                    #print(checkpoint_counter,t-1, step_res[checkpoint_counter][t-1])
-                    #print(t,step_res[0][0])
+                    step_res[
+                        checkpoint_counter, t - 1, 9] = self.rc.snapshot()  # s9
+                    # print(checkpoint_counter,t-1, step_res[checkpoint_counter][t-1])
+                    # print(t,step_res[0][0])
                     if episode_done or (t_max and (t >= t_max)):
                         break
                     else:
                         t += 1
-                #print(step_res[0][0])
+                # print(step_res[0][0])
                 # end of while loop for one episode
                 # episode end processing
-                episode_resources[checkpoint_counter,1] = self.rc.stop()  # e1
-                episode_steps[checkpoint_counter]=t
+                episode_resources[checkpoint_counter, 1] = self.rc.stop()  # e1
+                episode_steps[checkpoint_counter] = t
                 checkpoint_counter += 1
 
                 #            if self.enable_logging:
@@ -413,28 +430,29 @@ class Executor:
             # now lets checkpoint everything
 
             # model and memory checkpoint
-            with open(self.episode_num_filename,mode='w') as episode_num_file:
+            with open(self.episode_num_filename, mode='w') as episode_num_file:
                 episode_num_file.write(str(episode_num))
             model_filename = f"{self.run_base_folder_str}/{episode_num}_model_state.pt"
             memory_filename = f"{self.run_base_folder_str}/{episode_num}_memory.pkl"
             self.agent.save_checkpoint(model_filename)
             self.memory.save_to_pkl(memory_filename)
 
-            #print(step_res[0][0])
+            # print(step_res[0][0])
             # episode data checkpoint
             for e_num in range(episodes_in_block):
-                episode_time = episode_resources[e_num,1,0] - episode_resources[e_num,0,0]
-                episode_reward = step_rew[e_num,0:episode_steps[e_num]].sum()
+                episode_time = episode_resources[e_num, 1, 0] - \
+                               episode_resources[e_num, 0, 0]
+                episode_reward = step_rew[e_num, 0:episode_steps[e_num]].sum()
                 self.write_tb('episode',
                               {'reward': episode_reward,
                                'time': episode_time,
-                               'peak_memory': episode_resources[e_num,1,2]},
-                              start_episode+e_num) #episode_num
-                self.episode_results_writer.writerow([start_episode+e_num, #episode_num
-                                                      episode_reward,
-                                                      episode_time,
-                                                      episode_resources[e_num,1,2]]) # episode_peak_memory
-
+                               'peak_memory': episode_resources[e_num, 1, 2]},
+                              start_episode + e_num)  # episode_num
+                self.episode_results_writer.writerow(
+                    [start_episode + e_num,  # episode_num
+                     episode_reward,
+                     episode_time,
+                     episode_resources[e_num, 1, 2]])  # episode_peak_memory
 
                 # step data checkpoint
                 for t in range(episode_steps[e_num]):
@@ -444,15 +462,20 @@ class Executor:
                     # s5,6: before and after env.step()
                     # s7,8: before and after memory.append()
                     # s9: end of step
-                    #print(e_num,t,step_res[e_num][t])
-                    step_time = step_res[e_num,t,9,0] - step_res[e_num,t,0,0]
-                    memory_sample_time = step_res[e_num,t,2,0] - step_res[e_num,t,1,0]
-                    agent_train_time = step_res[e_num,t,4,0] - step_res[e_num,t,3,0]
-                    env_step_time = step_res[e_num,t,6,0] - step_res[e_num,t,5,0]
-                    memory_append_time = step_res[e_num,t,8,0] - step_res[e_num,t,7,0]
+                    # print(e_num,t,step_res[e_num][t])
+                    step_time = step_res[e_num, t, 9, 0] - step_res[
+                        e_num, t, 0, 0]
+                    memory_sample_time = step_res[e_num, t, 2, 0] - step_res[
+                        e_num, t, 1, 0]
+                    agent_train_time = step_res[e_num, t, 4, 0] - step_res[
+                        e_num, t, 3, 0]
+                    env_step_time = step_res[e_num, t, 6, 0] - step_res[
+                        e_num, t, 5, 0]
+                    memory_append_time = step_res[e_num, t, 8, 0] - step_res[
+                        e_num, t, 7, 0]
                     # peak_memory = step_res[3][2]
-                    current_memory = step_res[e_num,t,9,1]
-                    r = step_rew[e_num,t]
+                    current_memory = step_res[e_num, t, 9, 1]
+                    r = step_rew[e_num, t]
                     self.write_tb('step',
                                   {'step_reward': r,
                                    'step_time': step_time,
@@ -463,7 +486,8 @@ class Executor:
                                    'current_memory': current_memory},
                                   t_global)
                     self.step_results_writer.writerow(
-                        [start_episode+e_num, t+1, r, step_time, env_step_time,
+                        [start_episode + e_num, t + 1, r, step_time,
+                         env_step_time,
                          memory_append_time, memory_sample_time,
                          agent_train_time, current_memory])
                     t_global += 1

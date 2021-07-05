@@ -3,11 +3,13 @@ from typing import Optional, List, Set
 
 non_default_args: Set[str] = set()
 
+
 class ArgAction(argparse.Action):
     """
     Class to handle actions.
     - Add to the non-default list.
     """
+
     def __call__(self, arg_parser, namespace, values, option_string=None):
         setattr(namespace, self.dest, values)
         non_default_args.add(self.dest)
@@ -24,6 +26,7 @@ class ArgActionStoreTrue(ArgAction):
     def __call__(self, arg_parser, namespace, values, option_string=None):
         super().__call__(arg_parser, namespace, True, option_string)
 
+
 def _create_argparser() -> argparse.ArgumentParser:
     argparser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
@@ -31,7 +34,10 @@ def _create_argparser() -> argparse.ArgumentParser:
     # argparser.add_argument(
     #    "config_file", nargs="?", default=None
     # )
-    run_conf = argparser.add_argument_group(title="Run Configuration")
+
+    run_desc = "The arguments are used to configure the runtime execution."
+    run_conf = argparser.add_argument_group(title="Run Configuration",
+                                            description=run_desc)
 
     run_conf.add_argument(
         "--run_id",
@@ -48,21 +54,6 @@ def _create_argparser() -> argparse.ArgumentParser:
         "--rl_backend",
         default=None,
         help="The backend library for RL.",
-        action=ArgAction,
-    )
-
-    run_conf.add_argument(
-        "--mem_backend",
-        default="cupy",
-        help="The backend library for Rollback Memory.",
-        action=ArgAction,
-    )
-
-    run_conf.add_argument(
-        "--train_interval",
-        default=16,
-        dest="train_interval",
-        help="Train the model after these many global steps. If set to 0 then model wont train",
         action=ArgAction,
     )
 
@@ -100,6 +91,13 @@ def _create_argparser() -> argparse.ArgumentParser:
         dest="total_episodes",
         action=ArgAction,
         help="Total number of episodes to run. If resume is used, then it will try to read the previously run episodes and continue from there.",
+    )
+    run_conf.add_argument(
+        "--train_interval",
+        default=16,
+        dest="train_interval",
+        help="Train the model after these many global steps. If set to 0 then model wont train",
+        action=ArgAction,
     )
 
     run_conf.add_argument(
@@ -171,7 +169,9 @@ def _create_argparser() -> argparse.ArgumentParser:
         help="Total capacity of memory, should be > batch_size",
     )
 
-    env_conf = argparser.add_argument_group(title="Environment Configuration")
+    env_desc = "The arguments are used to configure the environment."
+    env_conf = argparser.add_argument_group(title="Environment Configuration",
+                                            description=env_desc)
     env_conf.add_argument(
         "--env",
         default=None,
@@ -284,6 +284,18 @@ def _create_argparser() -> argparse.ArgumentParser:
         action=ArgActionStoreTrue,
         help="Save the vector observations at every step",
     )
+
+    dev_desc = "The arguments are used by developers to benchmark and debug navsim API"
+    dev_conf = argparser.add_argument_group(title="Developer Configuration",
+                                            description=dev_desc)
+
+    dev_conf.add_argument(
+        "--mem_backend",
+        default="cupy",
+        help="The backend library for Rollback Memory.",
+        action=ArgAction,
+    )
+
     return argparser
 
 
