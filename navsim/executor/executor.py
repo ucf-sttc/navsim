@@ -63,8 +63,8 @@ class Executor:
         self.conf = conf
         self.resume = resume
 
-        self.run_base_folder = Path(self.run_id)
-        self.run_base_folder_str = str(self.run_base_folder.resolve())
+        self.run_base_folder = Path(self.run_id).resolve()
+        self.run_base_folder_str = str(self.run_base_folder)
         #        if run_base_folder.is_dir():
         #            raise ValueError(f"{run_base_folder_str} exists as a non-directory. "
         #                             f"Please remove the file or use a different run_id")
@@ -83,19 +83,31 @@ class Executor:
         self.env_config = ObjDict(self.conf.env_config)
 
         pylog_filename = self.run_base_folder / 'py.log'  # TODO: use logger
-        self.pylog_filename = str(pylog_filename.resolve())
+        self.pylog_filename = str(pylog_filename)
         step_results_filename = self.run_base_folder / 'step_results.csv'
-        self.step_results_filename = str(step_results_filename.resolve())
+        self.step_results_filename = str(step_results_filename)
         episode_results_filename = self.run_base_folder / 'episode_results.csv'
-        self.episode_results_filename = str(episode_results_filename.resolve())
-        env_log_folder = self.run_base_folder / 'env.log'
-        self.env_config.log_folder = str(env_log_folder.resolve())
+        self.episode_results_filename = str(episode_results_filename)
+
+
 
         self.episode_num_filename = f"{self.run_base_folder_str}/last_checkpointed_episode_num.txt"
 
         # TODO: Add the code to delete previous files
         # TODO: Add the code to add categories
-        self.summary_writer = SummaryWriter(f"{self.run_base_folder_str}/tb")
+        env_log_folder = self.run_base_folder / 'env_log'
+        tb_folder = self.run_base_folder / 'tb'
+        agent_folder = self.run_base_folder / 'agent'
+        if not resume:
+            import shutil
+            for folder in [tb_folder, agent_folder, env_log_folder]:
+                if folder.exists():
+                    shutil.rmtree(folder)
+                folder.mkdir(parents=True, exist_ok=True)
+
+        self.agent_folder_str = str(agent_folder)
+        self.env_config.log_folder = str(env_log_folder)
+        self.summary_writer = SummaryWriter(f"{str(tb_folder)}")
 
         self.rc = ResourceCounter()
         self.files_open()
@@ -147,8 +159,8 @@ class Executor:
                 mem_backend = NumpyMemory
 
             if resume and self.run_base_folder.is_dir():
-                model_filename = f"{self.run_base_folder_str}/{episode_num}_model_state.pt"
-                memory_filename = f"{self.run_base_folder_str}/{episode_num}_memory.pkl"
+                model_filename = f"{self.agent_folder_str}/{episode_num}_model_state.pt"
+                memory_filename = f"{self.agent_folder_str}/{episode_num}_memory.pkl"
                 self.memory = mem_backend.load_from_pkl(memory_filename)
             else:
                 memory_observation_space_shapes = []
@@ -432,8 +444,8 @@ class Executor:
             # model and memory checkpoint
             with open(self.episode_num_filename, mode='w') as episode_num_file:
                 episode_num_file.write(str(episode_num))
-            model_filename = f"{self.run_base_folder_str}/{episode_num}_model_state.pt"
-            memory_filename = f"{self.run_base_folder_str}/{episode_num}_memory.pkl"
+            model_filename = f"{self.agent_folder_str}/{episode_num}_model_state.pt"
+            memory_filename = f"{self.agent_folder_str}/{episode_num}_memory.pkl"
             self.agent.save_checkpoint(model_filename)
             self.memory.save_to_pkl(memory_filename)
 

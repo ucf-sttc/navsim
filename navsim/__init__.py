@@ -14,4 +14,6 @@ from .env import (
     navsimgymenv_creator,
 )
 
+NavSimGymEnv.register_with_gym()
+
 from .executor import Executor

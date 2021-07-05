@@ -55,8 +55,8 @@ class NavSimGymEnv(UnityToGymWrapper):
         if self.save_vector_obs:
             self.keep_es_num = True
         else:
-            self.keep_es_num=False
-            
+            self.keep_es_num = False
+
         if self.keep_es_num:
             self.e_num = self.start_from_episode - 1
             self.s_num = 0
@@ -146,14 +146,10 @@ class NavSimGymEnv(UnityToGymWrapper):
         for i in range(1, self.start_from_episode):
             self.reset()
 
-        # (Env, uint8_visual, flatten_branched, allow_multiple_obs)
-        # self.seed(self.conf['seed']) # unity-gym env seed is not working, seed has to be passed with unity env
-        if self.debug:
+        if self.save_visual_obs or self.save_vector_obs:
             # open the debug files
             # TODO: the filenames should be prefixed with specific id of this instance of env
-            file_mode = 'a'
-            self.actions_file = (log_folder / 'actions.csv').open(
-                mode=file_mode)
+            self.actions_file = (log_folder / 'actions.csv').open(mode='a')
             self.actions_writer = csv.writer(self.actions_file,
                                              delimiter=',',
                                              quotechar='"',
@@ -204,16 +200,16 @@ class NavSimGymEnv(UnityToGymWrapper):
         self.obs = result[0]
         if self.keep_es_num:
             self.s_num += 1
-        if self.debug:
+        self.save_obs(self.obs)
+        if self.save_vector_obs or self.save_visual_obs:
             self.actions_writer.writerow(action)
             self.actions_file.flush()
-        self.save_obs(self.obs)
-
         return result
 
     def close(self):
         if self.save_vector_obs:
             self.vec_file.close()
+            self.action_file.close()
         super().close()
 
     def info(self):

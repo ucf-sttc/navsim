@@ -168,7 +168,6 @@ def main():
                         "reward_for_falling_off_map", "reward_for_step"]:
                 conf["env_config"][arg] = float(conf["env_config"][arg])
 
-        navsim.NavSimGymEnv.register_with_gym()
         executor = navsim.Executor(run_id=args["run_id"],
                                    resume=args["resume"],
                                    conf=conf)
