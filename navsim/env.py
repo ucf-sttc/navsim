@@ -43,9 +43,9 @@ class NavSimGymEnv(UnityToGymWrapper):
         """
         env_config: The environment configuration dictionary or ObjDict Object
         """
-        # filename: Optional[str] = None, observation_mode: int = 0, max_steps:int = 5):
+        # filename: Optional[str] = None, obs_mode: int = 0, max_steps:int = 5):
         self.env_config = env_config
-        self.observation_mode = int(self.env_config.get('observation_mode', 2))
+        self.obs_mode = int(self.env_config.get('obs_mode', 2))
         self.start_from_episode = int(
             self.env_config.get('start_from_episode', 1))
         self.debug = env_config.get("debug", False)
@@ -97,7 +97,7 @@ class NavSimGymEnv(UnityToGymWrapper):
         env_sfp("segmentationMode",
                 float(self.env_config.get('segmentation_mode', 1)))
         env_sfp("observationMode",
-                float(self.env_config.get('observation_mode', 2)))
+                float(self.env_config.get('obs_mode', 2)))
         env_sfp("episodeLength",
                 float(self.env_config.get('episode_max_steps', 100)))
         env_sfp("selectedTaskIndex", float(self.env_config.get('task', 0)))
@@ -119,6 +119,10 @@ class NavSimGymEnv(UnityToGymWrapper):
                 log_folder = Path(
                     self.env_config.get('log_folder', '.')).resolve()
                 log_folder.mkdir(parents=True, exist_ok=True)
+                ad_args = [f"-force-device-index {self.env_config.get('env_gpu_id', 0)}",
+                           f"-observationWidth {self.env_config.get('obs_width', 256)}",
+                           f"-observationHeight {self.env_config.get('obs_height', 256)}"
+                            ]
                 uenv = UnityEnvironment(file_name=env_path,
                                         log_folder=str(log_folder),
                                         seed=seed,
@@ -130,8 +134,7 @@ class NavSimGymEnv(UnityToGymWrapper):
                                         side_channels=[eng_sc, env_pc,
                                                        self.map_side_channel,
                                                        self.fpc],
-                                        additional_args=[
-                                            f"-force-device-index {self.env_config.get('env_gpu_id', 0)}"])
+                                        additional_args=ad_args)
             except UnityWorkerInUseException:
                 time.sleep(2)
                 self._navsim_base_port += 1
@@ -159,7 +162,7 @@ class NavSimGymEnv(UnityToGymWrapper):
                                              quotechar='"',
                                              quoting=csv.QUOTE_MINIMAL)
         if self.save_visual_obs:
-            if self.observation_mode in [1, 2]:
+            if self.obs_mode in [1, 2]:
                 self.rgb_folder = log_folder / 'rgb_obs'
                 self.rgb_folder.mkdir(parents=True, exist_ok=True)
                 self.dep_folder = log_folder / 'dep_obs'
@@ -170,7 +173,7 @@ class NavSimGymEnv(UnityToGymWrapper):
                 self.save_visual_obs = False
 
         if self.save_vector_obs:
-            if self.observation_mode in [0, 2]:
+            if self.obs_mode in [0, 2]:
                 self.vec_file = (log_folder / 'vec_obs.csv').open(mode='a')
                 self.vec_writer = csv.writer(self.vec_file,
                                              delimiter=',',
@@ -183,7 +186,7 @@ class NavSimGymEnv(UnityToGymWrapper):
         if self.save_vector_obs:
             self.vec_writer.writerow(
                 [self.e_num, self.s_num, self.spl_current] + list(
-                    obs[-1] if self.observation_mode else obs))
+                    obs[-1] if self.obs_mode else obs))
             self.vec_file.flush()
         if self.save_visual_obs:
             filename = f'{self.e_num}_{self.s_num}.jpg'
@@ -234,7 +237,7 @@ class NavSimGymEnv(UnityToGymWrapper):
         print('Action Space Shape:', self.action_space.shape)
         print('Action Space Low:', self.action_space.low)
         print('Action Space High:', self.action_space.high)
-        print('Observation Mode:', self.observation_mode)
+        print('Observation Mode:', self.obs_mode)
         # print('Gym Observation Space:', self.genv.observation_space)
         # print('Gym Observation Space Shape:', self.genv.observation_space.shape)
         print('Observation Space:', self.observation_space)
@@ -270,7 +273,7 @@ class NavSimGymEnv(UnityToGymWrapper):
             For Observation Mode 0:
                 None
         """
-        if self.observation_mode in [1, 2]:
+        if self.obs_mode in [1, 2]:
             if mode == 'rgb_array':
                 visual_obs = self.obs[0:3][0]
             elif mode == 'depth':
@@ -363,7 +366,7 @@ class NavSimGymEnv(UnityToGymWrapper):
                 input_dim.append(state_dim[i])
                 obs_name += f'_{state_dim[i]}'
 
-        random_input = np.empty(input_dim)
+        random_input = np.zeros(input_dim,dtype=np.float)
 
         obs_data = random_input
         obs_names.append(obs_name)
@@ -371,7 +374,7 @@ class NavSimGymEnv(UnityToGymWrapper):
 
     def get_dummy_actions(self):
         action_dim = self.action_space.shape[0]
-        actions_data = np.empty([1, action_dim])
+        actions_data = np.zeros([1, action_dim],dtype=np.float)
         actions_names = f'action_{action_dim}'
         return actions_data, actions_names
 

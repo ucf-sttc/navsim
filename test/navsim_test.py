@@ -21,7 +21,7 @@ env_conf = DictObj(conf.env_config)
 t_max = env_conf.max_steps
 
 def helper(env_conf):
-    run_out_folder = run_base_folder / 'out' / f'obs_mode_{env_conf.observation_mode}'
+    run_out_folder = run_base_folder / 'out' / f'obs_mode_{env_conf.obs_mode}'
     run_out_folder.mkdir(parents=True, exist_ok=True)
 
     testlog_filename = run_out_folder / 'log.txt'
@@ -32,7 +32,7 @@ def helper(env_conf):
     env_conf.log_folder = str(env_conf.log_folder.resolve())
 
     with open(testlog_filename, mode='w+') as testlog_file:
-        log_str = f'testing with observation_mode {env_conf.observation_mode} \n'
+        log_str = f'testing with observation_mode {env_conf.obs_mode} \n'
         testlog_file.write(log_str)
         print(log_str)
         testlog_file.flush()
@@ -134,7 +134,7 @@ class TestAirSim(unittest.TestCase):
 
     def test_observation_mode_0(self):
         env_conf1 = env_conf.deepcopy()
-        env_conf1.observation_mode = 0
+        env_conf1.obs_mode = 0
         helper(env_conf1)
         #self.assertTrue(tf.test.is_built_with_cuda())
 

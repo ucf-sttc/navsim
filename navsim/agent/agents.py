@@ -398,11 +398,11 @@ class DDPGAgent(object):
 
         self.max_action = self.env.action_space.high[0]
 
-        # if self.env.observation_mode == 0:
+        # if self.env.obs_mode == 0:
         #    self.vector_state_dimension = self.env.observation_space_shapes[0][0]
-        # elif self.env.observation_mode == 1:
+        # elif self.env.obs_mode == 1:
         #    self.vector_state_dimension = None
-        # elif self.env.observation_mode == 2:
+        # elif self.env.obs_mode == 2:
         #    self.vector_state_dimension = self.env.observation_space_shapes[3][0]
 
         self.actor = Actor(self.env.observation_space_shapes,
@@ -421,7 +421,7 @@ class DDPGAgent(object):
         self.critic_loss = None
 
     def select_action(self, state):
-        # if self.env.observation_mode == 0:
+        # if self.env.obs_mode == 0:
         #    state = torch.FloatTensor(state[0].reshape(1, -1)).to(self.device)
         state = [torch.as_tensor(s,
                                  dtype=torch.float,
@@ -555,7 +555,7 @@ class DDPGAgent(object):
         next_state = [torch.as_tensor(s,
                                       dtype=torch.float,
                                       device=self.device) for s in next_state]
-        #        if self.env.observation_mode == 0:
+        #        if self.env.obs_mode == 0:
         #            state = torch.FloatTensor(state[0]).to(self.device)
         #            next_state = torch.FloatTe,nsor(next_state[0]).to(self.device)
         # print('agent train',next_state.shape)

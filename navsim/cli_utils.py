@@ -180,7 +180,7 @@ def _create_argparser() -> argparse.ArgumentParser:
         action=ArgAction,
     )
 
-    run_conf.add_argument(
+    env_conf.add_argument(
         "--env_gpu_id",
         default=0,
         dest="env_gpu_id",
@@ -195,9 +195,8 @@ def _create_argparser() -> argparse.ArgumentParser:
         action=ArgAction,
     )
     env_conf.add_argument(
-        "--observation_mode",
+        "--obs_mode",
         default=0,
-        dest="observation_mode",
         help="Observation Mode : 0,1,2",
         action=ArgAction,
     )
@@ -277,13 +276,27 @@ def _create_argparser() -> argparse.ArgumentParser:
         help="Shortest path length delta multiplier",
         action=ArgAction,
     )
-    run_conf.add_argument(
+    env_conf.add_argument(
+        "--obs_height",
+        default=256,
+        help="Observation height",
+        action=ArgAction,
+    )
+
+    env_conf.add_argument(
+        "--obs_width",
+        default=256,
+        help="Observation width",
+        action=ArgAction,
+    )
+
+    env_conf.add_argument(
         "--save_visual_obs",
         default=False,
         action=ArgActionStoreTrue,
         help="Save the visual observations at every step",
     )
-    run_conf.add_argument(
+    env_conf.add_argument(
         "--save_vector_obs",
         default=False,
         action=ArgActionStoreTrue,

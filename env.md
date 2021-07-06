@@ -11,7 +11,7 @@ env_config = ObjDict({
     "timeout": 600,
     "worker_id": 0,
     "base_port": 5005,
-    "observation_mode": 2,
+    "obs_mode": 2,
     "segmentation_mode": 1,
     "task": 0,
     "goal": 0,

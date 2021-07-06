@@ -52,7 +52,9 @@ def main():
         "base_port": 5005,
         "seed": int(args["seed"]),
         "timeout": int(args["timeout"]),
-        "observation_mode": int(args["observation_mode"]),
+        "obs_mode": int(args["obs_mode"]),
+        "obs_height": int(args["obs_height"]),
+        "obs_width": int(args["obs_width"]),
         "segmentation_mode": int(args["segmentation_mode"]),
         "episode_max_steps": int(args["episode_max_steps"]),
         "task": int(args["task"]),
@@ -162,7 +164,7 @@ def main():
             for arg in ["discount", "tau", "expl_noise"]:
                 conf["run_config"][arg] = float(conf["run_config"][arg])
             for arg in ["env_gpu_id", "seed", "timeout", "base_port",
-                        "observation_mode",
+                        "obs_mode", "obs_height", "obs_width"
                         "segmentation_mode", "episode_max_steps", "task",
                         "goal", "goal_distance", "agent_car_physics"]:
                 conf["env_config"][arg] = int(conf["env_config"][arg])

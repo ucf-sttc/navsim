@@ -97,10 +97,10 @@ class NavSimEnv:
         conf: ObjDict having Environment Conf
         :param conf:
         """
-        # filename: Optional[str] = None, observation_mode: int = 0, max_steps:int = 5):
+        # filename: Optional[str] = None, obs_mode: int = 0, max_steps:int = 5):
         self.conf = conf
 
-        self.observation_mode = self.conf['observation_mode']
+        self.observation_mode = self.conf['obs_mode']
         self.uenv = None
         self.genv = None
 
@@ -127,7 +127,7 @@ class NavSimEnv:
                                                          self.conf['reward_for_falling_off_map'])
             environment_side_channel.set_float_parameter("rewardForEachStep", self.conf['reward_for_step'])
             environment_side_channel.set_float_parameter("segmentationMode", self.conf['segmentation_mode'])
-            environment_side_channel.set_float_parameter("observationMode", self.conf['observation_mode'])
+            environment_side_channel.set_float_parameter("observationMode", self.conf['obs_mode'])
             environment_side_channel.set_float_parameter("episodeLength", self.conf['max_steps'])
             environment_side_channel.set_float_parameter("selectedTaskIndex", self.conf['task'])
             environment_side_channel.set_float_parameter("goalSelectionIndex", self.conf['goal'])
