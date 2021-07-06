@@ -362,8 +362,7 @@ class NavSimGymEnv(UnityToGymWrapper):
 
 
 class MapSideChannel(SideChannel):
-    """
-    This is the SideChannel for retrieving map data from Unity.
+    """This is the SideChannel for retrieving map data from Unity.
     You can send map requests to Unity using send_request.
     The arguments for a mapRequest are ("binaryMap", [RESOLUTION_X, RESOLUTION_Y, THRESHOLD])
     """
@@ -399,8 +398,7 @@ class MapSideChannel(SideChannel):
         # np.savetxt("arrayfile", np.asarray(img), fmt='%1d', delimiter='')
 
     def send_request(self, key: str, value: List[float]) -> None:
-        """
-        Sends a request to Unity
+        """Sends a request to Unity
         The arguments for a mapRequest are ("binaryMap", [RESOLUTION_X, RESOLUTION_Y, THRESHOLD])
         """
         self.resolution = value
