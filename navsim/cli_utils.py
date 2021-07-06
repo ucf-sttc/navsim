@@ -202,6 +202,19 @@ def _create_argparser() -> argparse.ArgumentParser:
     )
 
     env_conf.add_argument(
+        "--obs_height",
+        default=256,
+        help="Observation height",
+        action=ArgAction,
+    )
+
+    env_conf.add_argument(
+        "--obs_width",
+        default=256,
+        help="Observation width",
+        action=ArgAction,
+    )
+    env_conf.add_argument(
         "--segmentation_mode",
         default=1,
         dest="segmentation_mode",
@@ -274,19 +287,6 @@ def _create_argparser() -> argparse.ArgumentParser:
         "--reward_spl_delta_mul",
         default=1,
         help="Shortest path length delta multiplier",
-        action=ArgAction,
-    )
-    env_conf.add_argument(
-        "--obs_height",
-        default=256,
-        help="Observation height",
-        action=ArgAction,
-    )
-
-    env_conf.add_argument(
-        "--obs_width",
-        default=256,
-        help="Observation width",
         action=ArgAction,
     )
 
