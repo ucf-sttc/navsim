@@ -271,6 +271,12 @@ def _create_argparser() -> argparse.ArgumentParser:
         help="Reward for Step",
         action=ArgAction,
     )
+    env_conf.add_argument(
+        "--reward_spl_delta_mul",
+        default=1,
+        help="Shortest path length delta multiplier",
+        action=ArgAction,
+    )
     run_conf.add_argument(
         "--save_visual_obs",
         default=False,

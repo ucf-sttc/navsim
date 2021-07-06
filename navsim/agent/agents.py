@@ -159,6 +159,18 @@ def convtransp2d_get_padding(h_w_in, h_w_out, kernel_size=1, stride=1,
         math.floor(p_w / 2), math.ceil(p_w / 2))
 
 
+class ActorCriticWrapper(torch.nn.Module):
+    def __init__(self, state_dimensions, action_dimension, max_action):
+        super().__init__()
+        self.actor = Actor(state_dimensions, action_dimension, max_action)
+        self.critic = Critic(state_dimensions, action_dimension)
+
+    def forward(self, state, action):
+        q1 = self.actor(state)
+        q2 = self.critic([state], action)
+        return q1, q2
+
+
 class Actor(torch.nn.Module):
     """
     state_dimensions: Should always be a list of state_dimension
@@ -375,6 +387,8 @@ class Critic(torch.nn.Module):
 
 class DDPGAgent(object):
 
+    NN_WRAPPER = ActorCriticWrapper
+
     def __init__(self, env, device, discount=0.99, tau=0.005):
         self.env = env
         self.device = device
@@ -403,12 +417,17 @@ class DDPGAgent(object):
         self.critic_target = deepcopy(self.critic)
         self.critic_optimizer = torch.optim.Adam(self.critic.parameters())
 
+        self.actor_loss = None
+        self.critic_loss = None
+
     def select_action(self, state):
         # if self.env.observation_mode == 0:
         #    state = torch.FloatTensor(state[0].reshape(1, -1)).to(self.device)
-        state = [torch.as_tensor(s,dtype=torch.float,device=self.device).unsqueeze(0) for s in
+        state = [torch.as_tensor(s,
+                                 dtype=torch.float,
+                                 device=self.device).unsqueeze(0) for s in
                  state]
-        return self.actor(state).cpu().data.numpy().flatten()
+        return self.actor(state).data.cpu().numpy().flatten()
 
     @staticmethod
     def soft_update(local_model, target_model, tau):
@@ -423,7 +442,6 @@ class DDPGAgent(object):
             "critic_optimizer": self.critic_optimizer.state_dict(),
             "actor": self.actor.state_dict(),
             "actor_optimizer": self.actor_optimizer.state_dict()
-
         }
         return state
 
@@ -530,28 +548,33 @@ class DDPGAgent(object):
     def train(self, state, action, reward, next_state, episode_done):
         # print('agent train state ',state.shape)
         # print('agent train next_state',next_state.shape)
-        # convert state to lit of tensors on GPU
-        state = [torch.as_tensor(s,dtype=torch.float,device=self.device) for s in state]
-        next_state = [torch.as_tensor(s,dtype=torch.float,device=self.device) for s in next_state]
+        # convert state to list of tensors on GPU
+        state = [torch.as_tensor(s,
+                                 dtype=torch.float,
+                                 device=self.device) for s in state]
+        next_state = [torch.as_tensor(s,
+                                      dtype=torch.float,
+                                      device=self.device) for s in next_state]
         #        if self.env.observation_mode == 0:
         #            state = torch.FloatTensor(state[0]).to(self.device)
         #            next_state = torch.FloatTe,nsor(next_state[0]).to(self.device)
         # print('agent train',next_state.shape)
-        action = torch.as_tensor(action,dtype=torch.float,device=self.device)
-        reward = torch.as_tensor(reward,dtype=torch.float,device=self.device)
-        episode_done = torch.as_tensor(episode_done,dtype=torch.float,device=self.device)
+        action = torch.as_tensor(action, dtype=torch.float, device=self.device)
+        reward = torch.as_tensor(reward, dtype=torch.float, device=self.device)
+        episode_done = torch.as_tensor(episode_done, dtype=torch.float,
+                                       device=self.device)
 
         target_q = self.critic_target(next_state, self.actor_target(next_state))
         target_q = reward + (
                 (1.0 - episode_done) * self.discount * target_q).detach()
         current_q = self.critic(state, action)
-        critic_loss = F.mse_loss(current_q, target_q)
+        self.critic_loss = F.mse_loss(current_q, target_q)
         self.critic_optimizer.zero_grad()
-        critic_loss.backward()
+        self.critic_loss.backward()
         self.critic_optimizer.step()
-        actor_loss = -self.critic(state, self.actor(state)).mean()
+        self.actor_loss = -self.critic(state, self.actor(state)).mean()
         self.actor_optimizer.zero_grad()
-        actor_loss.backward()
+        self.actor_loss.backward()
         self.actor_optimizer.step()
         DDPGAgent.soft_update(self.critic, self.critic_target, self.tau)
         DDPGAgent.soft_update(self.actor, self.actor_target, self.tau)

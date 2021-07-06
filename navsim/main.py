@@ -64,6 +64,7 @@ def main():
         "reward_for_other_collision": float(args["reward_for_other_collision"]),
         "reward_for_falling_off_map": float(args["reward_for_falling_off_map"]),
         "reward_for_step": float(args["reward_for_step"]),
+        "reward_spl_delta_mul": float(args["reward_spl_delta_mul"]),
         "env_path": args["env_path"],
         "env_gpu_id": int(args["env_gpu_id"]),
         "debug": args["debug"],
@@ -167,7 +168,8 @@ def main():
                 conf["env_config"][arg] = int(conf["env_config"][arg])
             for arg in ["reward_for_goal", "reward_for_ep",
                         "reward_for_other_collision",
-                        "reward_for_falling_off_map", "reward_for_step"]:
+                        "reward_for_falling_off_map", "reward_for_step",
+                        "reward_spl_delta_mul"]:
                 conf["env_config"][arg] = float(conf["env_config"][arg])
 
         executor = navsim.Executor(run_id=args["run_id"],

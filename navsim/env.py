@@ -52,7 +52,7 @@ class NavSimGymEnv(UnityToGymWrapper):
         self.obs = None
         self.save_visual_obs = env_config.get("save_visual_obs", False)
         self.save_vector_obs = env_config.get("save_vector_obs", False)
-        if self.save_visual_obs:
+        if self.save_vector_obs or self.save_visual_obs:
             self.keep_es_num = True
         else:
             self.keep_es_num = False
@@ -60,6 +60,10 @@ class NavSimGymEnv(UnityToGymWrapper):
         if self.keep_es_num:
             self.e_num = self.start_from_episode - 1
             self.s_num = 0
+
+        self.spl_start = self.spl_current = None
+        self.reward_spl_delta_mul = float(
+            self.env_config.get('reward_spl_delta_mul', 1))
 
         # self.run_base_folder_str = env_config.get("run_base_folder_str", '.')
         # self.run_base_folder = Path(self.run_base_folder_str)
@@ -112,7 +116,8 @@ class NavSimGymEnv(UnityToGymWrapper):
 
         while True:
             try:
-                log_folder = Path(self.env_config.get('log_folder', '.')).resolve()
+                log_folder = Path(
+                    self.env_config.get('log_folder', '.')).resolve()
                 log_folder.mkdir(parents=True, exist_ok=True)
                 uenv = UnityEnvironment(file_name=env_path,
                                         log_folder=str(log_folder),
@@ -176,7 +181,9 @@ class NavSimGymEnv(UnityToGymWrapper):
 
     def save_obs(self, obs):
         if self.save_vector_obs:
-            self.vec_writer.writerow([self.e_num,self.s_num]+list(obs[-1]))
+            self.vec_writer.writerow(
+                [self.e_num, self.s_num, self.spl_current] + list(
+                    obs[-1] if self.observation_mode else obs))
             self.vec_file.flush()
         if self.save_visual_obs:
             filename = f'{self.e_num}_{self.s_num}.jpg'
@@ -191,19 +198,22 @@ class NavSimGymEnv(UnityToGymWrapper):
             self.e_num += 1
             self.s_num = 0
         self.save_obs(self.obs)
-
+        self.spl_start = self.spl_current = self.get_shortest_path_length()
         return result
 
     def step(self, action: List[Any]) -> GymStepResult:
-        result = super().step(action)
-        self.obs = result[0]
+        s_, r, episode_done, info = super().step(action)
+        self.obs = s_[0]
         if self.keep_es_num:
             self.s_num += 1
         self.save_obs(self.obs)
         if self.save_vector_obs or self.save_visual_obs:
-            self.actions_writer.writerow([self.e_num,self.s_num]+list(action))
+            self.actions_writer.writerow(
+                [self.e_num, self.s_num] + list(action))
             self.actions_file.flush()
-        return result
+        self.spl_current = self.get_shortest_path_length()
+        # r += (self.spl_start - self.spl_current) * self.reward_spl_delta_mul
+        return s_, r, episode_done, info
 
     def close(self):
         if self.save_vector_obs or self.save_visual_obs:
@@ -281,10 +291,10 @@ class NavSimGymEnv(UnityToGymWrapper):
             cell_occupancy_threshold: If at least this much % of the cell is occupied, then it will be marked as non-navigable, default = 50%
 
         Returns:
-            A numpy array which has 0 for non-navigable and 1 for navigable cells
 
         Note:
-            This method only works if you have called ``reset()`` or ``step()`` on the environment at least once.
+            This method only works if you have called ``reset()`` or ``step()``
+            on the environment at least once.
 
         Note:
             Largest resolution that was found to be working was 2000 x 2000
@@ -298,15 +308,13 @@ class NavSimGymEnv(UnityToGymWrapper):
         """Get the Navigable Areas map
 
         Args:
-            resolution_x: The size of the x axis of the resulting grid, default = 200
-            resolution_y: The size of the y axis of the resulting grid, default = 200
-            cell_occupancy_threshold: If at least this much % of the cell is occupied, then it will be marked as non-navigable, default = 50%
 
         Returns:
-            A numpy array which has 0 for non-navigable and 1 for navigable cells
+            A numpy array having 0 for non-navigable and 1 for navigable cells
 
         Note:
-            This method only works if you have called ``reset()`` or ``step()`` on the environment at least once.
+            This method only works if you have called ``reset()`` or ``step()``
+            on the environment at least once.
 
         Note:
             Largest resolution that was found to be working was 2000 x 2000
@@ -344,22 +352,28 @@ class NavSimGymEnv(UnityToGymWrapper):
         from ray.tune.registry import register_env
         register_env("navsim-v0", navsimgymenv_creator)
 
-    def get_observation_sample(self):
+    def get_dummy_obs(self):
         # prepare input data
-        input_data = []
-        input_names = []
+        obs_data = []
+        obs_names = []
         for state_dim in self.observation_space_shapes:
-            if len(self.observation_space_shapes) == 1:
-                random_input = torch.randn(1, state_dim[0]).to(device)
-                input_name = f'state_{state_dim[0]}'
-            else:  # visual
-                random_input = torch.randn(1, state_dim[2], state_dim[0],
-                                           state_dim[1]).to(device)
-                input_name = f'state_{state_dim[0]}_{state_dim[1]}_{state_dim[2]}'
+            input_dim = [1]
+            obs_name='state'
+            for i in range(len(state_dim)):
+                input_dim.append(state_dim[i])
+                obs_name += f'_{state_dim[i]}'
 
-            input_data.append(random_input)
-            input_names.append(input_name)
+        random_input = np.empty(input_dim)
 
+        obs_data = random_input
+        obs_names.append(obs_name)
+        return obs_data, obs_names
+
+    def get_dummy_actions(self):
+        action_dim = self.action_space.shape[0]
+        actions_data = np.empty([1, action_dim])
+        actions_names = f'action_{action_dim}'
+        return actions_data, actions_names
 
 class MapSideChannel(SideChannel):
     """This is the SideChannel for retrieving map data from Unity.
@@ -382,9 +396,6 @@ class MapSideChannel(SideChannel):
         # img = Image.frombuffer('L', (self.resolution[0],self.resolution[1]), np.array(msg.get_raw_bytes())).convert('1')
         # timestr = time.strftime("%Y%m%d-%H%M%S")
         # img.save("img-"+timestr+".png")
-
-        # raw_bytes = msg.get_raw_bytes()
-        # unpacked_array = np.unpackbits(raw_bytes)[0:self.resolution[0]*self.resolution[1]]
 
         raw_bytes = msg.get_raw_bytes()
         self.requested_map = np.unpackbits(raw_bytes)[

@@ -89,8 +89,6 @@ class Executor:
         episode_results_filename = self.run_base_folder / 'episode_results.csv'
         self.episode_results_filename = str(episode_results_filename)
 
-
-
         self.episode_num_filename = f"{self.run_base_folder_str}/last_checkpointed_episode_num.txt"
 
         # TODO: Add the code to delete previous files
@@ -142,8 +140,6 @@ class Executor:
                   f'{torch.get_num_threads()} threads and '
                   f'{torch.get_num_interop_threads()} interop threads')
 
-            # self.summary_writer.add_graph(self.agent.actor)
-            # self.summary_writer.add_graph(self.agent.critic)
             if self.run_conf["mem_backend"] == "cupy":
                 if torch.cuda.is_available():
                     from navsim import CupyMemory
@@ -188,6 +184,21 @@ class Executor:
             if resume and self.run_base_folder.is_dir():
                 self.agent.load_checkpoint(model_filename)
             # TODO: self.agent.info()
+
+            dummy_obs = torch.as_tensor(self.env.get_dummy_obs()[0],
+                                        dtype=torch.float)
+            dummy_act = torch.as_tensor(self.env.get_dummy_actions()[0],
+                                        dtype=torch.float
+                                        )
+            print(dummy_obs, dummy_obs.shape)
+            print(dummy_act, dummy_act.shape)
+            dummy_nn = self.agent.NN_WRAPPER(self.env.observation_space_shapes,
+                                             self.env.action_space.shape[0],
+                                             self.env.action_space.high[0])
+            self.summary_writer.add_graph(dummy_nn,
+                                          [dummy_obs, dummy_act]
+                                          )
+            del dummy_nn, dummy_obs,dummy_act
 
             torch.manual_seed(self.run_conf['seed'])
             np.random.seed(self.run_conf['seed'])
@@ -293,6 +304,8 @@ class Executor:
         step_res = np.full((checkpoint_interval, t_max, 10, 3), 0.0)
         # [[[[0] * 3] * 10] * t_max] * checkpoint_interval
         step_rew = np.full((checkpoint_interval, t_max), 0.0)
+        step_spl = np.full((checkpoint_interval, t_max), 0.0)
+        step_loss = np.full((checkpoint_interval, t_max, 2), 0.0)
 
         for i in range(0, num_episode_blocks):
             start_episode = (self.conf.env_config["start_from_episode"] - 1) + (
@@ -302,7 +315,8 @@ class Executor:
                                total_episodes)
             episodes_in_block = stop_episode - start_episode + 1
             # episode_rewards = np.full(episodes_in_block, 0.0)
-            checkpoint_counter = 0
+            ckpt_ctr = 0
+            ckpt_t_global = t_global
 
             for episode_num in tqdm(
                     iterable=range(start_episode, stop_episode + 1),
@@ -312,7 +326,7 @@ class Executor:
                 self.rc.start()
                 episode_counter = episode_num - start_episode
                 episode_resources[
-                    checkpoint_counter, 0] = self.rc.snapshot()  # e0
+                    ckpt_ctr, 0] = self.rc.snapshot()  # e0
 
                 # initialise the episode counters
                 episode_done = False
@@ -342,35 +356,33 @@ class Executor:
                     # s5,6: before and after env.step()
                     # s7,8: before and after memory.append()
                     # s9: end of step
-
-                    step_res[
-                        checkpoint_counter, t - 1, 0] = self.rc.snapshot()  # s0
+                    step_res[ckpt_ctr, t - 1, 0] = self.rc.snapshot()  # s0
 
                     # do the random sampling until enough memory is full
                     if self.memory.size < batch_size:
                         a = self.env.action_space.sample()
-                        step_res[checkpoint_counter, t - 1, 1:5] = [[
-                                                                        0.0] * 3] * 4  # s1-4
+                        step_res[ckpt_ctr, t - 1, 1:5] = [[0.0] * 3] * 4
+                        # s1-4
                     else:
                         # TODO: Find the best place to train, moved here for now
                         if train_interval and (
                                 (t_global % train_interval) == 0):
-                            step_res[
-                                checkpoint_counter, t - 1, 1] = self.rc.snapshot()  # s1
+                            step_res[ckpt_ctr, t - 1, 1] = self.rc.snapshot()
+                            # s1
                             batch_s, batch_a, batch_r, batch_s_, batch_d = \
                                 self.memory.sample(batch_size)
-                            step_res[
-                                checkpoint_counter, t - 1, 2] = self.rc.snapshot()  # s2
+                            step_res[ckpt_ctr, t - 1, 2] = self.rc.snapshot()
+                            # s2
                             # print('training the agent')
-                            step_res[
-                                checkpoint_counter, t - 1, 3] = self.rc.snapshot()  # s3
+                            step_res[ckpt_ctr, t - 1, 3] = self.rc.snapshot()
+                            # s3
                             self.agent.train(batch_s, batch_a, batch_r,
                                              batch_s_, batch_d)
-                            step_res[
-                                checkpoint_counter, t - 1, 4] = self.rc.snapshot()  # s4
+                            step_res[ckpt_ctr, t - 1, 4] = self.rc.snapshot()
+                            # s4
                         else:
-                            step_res[checkpoint_counter, t - 1, 1:5] = [[
-                                                                            0.0] * 3] * 4  # s1-4
+                            step_res[ckpt_ctr, t - 1, 1:5] = [[0.0] * 3] * 4
+                            # s1-4
 
                         a = (self.agent.select_action(s) + np.random.normal(
                             0, self.max_action * self.run_conf['expl_noise'],
@@ -380,11 +392,9 @@ class Executor:
                             self.max_action
                         )
 
-                    step_res[
-                        checkpoint_counter, t - 1, 5] = self.rc.snapshot()  # s5
+                    step_res[ckpt_ctr, t - 1, 5] = self.rc.snapshot()  # s5
                     s_, r, episode_done, info = self.env.step(a)
-                    step_res[
-                        checkpoint_counter, t - 1, 6] = self.rc.snapshot()  # s6
+                    step_res[ckpt_ctr, t - 1, 6] = self.rc.snapshot()  # s6
 
                     # because pytorch can only deal with images in CHW format
                     # we are making the optimization here to convert from HWC to CHW format.
@@ -397,37 +407,42 @@ class Executor:
                     # s_ = [s_]
                     # for item in s_:
 
-                    step_res[
-                        checkpoint_counter, t - 1, 7] = self.rc.snapshot()  # s7
+                    step_res[ckpt_ctr, t - 1, 7] = self.rc.snapshot()
+                    # s7
                     self.memory.append(
                         s=s, a=a, s_=s_, r=r,
                         d=float(episode_done))  # if t < t_max -1 else 1)
                     s = s_
-                    step_res[
-                        checkpoint_counter, t - 1, 8] = self.rc.snapshot()  # s8
+                    step_res[ckpt_ctr, t - 1, 8] = self.rc.snapshot()  # s8
 
-                    step_rew[checkpoint_counter, t - 1] = r
-                    # episode_rewards[checkpoint_counter] += r
+                    step_rew[ckpt_ctr, t - 1] = r
+                    step_spl[ckpt_ctr, t - 1] = self.env.spl_current
+                    step_loss[ckpt_ctr, t - 1] = [
+                        0 if self.agent.actor_loss is None else self.agent.actor_loss.data.cpu().numpy(),
+                        0 if self.agent.critic_loss is None else self.agent.critic_loss.data.cpu().numpy()]
+
+                    # print(step_loss[ckpt_ctr, t - 1])
+                    # episode_rewards[ckpt_ctr] += r
 
                     # if self.memory.size >= self.run_conf['batch_size'] * self.run_conf['batches_before_train']:
 
                     #                    if (t >= self.config['batch_size'] * self.config['batches_before_train']) and (t % 1000 == 0):
                     # episode_evaluations.append(evaluate_policy(self.agent, self.env, self.config['seed']))
 
-                    step_res[
-                        checkpoint_counter, t - 1, 9] = self.rc.snapshot()  # s9
-                    # print(checkpoint_counter,t-1, step_res[checkpoint_counter][t-1])
+                    step_res[ckpt_ctr, t - 1, 9] = self.rc.snapshot()  # s9
+                    # print(ckpt_ctr,t-1, step_res[ckpt_ctr][t-1])
                     # print(t,step_res[0][0])
                     if episode_done or (t_max and (t >= t_max)):
                         break
                     else:
                         t += 1
+                        t_global += 1
                 # print(step_res[0][0])
                 # end of while loop for one episode
                 # episode end processing
-                episode_resources[checkpoint_counter, 1] = self.rc.stop()  # e1
-                episode_steps[checkpoint_counter] = t
-                checkpoint_counter += 1
+                episode_resources[ckpt_ctr, 1] = self.rc.stop()  # e1
+                episode_steps[ckpt_ctr] = t
+                ckpt_ctr += 1
 
                 #            if self.enable_logging:
                 #                self.writer.add_scalar('Episode Reward', episode_reward, t)
@@ -441,6 +456,7 @@ class Executor:
             # end of tqdm-for loop - checkpoint block of episodes
             # now lets checkpoint everything
 
+            t_global = ckpt_t_global
             # model and memory checkpoint
             with open(self.episode_num_filename, mode='w') as episode_num_file:
                 episode_num_file.write(str(episode_num))
@@ -490,12 +506,24 @@ class Executor:
                     r = step_rew[e_num, t]
                     self.write_tb('step',
                                   {'step_reward': r,
-                                   'step_time': step_time,
-                                   'env_step_time': env_step_time,
-                                   'memory_append_time': memory_append_time,
-                                   'memory_sample_time': memory_sample_time,
-                                   'agent_train_time': agent_train_time,
-                                   'current_memory': current_memory},
+                                   'step_spl': step_spl[e_num, t]
+                                   },
+                                  t_global)
+                    self.write_tb('time',
+                                  {
+                                      'step_time': step_time,
+                                      'env_step_time': env_step_time,
+                                      'memory_append_time': memory_append_time,
+                                      'memory_sample_time': memory_sample_time,
+                                      'agent_train_time': agent_train_time,
+                                      'current_memory': current_memory,
+                                  },
+                                  t_global)
+                    self.write_tb('loss',
+                                  {
+                                      'actor_loss': step_loss[e_num, t, 0],
+                                      'critic_loss': step_loss[e_num, t, 1],
+                                  },
                                   t_global)
                     self.step_results_writer.writerow(
                         [start_episode + e_num, t + 1, r, step_time,
@@ -507,7 +535,7 @@ class Executor:
             # episodes checkpoint loop finishes
             self.episode_results_file.flush()
             self.step_results_file.flush()
-            checkpoint_counter = 0
+            ckpt_ctr = 0
         # save the state json at end of run
         model_filename = f"{self.run_base_folder_str}/" \
                          f"{self.conf.env_config['start_from_episode']}_" \
