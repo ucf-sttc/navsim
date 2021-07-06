@@ -61,7 +61,7 @@ def main():
         "agent_car_physics": int(args["agent_car_physics"]),
         "reward_for_goal": float(args["reward_for_goal"]),
         "reward_for_ep": float(args["reward_for_ep"]),
-        "reward_for_other": float(args["reward_for_other"]),
+        "reward_for_other_collision": float(args["reward_for_other_collision"]),
         "reward_for_falling_off_map": float(args["reward_for_falling_off_map"]),
         "reward_for_step": float(args["reward_for_step"]),
         "env_path": args["env_path"],
@@ -165,7 +165,8 @@ def main():
                         "segmentation_mode", "episode_max_steps", "task",
                         "goal", "goal_distance", "agent_car_physics"]:
                 conf["env_config"][arg] = int(conf["env_config"][arg])
-            for arg in ["reward_for_goal", "reward_for_ep", "reward_for_other",
+            for arg in ["reward_for_goal", "reward_for_ep",
+                        "reward_for_other_collision",
                         "reward_for_falling_off_map", "reward_for_step"]:
                 conf["env_config"][arg] = float(conf["env_config"][arg])
 

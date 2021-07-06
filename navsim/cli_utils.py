@@ -252,10 +252,9 @@ def _create_argparser() -> argparse.ArgumentParser:
         action=ArgAction,
     )
     env_conf.add_argument(
-        "--reward_for_other",
+        "--reward_for_other_collision",
         default=-0.1,
-        dest="reward_for_other",
-        help="Reward for Other",
+        help="Reward for Other collision",
         action=ArgAction,
     )
     env_conf.add_argument(
