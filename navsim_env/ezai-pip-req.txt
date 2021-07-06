@@ -6,12 +6,12 @@ scikit-posthocs
 torchsummary
 
 # needed for tensorflow
-tensorflow-estimator
-keras-applications
-keras-preprocessing
-keras-tuner
+#tensorflow-estimator
+#keras-applications
+#keras-preprocessing
+#keras-tuner
 # needed for tensorflow ends
-tensorflow<=2.5
+#tensorflow<=2.5
 
 
 # needed for detectron

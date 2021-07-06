@@ -176,7 +176,7 @@ class NavSimGymEnv(UnityToGymWrapper):
 
     def save_obs(self, obs):
         if self.save_vector_obs:
-            self.vec_writer.writerow(obs[-1])
+            self.vec_writer.writerow([self.e_num,self.s_num]+obs[-1])
             self.vec_file.flush()
         if self.save_visual_obs:
             filename = f'{self.e_num}_{self.s_num}.jpg'
@@ -201,14 +201,14 @@ class NavSimGymEnv(UnityToGymWrapper):
             self.s_num += 1
         self.save_obs(self.obs)
         if self.save_vector_obs or self.save_visual_obs:
-            self.actions_writer.writerow(action)
+            self.actions_writer.writerow([self.e_num,self.s_num]+action)
             self.actions_file.flush()
         return result
 
     def close(self):
-        if self.save_vector_obs:
+        if self.save_vector_obs or self.save_visual_obs:
             self.vec_file.close()
-            self.action_file.close()
+            self.actions_file.close()
         super().close()
 
     def info(self):
