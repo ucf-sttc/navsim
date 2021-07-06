@@ -52,7 +52,7 @@ class NavSimGymEnv(UnityToGymWrapper):
         self.obs = None
         self.save_visual_obs = env_config.get("save_visual_obs", False)
         self.save_vector_obs = env_config.get("save_vector_obs", False)
-        if self.save_vector_obs:
+        if self.save_visual_obs:
             self.keep_es_num = True
         else:
             self.keep_es_num = False
@@ -68,9 +68,7 @@ class NavSimGymEnv(UnityToGymWrapper):
         # if self._env:
         #    raise ValueError('Environment already open')
         # else:
-        log_folder = Path(self.env_config.get('log_folder', '.')).resolve()
-        log_folder.mkdir(parents=True, exist_ok=True)
-        log_folder_str = str(log_folder)
+
         self.map_side_channel = MapSideChannel()
         self.fpc = FloatPropertiesChannel()
 
@@ -114,8 +112,10 @@ class NavSimGymEnv(UnityToGymWrapper):
 
         while True:
             try:
+                log_folder = Path(self.env_config.get('log_folder', '.')).resolve()
+                log_folder.mkdir(parents=True, exist_ok=True)
                 uenv = UnityEnvironment(file_name=env_path,
-                                        log_folder=log_folder_str,
+                                        log_folder=str(log_folder),
                                         seed=seed,
                                         timeout_wait=self.env_config.get(
                                             'timeout', 600),
@@ -147,7 +147,6 @@ class NavSimGymEnv(UnityToGymWrapper):
             self.reset()
 
         if self.save_visual_obs or self.save_vector_obs:
-            # open the debug files
             # TODO: the filenames should be prefixed with specific id of this instance of env
             self.actions_file = (log_folder / 'actions.csv').open(mode='a')
             self.actions_writer = csv.writer(self.actions_file,

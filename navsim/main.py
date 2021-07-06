@@ -140,7 +140,8 @@ def main():
         print(type(model))
         print(model)
     else:
-        # if resume is passed then read the args from saved conf instead and then overwrite with thhe args passed
+        # if resume is passed then read the args from saved conf instead and
+        # then overwrite with the args passed
         # TODO: Optimize this with respect to above arg/config setting
         if args.resume and run_base_folder.is_dir():
             conf = ObjDict().load_from_json_file(f"{run_base_folder_str}/conf"
