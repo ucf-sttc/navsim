@@ -215,7 +215,7 @@ class NavSimGymEnv(UnityToGymWrapper):
                 [self.e_num, self.s_num] + list(action))
             self.actions_file.flush()
         self.spl_current = self.get_shortest_path_length()
-        # r += (self.spl_start - self.spl_current) * self.reward_spl_delta_mul
+        r += (self.spl_start - self.spl_current) * self.reward_spl_delta_mul
         return s_, r, episode_done, info
 
     def close(self):
@@ -357,7 +357,6 @@ class NavSimGymEnv(UnityToGymWrapper):
 
     def get_dummy_obs(self):
         # prepare input data
-        obs_data = []
         obs_names = []
         for state_dim in self.observation_space_shapes:
             input_dim = [1]
@@ -366,9 +365,7 @@ class NavSimGymEnv(UnityToGymWrapper):
                 input_dim.append(state_dim[i])
                 obs_name += f'_{state_dim[i]}'
 
-        random_input = np.zeros(input_dim,dtype=np.float)
-
-        obs_data = random_input
+        obs_data = np.zeros(input_dim,dtype=np.float)
         obs_names.append(obs_name)
         return obs_data, obs_names
 
