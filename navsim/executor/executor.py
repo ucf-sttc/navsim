@@ -186,7 +186,8 @@ class Executor:
             # TODO: self.agent.info()
 
             dummy_obs = [torch.as_tensor(obs,
-                                        dtype=torch.float) for obs in s_hwc_to_chw(self.env.get_dummy_obs()[0])]
+                                         dtype=torch.float) for obs in
+                         s_hwc_to_chw(self.env.get_dummy_obs()[0])]
             dummy_act = torch.as_tensor(self.env.get_dummy_actions()[0],
                                         dtype=torch.float
                                         )
@@ -197,7 +198,7 @@ class Executor:
             self.summary_writer.add_graph(dummy_nn,
                                           [dummy_obs, dummy_act]
                                           )
-            del dummy_nn, dummy_obs,dummy_act
+            del dummy_nn, dummy_obs, dummy_act
 
             torch.manual_seed(self.run_conf['seed'])
             np.random.seed(self.run_conf['seed'])
@@ -360,6 +361,9 @@ class Executor:
                     # do the random sampling until enough memory is full
                     if self.memory.size < batch_size:
                         a = self.env.action_space.sample()
+                        # rescale break between 0,1 from -1,1
+                        # NewValue = (((OldValue - OldMin) * (NewMax - NewMin)) / (OldMax - OldMin)) + NewMin
+                        a[2] = (a[2] + 1) / 2
                         step_res[ckpt_ctr, t - 1, 1:5] = [[0.0] * 3] * 4
                         # s1-4
                     else:
