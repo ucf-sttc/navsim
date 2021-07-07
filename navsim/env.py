@@ -219,8 +219,9 @@ class NavSimGymEnv(UnityToGymWrapper):
         return s_, r, episode_done, info
 
     def close(self):
-        if self.save_vector_obs or self.save_visual_obs:
+        if self.save_vector_obs:
             self.vec_file.close()
+        if self.save_vector_obs or self.save_visual_obs:
             self.actions_file.close()
         super().close()
 

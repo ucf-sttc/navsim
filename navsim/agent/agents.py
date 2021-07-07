@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 import torch
 import torch.nn.functional as F
 from torch import nn
@@ -163,12 +165,12 @@ class ActorCriticWrapper(torch.nn.Module):
     def __init__(self, state_dimensions, action_dimension, max_action):
         super().__init__()
         self.actor = Actor(state_dimensions, action_dimension, max_action)
-        #self.critic = Critic(state_dimensions, action_dimension)
+        self.critic = Critic(state_dimensions, action_dimension)
 
     def forward(self, state, action):
         q1 = self.actor(state)
-        #q2 = self.critic(state, action)
-        return q1 #, q2
+        q2 = self.critic(state, action)
+        return q1, q2
 
 
 class Actor(torch.nn.Module):
@@ -196,29 +198,29 @@ class Actor(torch.nn.Module):
         for state_dim in state_dimensions:
             if len(state_dim) == 1:  # means we have vector observation
                 out_size = state_dim[0] * 2  # make sure its always int
-                layer = torch.nn.Sequential(
-                    torch.nn.Linear(state_dim[0], out_size),
-                    torch.nn.ReLU()
+                layer = torch.nn.Sequential(OrderedDict([
+                    ('linear_1',torch.nn.Linear(state_dim[0], out_size)),
+                    ('activ_1',torch.nn.ReLU())
                     #                torch.nn.Linear(400, 300),
                     #                torch.nn.ReLU()
-                )
+                ]))
                 self.feature_layers.append(layer)
                 l_out_size.append(out_size)
             else:  # visual:
-                layer = torch.nn.Sequential(
-                    torch.nn.Conv2d(in_channels=state_dim[2],
+                layer = torch.nn.Sequential(OrderedDict([
+                    ('conv_1',torch.nn.Conv2d(in_channels=state_dim[2],
                                     out_channels=out_channels,
                                     kernel_size=kernel_size,
                                     stride=stride,
                                     padding=padding,
-                                    dilation=dilation),
+                                    dilation=dilation)),
                     # [batch_size, n_features_conv, height, width]
-                    torch.nn.MaxPool2d(kernel_size=kernel_size,
+                    ('pool_1',torch.nn.MaxPool2d(kernel_size=kernel_size,
                                        stride=stride,
                                        padding=padding,
-                                       dilation=dilation),
-                    torch.nn.ReLU()
-                )
+                                       dilation=dilation)),
+                    ('activ_1',torch.nn.ReLU())
+                ]))
                 h, w = conv2d_output_shape(h_w=state_dim[0:2],
                                            kernel_size=kernel_size,
                                            stride=stride,
@@ -236,10 +238,10 @@ class Actor(torch.nn.Module):
 
         cat_dim = sum(l_out_size)
 
-        self.out_layer = torch.nn.Sequential(
-            torch.nn.Linear(cat_dim, action_dimension),
-            torch.nn.Tanh()
-        )
+        self.out_layer = torch.nn.Sequential(OrderedDict([
+            ('linear_out',torch.nn.Linear(cat_dim, action_dimension)),
+            ('activ_out',torch.nn.Tanh())
+        ]))
         # print(f'{l_out_size},cat_dim:{cat_dim},action_dim:{action_dimension}')
         # self.action_out = torch.nn.Linear(cat_dim, action_dimension)
 
