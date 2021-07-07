@@ -46,19 +46,22 @@ first follow the instructions to setup the host.
 1. Download and extract the unity binary zip file, and
 2. The following environment variables need to be set in both cases:
 ```
-envdir=$(realpath "/data/work/unity-envs/Build2.8.1"); envbin="Berlin_Walk_V2.x86_64"; 
-expdir=$(realpath "$HOME/exp"); runid="navsim_demo"
+envdir=$(realpath "/data/work/unity-envs/Build2.9.2");envbin="Berlin_Walk_V2.x86_64"; 
+expdir=$(realpath "$HOME/exp"); run_id="navsim_demo"
 repo="ghcr.io/armando-fandango";
+cd $expdir
 ```
 3. Now follow the container, or the host option below.
    
 ### Option 1: Container
 
+Note: Make sure you are in experiment directory, 
+as container will dump the files there.
+
 ```
-cd $expdir
 docker run --rm --privileged -it --runtime=nvidia \
---name $cname \
--h $runid \
+--name $run_id \
+-h $run_id \
 -e XAUTHORITY \
 -e NVIDIA_VISIBLE_DEVICES=all -e NVIDIA_DRIVER_CAPABILITIES=all \
 -e USER_ID=$(id -u) -e USER_HOME="$HOME" \
@@ -69,7 +72,7 @@ docker run --rm --privileged -it --runtime=nvidia \
 -v $envdir:$envdir \
 -v $expdir:$expdir \
 -w $expdir \
-$repo/navsim:2.8.1 DISPLAY=:0.0 <navsim command>
+$repo/navsim:2.9.1 DISPLAY=:0.0 <navsim command>
 ```
 
 #### The Variable `DISPLAY=:0.0`
@@ -93,7 +96,7 @@ Run the `navsim` command as described in its section below.
 ### The `<navsim command>`
 
 * `navsim --help` shows the options
-* `navsim --run_id $runid --env $envdir/$envbin` - executes and/or trains the model
+* `navsim --run_id $run_id --env $envdir/$envbin` - executes and/or trains the model
 * `navsim-benchmark $envdir/$envbin` - benchmarks the model
 * `navsim-saturate-gpu $envdir/$envbin` - Saturates the GPU
 * Replace the navsim command with your own command if you are just importing the NavSim env.

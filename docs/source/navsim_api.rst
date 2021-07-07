@@ -8,7 +8,22 @@ NavSim Environment
    :inherited-members:
    :show-inheritance:
 
-NavSim Utilities
+Rollback Memory
+---------------------
+.. autoclass:: navsim.memory.Memory
+   :members:
+   :inherited-members:
+   :show-inheritance:
+.. autoclass:: navsim.memory.CupyMemory
+   :members:
+   :inherited-members:
+   :show-inheritance:
+.. autoclass:: navsim.memory.NumpyMemory
+   :members:
+   :inherited-members:
+   :show-inheritance:
+
+Utilities
 --------------------
 .. autoclass:: navsim.util.ObjDict
    :members:
