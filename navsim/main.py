@@ -164,7 +164,7 @@ def main():
             for arg in ["discount", "tau", "expl_noise"]:
                 conf["run_config"][arg] = float(conf["run_config"][arg])
             for arg in ["env_gpu_id", "seed", "timeout", "base_port",
-                        "obs_mode", "obs_height", "obs_width"
+                        "obs_mode", "obs_height", "obs_width",
                         "segmentation_mode", "episode_max_steps", "task",
                         "goal", "goal_distance", "agent_car_physics"]:
                 conf["env_config"][arg] = int(conf["env_config"][arg])
