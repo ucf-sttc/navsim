@@ -358,15 +358,19 @@ class NavSimGymEnv(UnityToGymWrapper):
     def get_dummy_obs(self):
         # prepare input data
         obs_names = []
+        obs_data = []
         for state_dim in self.observation_space_shapes:
-            input_dim = [1]
+            #obs_dim = [1] + [state_dim[2],state_dim[1],state_dim[0],
+            obs = np.zeros([1]+list(state_dim))
             obs_name='state'
             for i in range(len(state_dim)):
-                input_dim.append(state_dim[i])
+            #    input_dim.append(state_dim[i])
                 obs_name += f'_{state_dim[i]}'
+            obs_names.append(obs_name)
+            obs_data.append(obs)
 
-        obs_data = np.zeros(input_dim,dtype=np.float)
-        obs_names.append(obs_name)
+        #print([o.shape for o in obs_data],obs_names)
+
         return obs_data, obs_names
 
     def get_dummy_actions(self):
@@ -374,6 +378,59 @@ class NavSimGymEnv(UnityToGymWrapper):
         actions_data = np.zeros([1, action_dim],dtype=np.float)
         actions_names = f'action_{action_dim}'
         return actions_data, actions_names
+
+        """
+        # prepare input data
+        input_data = []
+        input_names = []
+        for state_dim in self.env.observation_space_shapes:
+            if len(state_dim) == 1:
+                random_input = torch.randn(1, state_dim[0]).to(device)
+                input_name = f'state_{state_dim[0]}'
+            else:  # visual
+                random_input = torch.randn(1, state_dim[2], state_dim[0],
+                                           state_dim[1]).to(device)
+                input_name = f'state_{state_dim[0]}_{state_dim[1]}_{state_dim[2]}'
+
+            input_data.append(random_input)
+            input_names.append(input_name)
+
+        # export actor
+        model = self.actor
+        torch.onnx.export(model,
+                          args=input_data,
+                          f=f"{folder}/actor.onnx",
+                          export_params=True,
+                          opset_version=9,
+                          do_constant_folding=True,
+                          input_names=input_names,
+                          output_names=['action'])
+
+        if critic:
+            # add action data for critic
+            action_dim = self.env.action_space_shape[0]
+            random_input = torch.randn(1, action_dim).to(device)
+            input_name = f'action_{action_dim}'
+            input_data = [input_data]
+
+            # print(len(input_data))
+            input_data.append(random_input)
+            input_data = tuple(input_data)
+            # print(len(input_data))
+            input_names.append(input_name)
+
+            # export critic
+            model = self.critic
+            torch.onnx.export(model,
+                              args=input_data,
+                              f=f"{folder}/critic.onnx",
+                              export_params=True,
+                              opset_version=9,
+                              do_constant_folding=True,
+                              input_names=input_names,
+                              output_names=['q'])
+        """
+
 
 class MapSideChannel(SideChannel):
     """This is the SideChannel for retrieving map data from Unity.

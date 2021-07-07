@@ -22,6 +22,10 @@ def s_hwc_to_chw(s):
         s = image_layout(s, 'hwc', 'chw')
     elif isinstance(s, list):  # state is a list of states
         for i in range(len(s)):
-            if isinstance(s[i], np.ndarray) and (s[i].ndim > 2):
-                s[i] = image_layout(s[i], 'hwc', 'chw')
+            if isinstance(s[i], np.ndarray):
+                if (s[i].ndim == 3):
+                    s[i] = image_layout(s[i], 'hwc', 'chw')
+                elif (s[i].ndim == 4):
+                    s[i] = image_layout(s[i], 'nhwc', 'nchw')
+
     return s

@@ -185,13 +185,12 @@ class Executor:
                 self.agent.load_checkpoint(model_filename)
             # TODO: self.agent.info()
 
-            dummy_obs = torch.as_tensor(self.env.get_dummy_obs()[0],
-                                        dtype=torch.float)
+            dummy_obs = [torch.as_tensor(obs,
+                                        dtype=torch.float) for obs in s_hwc_to_chw(self.env.get_dummy_obs()[0])]
             dummy_act = torch.as_tensor(self.env.get_dummy_actions()[0],
                                         dtype=torch.float
                                         )
-            #print(dummy_obs, dummy_obs.shape)
-            #print(dummy_act, dummy_act.shape)
+
             dummy_nn = self.agent.NN_WRAPPER(self.env.observation_space_shapes,
                                              self.env.action_space.shape[0],
                                              self.env.action_space.high[0])

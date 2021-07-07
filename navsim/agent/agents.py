@@ -163,12 +163,12 @@ class ActorCriticWrapper(torch.nn.Module):
     def __init__(self, state_dimensions, action_dimension, max_action):
         super().__init__()
         self.actor = Actor(state_dimensions, action_dimension, max_action)
-        self.critic = Critic(state_dimensions, action_dimension)
+        #self.critic = Critic(state_dimensions, action_dimension)
 
     def forward(self, state, action):
         q1 = self.actor(state)
-        q2 = self.critic([state], action)
-        return q1, q2
+        #q2 = self.critic(state, action)
+        return q1 #, q2
 
 
 class Actor(torch.nn.Module):
