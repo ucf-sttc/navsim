@@ -215,7 +215,8 @@ class NavSimGymEnv(UnityToGymWrapper):
                 [self.e_num, self.s_num] + list(action))
             self.actions_file.flush()
         self.spl_current = self.get_shortest_path_length()
-        r += (self.spl_start - self.spl_current) * self.reward_spl_delta_mul
+        if not episode_done:
+            r += (self.spl_start - self.spl_current) * self.reward_spl_delta_mul
         return s_, r, episode_done, info
 
     def close(self):

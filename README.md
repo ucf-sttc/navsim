@@ -24,9 +24,9 @@ Following should be pre-installed on the host machine:
 There are three components: navsim binary, navsim python api, navsim container
 You can use any version of each of them as long as first two digits match. 
 These are latest releases of each of them:  
-* binary 2.8.1  
-* python api 2.8.1  
-* container 2.8.1  
+* binary 2.9.x  
+* python api 2.9.1  
+* container 2.9.1  
 
 ## How to use the navsim env 
 
