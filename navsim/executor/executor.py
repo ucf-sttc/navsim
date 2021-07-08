@@ -315,7 +315,7 @@ class Executor:
                                total_episodes)
             episodes_in_block = stop_episode - start_episode + 1
             # episode_rewards = np.full(episodes_in_block, 0.0)
-            ckpt_ctr = 0
+            ckpt_e = 0
             ckpt_t_global = t_global
 
             for episode_num in tqdm(
@@ -325,8 +325,7 @@ class Executor:
                     bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{rate_fmt}{postfix}]'):
                 self.rc.start()
                 episode_counter = episode_num - start_episode
-                episode_resources[
-                    ckpt_ctr, 0] = self.rc.snapshot()  # e0
+                episode_resources[ckpt_e, 0] = self.rc.snapshot()  # e0
 
                 # initialise the episode counters
                 episode_done = False
@@ -356,7 +355,7 @@ class Executor:
                     # s5,6: before and after env.step()
                     # s7,8: before and after memory.append()
                     # s9: end of step
-                    step_res[ckpt_ctr, t - 1, 0] = self.rc.snapshot()  # s0
+                    step_res[ckpt_e, t - 1, 0] = self.rc.snapshot()  # s0
 
                     # do the random sampling until enough memory is full
                     if self.memory.size < batch_size:
@@ -364,27 +363,27 @@ class Executor:
                         # rescale break between 0,1 from -1,1
                         # NewValue = (((OldValue - OldMin) * (NewMax - NewMin)) / (OldMax - OldMin)) + NewMin
                         a[2] = (a[2] + 1) / 2
-                        step_res[ckpt_ctr, t - 1, 1:5] = [[0.0] * 3] * 4
+                        step_res[ckpt_e, t - 1, 1:5] = [[0.0] * 3] * 4
                         # s1-4
                     else:
                         # TODO: Find the best place to train, moved here for now
                         if train_interval and (
                                 (t_global % train_interval) == 0):
-                            step_res[ckpt_ctr, t - 1, 1] = self.rc.snapshot()
+                            step_res[ckpt_e, t - 1, 1] = self.rc.snapshot()
                             # s1
                             batch_s, batch_a, batch_r, batch_s_, batch_d = \
                                 self.memory.sample(batch_size)
-                            step_res[ckpt_ctr, t - 1, 2] = self.rc.snapshot()
+                            step_res[ckpt_e, t - 1, 2] = self.rc.snapshot()
                             # s2
                             # print('training the agent')
-                            step_res[ckpt_ctr, t - 1, 3] = self.rc.snapshot()
+                            step_res[ckpt_e, t - 1, 3] = self.rc.snapshot()
                             # s3
                             self.agent.train(batch_s, batch_a, batch_r,
                                              batch_s_, batch_d)
-                            step_res[ckpt_ctr, t - 1, 4] = self.rc.snapshot()
+                            step_res[ckpt_e, t - 1, 4] = self.rc.snapshot()
                             # s4
                         else:
-                            step_res[ckpt_ctr, t - 1, 1:5] = [[0.0] * 3] * 4
+                            step_res[ckpt_e, t - 1, 1:5] = [[0.0] * 3] * 4
                             # s1-4
 
                         a = (self.agent.select_action(s) + np.random.normal(
@@ -395,9 +394,9 @@ class Executor:
                             self.max_action
                         )
 
-                    step_res[ckpt_ctr, t - 1, 5] = self.rc.snapshot()  # s5
+                    step_res[ckpt_e, t - 1, 5] = self.rc.snapshot()  # s5
                     s_, r, episode_done, info = self.env.step(a)
-                    step_res[ckpt_ctr, t - 1, 6] = self.rc.snapshot()  # s6
+                    step_res[ckpt_e, t - 1, 6] = self.rc.snapshot()  # s6
 
                     # because pytorch can only deal with images in CHW format
                     # we are making the optimization here to convert from HWC to CHW format.
@@ -410,30 +409,30 @@ class Executor:
                     # s_ = [s_]
                     # for item in s_:
 
-                    step_res[ckpt_ctr, t - 1, 7] = self.rc.snapshot()
+                    step_res[ckpt_e, t - 1, 7] = self.rc.snapshot()
                     # s7
                     self.memory.append(
                         s=s, a=a, s_=s_, r=r,
                         d=float(episode_done))  # if t < t_max -1 else 1)
                     s = s_
-                    step_res[ckpt_ctr, t - 1, 8] = self.rc.snapshot()  # s8
+                    step_res[ckpt_e, t - 1, 8] = self.rc.snapshot()  # s8
 
-                    step_rew[ckpt_ctr, t - 1] = r
-                    step_spl[ckpt_ctr, t - 1] = self.env.spl_current
-                    step_loss[ckpt_ctr, t - 1] = [
+                    step_rew[ckpt_e, t - 1] = r
+                    step_spl[ckpt_e, t - 1] = self.env.spl_current
+                    step_loss[ckpt_e, t - 1] = [
                         0 if self.agent.actor_loss is None else self.agent.actor_loss.data.cpu().numpy(),
                         0 if self.agent.critic_loss is None else self.agent.critic_loss.data.cpu().numpy()]
 
-                    # print(step_loss[ckpt_ctr, t - 1])
-                    # episode_rewards[ckpt_ctr] += r
+                    # print(step_loss[ckpt_e, t - 1])
+                    # episode_rewards[ckpt_e] += r
 
                     # if self.memory.size >= self.run_conf['batch_size'] * self.run_conf['batches_before_train']:
 
                     #                    if (t >= self.config['batch_size'] * self.config['batches_before_train']) and (t % 1000 == 0):
                     # episode_evaluations.append(evaluate_policy(self.agent, self.env, self.config['seed']))
 
-                    step_res[ckpt_ctr, t - 1, 9] = self.rc.snapshot()  # s9
-                    # print(ckpt_ctr,t-1, step_res[ckpt_ctr][t-1])
+                    step_res[ckpt_e, t - 1, 9] = self.rc.snapshot()  # s9
+                    # print(ckpt_e,t-1, step_res[ckpt_e][t-1])
                     # print(t,step_res[0][0])
                     if episode_done or (t_max and (t >= t_max)):
                         break
@@ -443,9 +442,9 @@ class Executor:
                 # print(step_res[0][0])
                 # end of while loop for one episode
                 # episode end processing
-                episode_resources[ckpt_ctr, 1] = self.rc.stop()  # e1
-                episode_steps[ckpt_ctr] = t
-                ckpt_ctr += 1
+                episode_resources[ckpt_e, 1] = self.rc.stop()  # e1
+                episode_steps[ckpt_e] = t
+                ckpt_e += 1
 
                 #            if self.enable_logging:
                 #                self.writer.add_scalar('Episode Reward', episode_reward, t)
@@ -540,7 +539,7 @@ class Executor:
             # episodes checkpoint loop finishes
             self.episode_results_file.flush()
             self.step_results_file.flush()
-            ckpt_ctr = 0
+            ckpt_e = 0
         # save the state json at end of run
         model_filename = f"{self.run_base_folder_str}/" \
                          f"{self.conf.env_config['start_from_episode']}_" \
