@@ -5,7 +5,7 @@ import torch
 from torch.nn import functional as F
 
 
-class ModelTorch(nn.Module):
+class ModelTorch(torch.nn.Module):
     def __init__(self, conf):
         super().__init__()
         self.conf = conf

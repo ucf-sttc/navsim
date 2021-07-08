@@ -477,7 +477,9 @@ class Executor:
                 self.write_tb('episode',
                               {'reward': episode_reward,
                                'time': episode_time,
-                               'peak_memory': episode_resources[e_num, 1, 2]},
+                               'peak_memory': episode_resources[e_num, 1, 2],
+                               'total_steps_per_episode': episode_steps[e_num]
+                               },
                               start_episode + e_num)  # episode_num
                 self.episode_results_writer.writerow(
                     [start_episode + e_num,  # episode_num

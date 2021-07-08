@@ -43,14 +43,14 @@ You can either run directly on a host machine or in a container.
 If you are running on a host directly, 
 first follow the instructions to setup the host.
 
-1. Download and extract the unity binary zip file, and
+1. Download and extract the unity binary zip file
 2. The following environment variables need to be set in both cases:
-```
-envdir=$(realpath "/data/work/unity-envs/Build2.9.2");envbin="Berlin_Walk_V2.x86_64"; 
-expdir=$(realpath "$HOME/exp"); run_id="navsim_demo"
-repo="ghcr.io/armando-fandango";
-cd $expdir
-```
+   ```
+   envdir=$(realpath "/data/work/unity-envs/Build2.9.2");envbin="Berlin_Walk_V2.x86_64"; 
+   expdir=$(realpath "$HOME/exp"); run_id="navsim_demo"
+   repo="ghcr.io/armando-fandango";
+   cd $expdir
+   ```
 3. Now follow the container, or the host option below.
    
 ### Option 1: Container
@@ -58,22 +58,23 @@ cd $expdir
 Note: Make sure you are in experiment directory, 
 as container will dump the files there.
 
-```
-docker run --rm --privileged -it --runtime=nvidia \
---name $run_id \
--h $run_id \
--e XAUTHORITY \
--e NVIDIA_VISIBLE_DEVICES=all -e NVIDIA_DRIVER_CAPABILITIES=all \
--e USER_ID=$(id -u) -e USER_HOME="$HOME" \
--v $HOME:$HOME \
--v /etc/group:/etc/group:ro \
--v /etc/passwd:/etc/passwd:ro \
--v /etc/shadow:/etc/shadow:ro \
--v $envdir:$envdir \
--v $expdir:$expdir \
--w $expdir \
-$repo/navsim:2.9.1 DISPLAY=:0.0 <navsim command>
-```
+   ```
+   cd $expdir
+   docker run --rm --privileged -it --runtime=nvidia \
+   --name $run_id \
+   -h $run_id \
+   -e XAUTHORITY \
+   -e NVIDIA_VISIBLE_DEVICES=all -e NVIDIA_DRIVER_CAPABILITIES=all \
+   -e USER_ID=$(id -u) -e USER_HOME="$HOME" \
+   -v $HOME:$HOME \
+   -v /etc/group:/etc/group:ro \
+   -v /etc/passwd:/etc/passwd:ro \
+   -v /etc/shadow:/etc/shadow:ro \
+   -v $envdir:$envdir \
+   -v $expdir:$expdir \
+   -w $expdir \
+   $repo/navsim:2.9.1 DISPLAY=:0.0 <navsim command>
+   ```
 
 #### The Variable `DISPLAY=:0.0`
 The display variable points to X Display server, and takes a value of `hostname:D.S`, where:

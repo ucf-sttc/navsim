@@ -43,6 +43,9 @@ class NavSimGymEnv(UnityToGymWrapper):
         """
         env_config: The environment configuration dictionary or ObjDict Object
         """
+
+        # TODO: convert env_config to self.env_config so we can add missing values
+        #   and use self.env_config to print in the info section
         # filename: Optional[str] = None, obs_mode: int = 0, max_steps:int = 5):
         self.env_config = env_config
         self.obs_mode = int(self.env_config.get('obs_mode', 2))
@@ -50,8 +53,15 @@ class NavSimGymEnv(UnityToGymWrapper):
             self.env_config.get('start_from_episode', 1))
         self.debug = env_config.get("debug", False)
         self.obs = None
+
+        if self.obs_mode == 0:
+            env_config["save_visual_obs"]=False
+        elif self.obs_mode == 1:
+            env_config["save_vector_obs"]=False
+
         self.save_visual_obs = env_config.get("save_visual_obs", False)
         self.save_vector_obs = env_config.get("save_vector_obs", False)
+
         if self.save_vector_obs or self.save_visual_obs:
             self.keep_es_num = True
         else:
@@ -340,6 +350,15 @@ class NavSimGymEnv(UnityToGymWrapper):
 
         """
         return self
+
+    @property
+    def get_unity_map_dims(self):
+        return 3276.8, 2662.4
+
+    @property
+    def get_navigable_map_point_from_unity_map_point(self,x,y):
+        map_x= FloorToInt(x/(unity_max_x/map_max_x))
+        map_y= FloorToInt(y/(unity_max_y/map_max_y))
 
     @staticmethod
     def register_with_gym():
