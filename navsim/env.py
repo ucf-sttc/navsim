@@ -216,7 +216,7 @@ class NavSimGymEnv(UnityToGymWrapper):
 
     def step(self, action: List[Any]) -> GymStepResult:
         s_, r, episode_done, info = super().step(action)
-        self.obs = s_[0]
+        self.obs = s_
         if self.keep_es_num:
             self.s_num += 1
         self.save_obs(self.obs)
@@ -287,11 +287,11 @@ class NavSimGymEnv(UnityToGymWrapper):
         """
         if self.obs_mode in [1, 2]:
             if mode == 'rgb_array':
-                visual_obs = self.obs[0:3][0]
+                visual_obs = self.obs[0]
             elif mode == 'depth':
-                visual_obs = self.obs[0:3][1]
+                visual_obs = self.obs[1]
             elif mode == 'segmentation':
-                visual_obs = self.obs[0:3][2]
+                visual_obs = self.obs[2]
         else:
             visual_obs = None
         return visual_obs
