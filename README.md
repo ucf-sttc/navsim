@@ -21,10 +21,10 @@ env_config = navsim.util.ObjDict({
         "goal": 0,
         "goal_distance": 50,
         "reward_for_goal": 50,
-        "reward_for_no_viable_path":-50),
-        "reward_step_mul": 0.1),
-        "reward_collision_mul": 4),
-        "reward_spl_delta_mul": 1),
+        "reward_for_no_viable_path":-50,
+        "reward_step_mul": 0.1,
+        "reward_collision_mul": 4,
+        "reward_spl_delta_mul": 1,
         "agent_car_physics": 0,   
         "debug":False,
         "obs_mode":0,
@@ -35,7 +35,7 @@ env_config = navsim.util.ObjDict({
     
 env = gym.make("navsim-v0", env_config=env_config) 
 # or use the following method to create an env
-env = NavSimGymEnv(env_config)
+env = navsim.NavSimGymEnv(env_config)
 ```
 
 If you want to use our `navsim` conda environment or `navsim` container then 

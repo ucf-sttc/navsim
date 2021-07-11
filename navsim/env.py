@@ -209,9 +209,9 @@ class NavSimGymEnv(UnityToGymWrapper):
             self.actions_file = log_folder / 'actions.csv'
             if (self.start_from_episode == 1) or (
                     self.actions_file.exists() == False):
-                self.actions_file.open(mode='w')
+                self.actions_file = self.actions_file.open(mode='w')
             else:
-                self.actions_file.open(mode='a')
+                self.actions_file = self.actions_file.open(mode='a')
             self.actions_writer = csv.writer(self.actions_file,
                                              delimiter=',',
                                              quotechar='"',
