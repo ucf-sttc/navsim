@@ -193,7 +193,8 @@ class NavSimGymEnv(UnityToGymWrapper):
                          )
 
         # TODO: Once the environment has capability to start from an episode, then remove this
-        logger.info(f'jumping to episode {self.start_from_episode}')
+        if self.start_from_episode > 1:
+            logger.info(f'jumping to episode {self.start_from_episode}')
         for i in range(1, self.start_from_episode):
             self.reset()
             logger.info(f'skipping episode {self.e_num}')
@@ -314,6 +315,19 @@ class NavSimGymEnv(UnityToGymWrapper):
         print('Metadata:', self.metadata)
         print('--------------------------------------')
         return self
+
+    @property
+    def current_episode_num(self):
+        """Currently executing episode number, 0 means env just initialized
+        """
+        return self.e_num
+
+    @property
+    def last_step_num(self):
+        """Last executed step number, 0 mean env just initialized or reset
+        """
+        return self.s_num
+
 
     @property
     def observation_space_shapes(self) -> list:
