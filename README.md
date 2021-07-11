@@ -4,6 +4,45 @@ A navigation simulator API built on top of Python, Stable Baselines 3, Pytorch.
 Can use many simulator backends, for now uses the Aurora Simulator, that is a 
 Unity3D GameEngine based Berlin city environment.
 
+# How to use the navsim env
+
+If you only want to use `NavSimGymEnv`, then all you need to do is install 
+`navsim` from pip and then either subclass it or use it as follows, or check 
+the detailed tutorial <insert link here):
+
+```python
+import navsim
+import gym
+
+env_config = navsim.util.ObjDict({
+        "env_path": "/data/work/unity-envs/Build2.9.2/Berlin_Walk_V2.x86_64",
+        "log_folder":"./env_log", 
+        "task": 0,
+        "goal": 0,
+        "goal_distance": 50,
+        "reward_for_goal": 50,
+        "reward_for_no_viable_path":-50),
+        "reward_step_mul": 0.1),
+        "reward_collision_mul": 4),
+        "reward_spl_delta_mul": 1),
+        "agent_car_physics": 0,   
+        "debug":False,
+        "obs_mode":0,
+        "seed":123,
+        "save_vector_obs":True,
+        "save_visual_obs":True
+    })
+    
+env = gym.make("navsim-v0", env_config=env_config) 
+# or use the following method to create an env
+env = NavSimGymEnv(env_config)
+```
+
+If you want to use our `navsim` conda environment or `navsim` container then 
+follow the instructions below.
+
+# How to use the navsim conda env or container
+
 ## Pre-requisites
 
 Following should be pre-installed on the host machine:
@@ -24,18 +63,9 @@ Following should be pre-installed on the host machine:
 There are three components: navsim binary, navsim python api, navsim container
 You can use any version of each of them as long as first two digits match. 
 These are latest releases of each of them:  
-* binary 2.9.x  
-* python api 2.9.1  
-* container 2.9.1  
-
-## How to use the navsim env 
-
-Assuming your code is in a folder defined in environment variable `expdir`. 
-In your code import `NavSimGymEnv` from the `navsim` package. Either use it to
-instantiate env objects or extend it by subclassing.
-
-Follow the instructions in "how to run the navsim training" section below, 
-replace `navsim` command with your own command, for example: `my-training`
+* binary 2.10.x  
+* python api 2.10.x  
+* container 2.10.x  
 
 ## How to run the navsim training
 
@@ -45,9 +75,11 @@ first follow the instructions to setup the host.
 
 1. Download and extract the unity binary zip file
 2. The following environment variables need to be set in both cases:
-   ```
-   envdir=$(realpath "/data/work/unity-envs/Build2.9.2");envbin="Berlin_Walk_V2.x86_64"; 
-   expdir=$(realpath "$HOME/exp"); run_id="navsim_demo"
+   ```shell
+   envdir=$(realpath "/data/work/unity-envs/Build2.10.0");
+   envbin="Berlin_Walk_V2.x86_64"; 
+   expdir=$(realpath "$HOME/exp"); 
+   run_id="navsim_demo"; 
    repo="ghcr.io/armando-fandango";
    cd $expdir
    ```
@@ -58,7 +90,7 @@ first follow the instructions to setup the host.
 Note: Make sure you are in experiment directory, 
 as container will dump the files there.
 
-   ```
+   ```shell
    cd $expdir
    docker run --rm --privileged -it --runtime=nvidia \
    --name $run_id \
@@ -73,7 +105,7 @@ as container will dump the files there.
    -v $envdir:$envdir \
    -v $expdir:$expdir \
    -w $expdir \
-   $repo/navsim:2.9.1 DISPLAY=:0.0 <navsim command>
+   $repo/navsim:2.10.0 DISPLAY=:0.0 <navsim command>
    ```
 
 #### The Variable `DISPLAY=:0.0`
@@ -100,8 +132,9 @@ Run the `navsim` command as described in its section below.
 * `navsim --run_id $run_id --env $envdir/$envbin` - executes and/or trains the model
 * `navsim-benchmark $envdir/$envbin` - benchmarks the model
 * `navsim-saturate-gpu $envdir/$envbin` - Saturates the GPU
-* Replace the navsim command with your own command if you are just importing the NavSim env.
-
+* Replace the navsim command with your own command if you are just importing 
+  the NavSim env and have your own code in experiment directory.
+  
 ## Setup the host to run directly
 ### Assumptions
 * Following are installed: X, nvidia drivers

@@ -2,12 +2,8 @@ from pathlib import Path
 from typing import Optional, List, Set
 
 import attr
-import cattr
-import os
 import navsim
 from .util import ObjDict
-import argparse
-import yaml
 from .cli_utils import argparser, non_default_args
 
 
@@ -47,7 +43,8 @@ def main():
         run_base_folder.mkdir(parents=True, exist_ok=True)
 
     env_conf = ObjDict({
-        "log_folder": str((run_base_folder / "unity.log").resolve()),
+        "log_folder": str((run_base_folder / "env_log").resolve()),
+        "env_path": args["env_path"],
         "worker_id": 0,
         "base_port": 5005,
         "seed": int(args["seed"]),
@@ -62,17 +59,14 @@ def main():
         "goal_distance": int(args["goal_distance"]),
         "agent_car_physics": int(args["agent_car_physics"]),
         "reward_for_goal": float(args["reward_for_goal"]),
-        "reward_for_ep": float(args["reward_for_ep"]),
-        "reward_for_other_collision": float(args["reward_for_other_collision"]),
-        "reward_for_falling_off_map": float(args["reward_for_falling_off_map"]),
-        "reward_for_step": float(args["reward_for_step"]),
+        "reward_for_no_viable_path": float(args["reward_for_no_viable_path"]),
+        "reward_step_mul": float(args["reward_step_mul"]),
+        "reward_collision_mul": float(args["reward_collision_mul"]),
         "reward_spl_delta_mul": float(args["reward_spl_delta_mul"]),
-        "env_path": args["env_path"],
         "env_gpu_id": int(args["env_gpu_id"]),
         "debug": args["debug"],
         "save_vector_obs": args["save_vector_obs"],
         "save_visual_obs": args["save_visual_obs"]
-        #"run_base_folder_str": run_base_folder_str
     })
 
     run_conf = ObjDict({
@@ -168,13 +162,13 @@ def main():
                         "segmentation_mode", "episode_max_steps", "task",
                         "goal", "goal_distance", "agent_car_physics"]:
                 conf["env_config"][arg] = int(conf["env_config"][arg])
-            for arg in ["reward_for_goal", "reward_for_ep",
-                        "reward_for_other_collision",
-                        "reward_for_falling_off_map", "reward_for_step",
+            for arg in ["reward_for_goal",
+                        "reward_for_no_viable_path",
+                        "reward_step_mul", "reward_collision_mul",
                         "reward_spl_delta_mul"]:
                 conf["env_config"][arg] = float(conf["env_config"][arg])
 
-        executor = navsim.Executor(run_id=args["run_id"],
+        executor = navsim.executor.Executor(run_id=args["run_id"],
                                    resume=args["resume"],
                                    conf=conf)
         executor.execute()

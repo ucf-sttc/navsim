@@ -60,7 +60,6 @@ def _create_argparser() -> argparse.ArgumentParser:
     run_conf.add_argument(
         "--debug",
         default=False,
-        dest="debug",
         help="Turn debugging on",
         action=ArgActionStoreTrue,
     )
@@ -68,7 +67,6 @@ def _create_argparser() -> argparse.ArgumentParser:
     run_conf.add_argument(
         "--resume",
         default=False,
-        dest="resume",
         action=ArgActionStoreTrue,
         help="Whether to resume training or inference from a checkpoint. Specify a --run-id to use this option. "
              "If set, the training code loads an already trained model to initialize the neural network "
@@ -78,7 +76,6 @@ def _create_argparser() -> argparse.ArgumentParser:
     run_conf.add_argument(
         "--force",
         default=False,
-        dest="force",
         action=ArgActionStoreTrue,
         help="Whether to force-overwrite this run-id's existing summary and model data. (Without "
              "this flag, attempting to train a model with a run-id that has been used before will throw "
@@ -88,14 +85,12 @@ def _create_argparser() -> argparse.ArgumentParser:
     run_conf.add_argument(
         "--total_episodes",
         default=2,
-        dest="total_episodes",
         action=ArgAction,
         help="Total number of episodes to run. If resume is used, then it will try to read the previously run episodes and continue from there.",
     )
     run_conf.add_argument(
         "--train_interval",
         default=16,
-        dest="train_interval",
         help="Train the model after these many global steps. If set to 0 then model wont train",
         action=ArgAction,
     )
@@ -103,7 +98,6 @@ def _create_argparser() -> argparse.ArgumentParser:
     run_conf.add_argument(
         "--checkpoint_interval",
         default=1,
-        dest="checkpoint_interval",
         action=ArgAction,
         help="Execute the episodes in blocks of checkpoint intervals",
     )
@@ -111,7 +105,6 @@ def _create_argparser() -> argparse.ArgumentParser:
     run_conf.add_argument(
         "--agent_gpu_id",
         default=0,
-        dest="agent_gpu_id",
         action=ArgAction,
         help="Which GPU to run models in agent on",
     )
@@ -119,15 +112,13 @@ def _create_argparser() -> argparse.ArgumentParser:
     run_conf.add_argument(
         "--episode_max_steps",
         default=100,
-        dest="episode_max_steps",
         action=ArgAction,
         help="Maximum number of steps in an Episode, aka Episode Length",
     )
 
     run_conf.add_argument(
         "--seed",
-        default=1,
-        dest="seed",
+        default=0,
         action=ArgAction,
         help="Seed",
     )
@@ -135,28 +126,24 @@ def _create_argparser() -> argparse.ArgumentParser:
     run_conf.add_argument(
         "--discount",
         default=0.99,
-        dest="discount",
         action=ArgAction,
-        help="",
+        help="discount",
     )
     run_conf.add_argument(
         "--tau",
         default=5e-3,
-        dest="tau",
         action=ArgAction,
-        help="",
+        help="tau",
     )
     run_conf.add_argument(
         "--exploration_noise",
         default=0.1,
-        dest="exploration_noise",
         action=ArgAction,
-        help="",
+        help="exploration_noise",
     )
     run_conf.add_argument(
         "--batch_size",
         default=32,
-        dest="batch_size",
         action=ArgAction,
         help="Batch Size",
     )
@@ -164,7 +151,6 @@ def _create_argparser() -> argparse.ArgumentParser:
     run_conf.add_argument(
         "--memory_capacity",
         default=100,
-        dest="memory_capacity",
         action=ArgAction,
         help="Total capacity of memory, should be > batch_size",
     )
@@ -183,14 +169,12 @@ def _create_argparser() -> argparse.ArgumentParser:
     env_conf.add_argument(
         "--env_gpu_id",
         default=0,
-        dest="env_gpu_id",
         action=ArgAction,
         help="Which GPU to run env on",
     )
     env_conf.add_argument(
         "--timeout",
         default=600,
-        dest="timeout",
         help="TimeOut for the Env",
         action=ArgAction,
     )
@@ -217,72 +201,58 @@ def _create_argparser() -> argparse.ArgumentParser:
     env_conf.add_argument(
         "--segmentation_mode",
         default=1,
-        dest="segmentation_mode",
         help="Segmentation Mode : 1",
         action=ArgAction,
     )
     env_conf.add_argument(
         "--task",
         default=0,
-        dest="task",
         help="Task",
         action=ArgAction,
     )
     env_conf.add_argument(
         "--goal",
         default=0,
-        dest="goal",
         help="Goal",
         action=ArgAction,
     )
     env_conf.add_argument(
         "--goal_distance",
         default=50,
-        dest="goal_distance",
         help="Distance to goal from current location",
         action=ArgAction,
     )
     env_conf.add_argument(
         "--agent_car_physics",
         default=0,
-        dest="agent_car_physics",
         help="Agent Car Physics Levels : 0,1,2,10",
         action=ArgAction,
     )
     env_conf.add_argument(
         "--reward_for_goal",
         default=50,
-        dest="reward_for_goal",
-        help="Reward for Goal",
+        help="Reward for reaching the goal",
         action=ArgAction,
     )
     env_conf.add_argument(
-        "--reward_for_ep",
-        default=0.005,
-        dest="reward_for_ep",
-        help="Reward for Exploration Point",
-        action=ArgAction,
-    )
-    env_conf.add_argument(
-        "--reward_for_other_collision",
-        default=-0.1,
-        help="Reward for Other collision",
-        action=ArgAction,
-    )
-    env_conf.add_argument(
-        "--reward_for_falling_off_map",
+        "--reward_for_no_viable_path",
         default=-50,
-        dest="reward_for_falling_off_map",
-        help="Reward for Falling off Map",
+        help="Reward for no more viable paths remaining to reach the goal",
         action=ArgAction,
     )
     env_conf.add_argument(
-        "--reward_for_step",
-        default=-0.0001,
-        dest="reward_for_step",
-        help="Reward for Step",
+        "--reward_step_mul",
+        default=0.1,
+        help="Multiply step reward [which is -(goal_reward / spl_start) with this number",
         action=ArgAction,
     )
+    env_conf.add_argument(
+        "--reward_collision_mul",
+        default=4,
+        help="Multiply step reward with this number when there is a collision and add to reward",
+        action=ArgAction,
+    )
+
     env_conf.add_argument(
         "--reward_spl_delta_mul",
         default=1,

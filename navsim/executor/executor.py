@@ -9,7 +9,7 @@ import numpy as np
 import math
 
 import gym
-from navsim import DDPGAgent
+from navsim.agent import DDPGAgent
 from navsim.util import sizeof_fmt, image_layout, s_hwc_to_chw
 from navsim.util import ObjDict, ResourceCounter
 
@@ -142,7 +142,7 @@ class Executor:
 
             if self.run_conf["mem_backend"] == "cupy":
                 if torch.cuda.is_available():
-                    from navsim import CupyMemory
+                    from navsim.memory import CupyMemory
                     CupyMemory.set_device(self.run_conf['agent_gpu_id'])
                     mem_backend = CupyMemory
                 else:
@@ -151,7 +151,7 @@ class Executor:
             elif self.run_conf["mem_backend"] == "numpy":
                 if torch.cuda.is_available():
                     print("Warning: GPU is available but mem_backend=numpy")
-                from navsim import NumpyMemory
+                from navsim.memory import NumpyMemory
                 mem_backend = NumpyMemory
 
             if resume and self.run_base_folder.is_dir():
@@ -329,7 +329,7 @@ class Executor:
 
                 # initialise the episode counters
                 episode_done = False
-                # episode_reward = 0
+                # episode_return = 0
                 t = 1
 
                 # self.env.start_navigable_map()
@@ -362,7 +362,7 @@ class Executor:
                         a = self.env.action_space.sample()
                         # rescale break between 0,1 from -1,1
                         # NewValue = (((OldValue - OldMin) * (NewMax - NewMin)) / (OldMax - OldMin)) + NewMin
-                        a[2] = (a[2] + 1) / 2
+                        # a[2] = (a[2] + 1) / 2
                         step_res[ckpt_e, t - 1, 1:5] = [[0.0] * 3] * 4
                         # s1-4
                     else:
@@ -447,12 +447,12 @@ class Executor:
                 ckpt_e += 1
 
                 #            if self.enable_logging:
-                #                self.writer.add_scalar('Episode Reward', episode_reward, t)
-                #            episode_rewards.append(episode_reward)
+                #                self.writer.add_scalar('Episode Reward', episode_return, t)
+                #            episode_rewards.append(episode_return)
 
                 # s = self.env.reset()[0]
                 # episode_done = False
-                # episode_reward = 0
+                # episode_return = 0
                 # episode_timesteps = 0
                 # episode_num += 1
             # end of tqdm-for loop - checkpoint block of episodes
@@ -472,17 +472,21 @@ class Executor:
             for e_num in range(episodes_in_block):
                 episode_time = episode_resources[e_num, 1, 0] - \
                                episode_resources[e_num, 0, 0]
-                episode_reward = step_rew[e_num, 0:episode_steps[e_num]].sum()
+                episode_return = step_rew[e_num, 0:episode_steps[e_num]].sum()
                 self.write_tb('episode',
-                              {'reward': episode_reward,
+                              {'return': episode_return,
                                'time': episode_time,
                                'peak_memory': episode_resources[e_num, 1, 2],
-                               'total_steps_per_episode': episode_steps[e_num]
+                               'total_steps': episode_steps[e_num],
+                               'max_spl': step_spl[e_num].max(),
+                               'min_spl': step_spl[e_num].min(),
+                               'spl_span': step_spl[e_num].max() - step_spl[
+                                   e_num].min()
                                },
                               start_episode + e_num)  # episode_num
                 self.episode_results_writer.writerow(
                     [start_episode + e_num,  # episode_num
-                     episode_reward,
+                     episode_return,
                      episode_time,
                      episode_resources[e_num, 1, 2]])  # episode_peak_memory
 

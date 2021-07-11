@@ -2,15 +2,17 @@ import csv
 from pathlib import Path
 import numpy as np
 import uuid
-import cv2
 
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import time
+
 from gym_unity.envs import (
     UnityToGymWrapper,
     GymStepResult
 )
+
+from mlagents_envs.logging_util import get_logger
 
 from mlagents_envs.exception import UnityWorkerInUseException
 from mlagents_envs.environment import UnityEnvironment
@@ -26,6 +28,41 @@ from mlagents_envs.side_channel.environment_parameters_channel import \
 
 from mlagents_envs.side_channel.float_properties_channel import \
     FloatPropertiesChannel
+
+logger = get_logger(__name__)
+
+try:
+    from cv2 import imwrite as imwrite
+
+    logger.info("Navsim is using cv2 as image library")
+except:
+    try:
+        from imageio import imwrite as imwrite
+
+        logger.info("Navsim is using imageio as image library")
+    except:
+        try:
+            from matplotlib.pyplot import imsave as imwrite
+
+            logger.info("Navsim is using matplotlib as image library")
+        except:
+            try:
+                from PIL import Image
+
+                logger.info("Navsim is using PIL as image library")
+
+
+                def imwrite(filename, arr):
+                    im = Image.fromarray(arr)
+                    im.save(filename)
+            except:
+                def imwrite(filename=None, arr=None):
+                    logger.warning("Navsim is unable to load any of the following "
+                                  "image libraries: cv2, imageio, matplotlib, "
+                                  "PIL. Install one of these libraries to "
+                                  "save visuals.")
+
+                imwrite()
 
 
 def navsimgymenv_creator(env_config):
@@ -55,9 +92,9 @@ class NavSimGymEnv(UnityToGymWrapper):
         self.obs = None
 
         if self.obs_mode == 0:
-            env_config["save_visual_obs"]=False
+            env_config["save_visual_obs"] = False
         elif self.obs_mode == 1:
-            env_config["save_vector_obs"]=False
+            env_config["save_vector_obs"] = False
 
         self.save_visual_obs = env_config.get("save_visual_obs", False)
         self.save_vector_obs = env_config.get("save_vector_obs", False)
@@ -94,16 +131,16 @@ class NavSimGymEnv(UnityToGymWrapper):
         env_pc = EnvironmentParametersChannel()
         env_sfp = env_pc.set_float_parameter
 
-        env_sfp("rewardForGoalCollision",
+        env_sfp("rewardForGoal",
                 float(self.env_config.get('reward_for_goal', 50)))
-        env_sfp("rewardForExplorationPointCollision",
-                float(self.env_config.get('reward_for_ep', 0.005)))
-        env_sfp("rewardForOtherCollision",
-                float(self.env_config.get('reward_for_other_collision', -0.1)))
-        env_sfp("rewardForFallingOffMap",
-                float(self.env_config.get('reward_for_falling_off_map', -50)))
-        env_sfp("rewardForEachStep",
-                float(self.env_config.get('reward_for_step', -0.0001)))
+        env_sfp("rewardForNoViablePath",
+                float(self.env_config.get('reward_for_no_viable_path', -50)))
+        env_sfp("rewardStepMul",
+                float(self.env_config.get('reward_step_mul', 0.1)))
+        env_sfp("rewardCollisionMul",
+                float(self.env_config.get('reward_collision_mul', 4)))
+        env_sfp("rewardSplDeltaMul",
+                float(self.env_config.get('reward_spl_delta_mul', 1)))
         env_sfp("segmentationMode",
                 float(self.env_config.get('segmentation_mode', 1)))
         env_sfp("observationMode",
@@ -127,12 +164,13 @@ class NavSimGymEnv(UnityToGymWrapper):
         while True:
             try:
                 log_folder = Path(
-                    self.env_config.get('log_folder', '.')).resolve()
+                    self.env_config.get('log_folder', './env_log')).resolve()
                 log_folder.mkdir(parents=True, exist_ok=True)
-                ad_args = [f"-force-device-index {self.env_config.get('env_gpu_id', 0)}",
-                           f"-observationWidth {self.env_config.get('obs_width', 256)}",
-                           f"-observationHeight {self.env_config.get('obs_height', 256)}"
-                            ]
+                ad_args = [
+                    f"-force-device-index {self.env_config.get('env_gpu_id', 0)}",
+                    f"-observationWidth {self.env_config.get('obs_width', 256)}",
+                    f"-observationHeight {self.env_config.get('obs_height', 256)}"
+                ]
                 uenv = UnityEnvironment(file_name=env_path,
                                         log_folder=str(log_folder),
                                         seed=seed,
@@ -149,8 +187,8 @@ class NavSimGymEnv(UnityToGymWrapper):
                 time.sleep(2)
                 self._navsim_base_port += 1
             else:
-                print(f"Created UnityEnvironment at port "
-                      f"{self._navsim_base_port + self._navsim_worker_id}")
+                logger.info(f"Created UnityEnvironment at port "
+                            f"{self._navsim_base_port + self._navsim_worker_id}")
                 break
 
         super().__init__(unity_env=uenv,
@@ -164,45 +202,67 @@ class NavSimGymEnv(UnityToGymWrapper):
         for i in range(1, self.start_from_episode):
             self.reset()
 
+        # TODO: the filenames should be prefixed with specific id of this instance of env
+
         if self.save_visual_obs or self.save_vector_obs:
-            # TODO: the filenames should be prefixed with specific id of this instance of env
-            self.actions_file = (log_folder / 'actions.csv').open(mode='a')
+            # TODO: Read the file upto start_episode and purge the records
+            self.actions_file = log_folder / 'actions.csv'
+            if (self.start_from_episode == 1) or (
+                    self.actions_file.exists() == False):
+                self.actions_file.open(mode='w')
+            else:
+                self.actions_file.open(mode='a')
             self.actions_writer = csv.writer(self.actions_file,
                                              delimiter=',',
                                              quotechar='"',
                                              quoting=csv.QUOTE_MINIMAL)
-        if self.save_visual_obs:
-            if self.obs_mode in [1, 2]:
-                self.rgb_folder = log_folder / 'rgb_obs'
-                self.rgb_folder.mkdir(parents=True, exist_ok=True)
-                self.dep_folder = log_folder / 'dep_obs'
-                self.dep_folder.mkdir(parents=True, exist_ok=True)
-                self.seg_folder = log_folder / 'seg_obs'
-                self.seg_folder.mkdir(parents=True, exist_ok=True)
-            else:
-                self.save_visual_obs = False
 
-        if self.save_vector_obs:
-            if self.obs_mode in [0, 2]:
-                self.vec_file = (log_folder / 'vec_obs.csv').open(mode='a')
+        if self.save_visual_obs and (self.obs_mode in [1, 2]):
+            self.rgb_folder = log_folder / 'rgb_obs'
+            self.rgb_folder.mkdir(parents=True, exist_ok=True)
+            self.dep_folder = log_folder / 'dep_obs'
+            self.dep_folder.mkdir(parents=True, exist_ok=True)
+            self.seg_folder = log_folder / 'seg_obs'
+            self.seg_folder.mkdir(parents=True, exist_ok=True)
+        else:
+            self.save_visual_obs = False
+
+        if self.save_vector_obs and (self.obs_mode in [0, 2]):
+            self.vec_file = log_folder / 'vec_obs.csv'
+            if (self.start_from_episode == 1) or (
+                    self.vec_file.exists() == False):
+                self.vec_file = self.vec_file.open(mode='w')
                 self.vec_writer = csv.writer(self.vec_file,
                                              delimiter=',',
                                              quotechar='"',
                                              quoting=csv.QUOTE_MINIMAL)
+                self.vec_writer.writerow(
+                    ['e_num', 's_num', 'spl_current', 'timestamp'] +
+                    ['posx', 'posy', 'posz', 'velx', 'vely', 'velz',
+                     'rotx', 'roty', 'rotz', 'rotw', 'goalx', 'goaly', 'goalz',
+                     'proxforward', 'prox45left', 'prox45right'])
             else:
-                self.save_vector_obs = False
+                # TODO: Read the file upto start_episode and purge the records
+                self.vec_file = self.vec_file.open(mode='a')
+                self.vec_writer = csv.writer(self.vec_file,
+                                             delimiter=',',
+                                             quotechar='"',
+                                             quoting=csv.QUOTE_MINIMAL)
+            self.vec_file.flush()
+        else:
+            self.save_vector_obs = False
 
     def save_obs(self, obs):
         if self.save_vector_obs:
             self.vec_writer.writerow(
-                [self.e_num, self.s_num, self.spl_current] + list(
-                    obs[-1] if self.obs_mode else obs))
+                [self.e_num, self.s_num, self.spl_current, time.time()] +
+                list(obs[-1]))
             self.vec_file.flush()
         if self.save_visual_obs:
             filename = f'{self.e_num}_{self.s_num}.jpg'
-            cv2.imwrite(str(self.rgb_folder / filename), obs[0] * 255)
-            cv2.imwrite(str(self.dep_folder / filename), obs[1] * 255)
-            cv2.imwrite(str(self.seg_folder / filename), obs[2] * 255)
+            imwrite(str(self.rgb_folder / filename), obs[0] * 255)
+            imwrite(str(self.dep_folder / filename), obs[1] * 255)
+            imwrite(str(self.seg_folder / filename), obs[2] * 255)
 
     def reset(self) -> Union[List[np.ndarray], np.ndarray]:
         result = super().reset()
@@ -210,8 +270,8 @@ class NavSimGymEnv(UnityToGymWrapper):
         if self.keep_es_num:
             self.e_num += 1
             self.s_num = 0
-        self.save_obs(self.obs)
         self.spl_start = self.spl_current = self.get_shortest_path_length()
+        self.save_obs(self.obs)
         return result
 
     def step(self, action: List[Any]) -> GymStepResult:
@@ -219,14 +279,12 @@ class NavSimGymEnv(UnityToGymWrapper):
         self.obs = s_
         if self.keep_es_num:
             self.s_num += 1
-        self.save_obs(self.obs)
         if self.save_vector_obs or self.save_visual_obs:
             self.actions_writer.writerow(
                 [self.e_num, self.s_num] + list(action))
             self.actions_file.flush()
         self.spl_current = self.get_shortest_path_length()
-        if not episode_done:
-            r += (self.spl_start - self.spl_current) * self.reward_spl_delta_mul
+        self.save_obs(self.obs)
         return s_, r, episode_done, info
 
     def close(self):
@@ -287,18 +345,18 @@ class NavSimGymEnv(UnityToGymWrapper):
         """
         if self.obs_mode in [1, 2]:
             if mode == 'rgb_array':
-                visual_obs = self.obs[0]
+                obs = self.obs[0]
             elif mode == 'depth':
-                visual_obs = self.obs[1]
+                obs = self.obs[1]
             elif mode == 'segmentation':
-                visual_obs = self.obs[2]
+                obs = self.obs[2]
         else:
-            visual_obs = None
-        return visual_obs
+            obs = self.obs[-1]
+        return obs
 
     def start_navigable_map(self, resolution_x=256, resolution_y=256,
                             cell_occupancy_threshold=0.5):
-        """Get the Navigable Areas map
+        """Start the Navigable Areas map
 
         Args:
             resolution_x: The size of the x axis of the resulting grid, default = 256
@@ -307,9 +365,6 @@ class NavSimGymEnv(UnityToGymWrapper):
 
         Returns:
 
-        Note:
-            This method only works if you have called ``reset()`` or ``step()``
-            on the environment at least once.
 
         Note:
             Largest resolution that was found to be working was 2000 x 2000
@@ -328,45 +383,34 @@ class NavSimGymEnv(UnityToGymWrapper):
             A numpy array having 0 for non-navigable and 1 for navigable cells
 
         Note:
-            This method only works if you have called ``reset()`` or ``step()``
-            on the environment at least once.
-
-        Note:
-            Largest resolution that was found to be working was 2000 x 2000
+            This only works if you have called ``reset()`` or ``step()`` on the
+            environment at least once after calling start_navigable_map() method.
         """
         return self.map_side_channel.requested_map
 
     def get_shortest_path_length(self):
         return self.fpc.get_property("ShortestPath")
 
-    # Functions added to have parity with Env and RLEnv of habitat lab
-    @property
-    def sim(self):
-        """Returns itself
-
-        Added for compatibility with habitat API.
-
-        Returns: link to self
-
-        """
-        return self
-
-    @property
-    def get_unity_map_dims(self):
-        return 3276.8, 2662.4
-
-    @property
-    def get_navigable_map_point_from_unity_map_point(self,x,y):
-        map_x= FloorToInt(x/(unity_max_x/map_max_x))
-        map_y= FloorToInt(y/(unity_max_y/map_max_y))
+    def get_navigable_map_point_from_unity_map_point(self, x, y):
+        map_x = FloorToInt(x / (unity_max_x / map_max_x))
+        map_y = FloorToInt(y / (unity_max_y / map_max_y))
 
     @staticmethod
     def register_with_gym():
         """Registers the environment with gym registry with the name navsim
 
         """
-        from gym.envs.registration import register
-        register(id='navsim-v0', entry_point='navsim:NavSimGymEnv')
+        id = 'navsim-v0'
+        from gym.envs.registration import register, registry
+
+        env_dict = registry.env_specs.copy()
+        for env in env_dict:
+            if id in env:
+                logger.info(f"Removing {env} from Gym registry")
+                del registry.env_specs[env]
+
+        logger.info(f"Adding {id} to Gym registry")
+        register(id=id, entry_point='navsim:NavSimGymEnv')
 
     @staticmethod
     def register_with_ray():
@@ -381,22 +425,22 @@ class NavSimGymEnv(UnityToGymWrapper):
         obs_names = []
         obs_data = []
         for state_dim in self.observation_space_shapes:
-            #obs_dim = [1] + [state_dim[2],state_dim[1],state_dim[0],
-            obs = np.zeros([1]+list(state_dim))
-            obs_name='state'
+            # obs_dim = [1] + [state_dim[2],state_dim[1],state_dim[0],
+            obs = np.zeros([1] + list(state_dim))
+            obs_name = 'state'
             for i in range(len(state_dim)):
-            #    input_dim.append(state_dim[i])
+                #    input_dim.append(state_dim[i])
                 obs_name += f'_{state_dim[i]}'
             obs_names.append(obs_name)
             obs_data.append(obs)
 
-        #print([o.shape for o in obs_data],obs_names)
+        # print([o.shape for o in obs_data],obs_names)
 
         return obs_data, obs_names
 
     def get_dummy_actions(self):
         action_dim = self.action_space.shape[0]
-        actions_data = np.zeros([1, action_dim],dtype=np.float)
+        actions_data = np.zeros([1, action_dim], dtype=np.float)
         actions_names = f'action_{action_dim}'
         return actions_data, actions_names
 
@@ -452,6 +496,27 @@ class NavSimGymEnv(UnityToGymWrapper):
                               output_names=['q'])
         """
 
+    # Functions added to have parity with Env and RLEnv of habitat lab
+    @property
+    def sim(self):
+        """Returns itself
+
+        Added for compatibility with habitat API.
+
+        Returns: link to self
+
+        """
+        return self
+
+    @property
+    def get_unity_map_dims(self):
+        return 3276.8, 2662.4
+
+
+# sim.get_agent_state() -> x, y, orientation
+# sim.set_agent_state(position, orientation)
+# sim.get_observations_at(position, orientation) -> observation when agent is at position with specified orientation
+# sim.sample_navigable_point() -> x,y (must be a navigable location in the map)
 
 class MapSideChannel(SideChannel):
     """This is the SideChannel for retrieving map data from Unity.

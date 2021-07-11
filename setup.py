@@ -34,6 +34,14 @@ setuptools.setup(
     include_package_data=True,
     # data_files=[('navsim',['navsim/version.txt'])],
     python_requires='>=3.7',
+    install_requires=[
+        'numpy',
+        # 'opencv-python',
+        'gym>=0.18.0',
+        'mlagents==0.27.0',
+        'mlagents_envs==0.27.0',
+        'gym_unity==0.27.0'
+    ],
     entry_points={
         "console_scripts": [
             "navsim=navsim.main:main",

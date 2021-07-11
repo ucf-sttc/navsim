@@ -4,7 +4,6 @@ import math
 import torch
 from torch.nn import functional as F
 
-
 class ModelTorch(torch.nn.Module):
     def __init__(self, conf):
         super().__init__()
@@ -177,15 +176,24 @@ class Actor(torch.nn.Module):
         # input layer
         for state_dim in state_dimensions:
             if len(state_dim) == 1:  # means we have vector observation
-                out_size = state_dim[0] * 2  # make sure its always int
+                out_size = state_dim[0]*16  # make sure its always int
+                l_out_size.append(out_size)
                 layer = torch.nn.Sequential(OrderedDict([
-                    ('linear_1',torch.nn.Linear(state_dim[0], out_size)),
-                    ('activ_1',torch.nn.ReLU())
-                    #                torch.nn.Linear(400, 300),
-                    #                torch.nn.ReLU()
+                    (f'linear_1',torch.nn.Linear(state_dim[0], state_dim[0]*4)),
+                    (f'activ_1',torch.nn.ReLU()),
+                    (f'linear_2',torch.nn.Linear(state_dim[0]*4, state_dim[0]*8)),
+                    (f'activ_2',torch.nn.ReLU()),
+                    (f'linear_3',torch.nn.Linear(state_dim[0]*8, state_dim[0]*16)),
+                    (f'activ_3',torch.nn.ReLU()),
+                    #(f'linear_4',torch.nn.Linear(state_dim[0]*16, state_dim[0]*8)),
+                    #(f'activ_4',torch.nn.ReLU()),
+                    #(f'linear_5',torch.nn.Linear(state_dim[0]*8, state_dim[0]*4)),
+                    #(f'activ_5',torch.nn.ReLU()),
+                    #(f'linear_6',torch.nn.Linear(state_dim[0]*4, state_dim[0])),
+                    #(f'activ_6',torch.nn.ReLU()),
                 ]))
                 self.feature_layers.append(layer)
-                l_out_size.append(out_size)
+
             else:  # visual:
                 layer = torch.nn.Sequential(OrderedDict([
                     ('conv_1',torch.nn.Conv2d(in_channels=state_dim[2],
@@ -230,7 +238,7 @@ class Actor(torch.nn.Module):
     def forward(self, state):
         """
 
-        :param state: state is a list of torch tensors
+        :param state: state is a list of numpy/cupy arrays
         :return:
         """
         # curframe = inspect.currentframe()
@@ -239,6 +247,10 @@ class Actor(torch.nn.Module):
         # print('actor',state.shape)
         # print('actor',self.l1)
         # state = state[0]
+        #state = [torch.as_tensor(s,
+        #                         dtype=torch.float,
+        #                         device=self.device).unsqueeze(0) for s in
+        #         state]
         features = []
         for s, layer in zip(state, self.feature_layers):
             layer = layer(s)
@@ -280,15 +292,23 @@ class Critic(torch.nn.Module):
 
         for state_dim in state_dimensions:
             if len(state_dim) == 1:  # means we have vector observation
-                out_size = state_dim[0] * 2  # make sure its always int
-                layer = torch.nn.Sequential(
-                    torch.nn.Linear(state_dim[0], out_size),
-                    torch.nn.ReLU()
-                    #                torch.nn.Linear(400, 300),
-                    #                torch.nn.ReLU()
-                )
-                self.feature_layers.append(layer)
+                out_size = state_dim[0]*16  # make sure its always int
                 l_out_size.append(out_size)
+                layer = torch.nn.Sequential(OrderedDict([
+                    (f'linear_1',torch.nn.Linear(state_dim[0], state_dim[0]*4)),
+                    (f'activ_1',torch.nn.ReLU()),
+                    (f'linear_2',torch.nn.Linear(state_dim[0]*4, state_dim[0]*8)),
+                    (f'activ_2',torch.nn.ReLU()),
+                    (f'linear_3',torch.nn.Linear(state_dim[0]*8, state_dim[0]*16)),
+                    (f'activ_3',torch.nn.ReLU()),
+                    #(f'linear_4',torch.nn.Linear(state_dim[0]*16, state_dim[0]*8)),
+                    #(f'activ_4',torch.nn.ReLU()),
+                    #(f'linear_5',torch.nn.Linear(state_dim[0]*8, state_dim[0]*4)),
+                    #(f'activ_5',torch.nn.ReLU()),
+                    #(f'linear_6',torch.nn.Linear(state_dim[0]*4, state_dim[0])),
+                    #(f'activ_6',torch.nn.ReLU()),
+                ]))
+                self.feature_layers.append(layer)
             else:  # visual:
                 layer = torch.nn.Sequential(
                     torch.nn.Conv2d(in_channels=state_dim[2],
@@ -345,6 +365,14 @@ class Critic(torch.nn.Module):
         # print('critic',self.l1)
 
         # state = state[0]
+        #state = [torch.as_tensor(s,
+        #                         dtype=torch.float,
+        #                         device=self.device).unsqueeze(0) for s in
+        #         state]
+
+        #action = torch.as_tensor(action,
+        #                         dtype=torch.float,
+        #                         device=self.device)
 
         features = []
         for s, layer in zip(state, self.feature_layers):

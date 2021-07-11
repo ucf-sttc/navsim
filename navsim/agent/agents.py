@@ -188,18 +188,17 @@ class DDPGAgent(object):
         next_state = [torch.as_tensor(s,
                                       dtype=torch.float,
                                       device=self.device) for s in next_state]
-        #        if self.env.obs_mode == 0:
-        #            state = torch.FloatTensor(state[0]).to(self.device)
-        #            next_state = torch.FloatTe,nsor(next_state[0]).to(self.device)
-        # print('agent train',next_state.shape)
         action = torch.as_tensor(action, dtype=torch.float, device=self.device)
+        target_q = self.critic_target(next_state, self.actor_target(next_state))
+
         reward = torch.as_tensor(reward, dtype=torch.float, device=self.device)
         episode_done = torch.as_tensor(episode_done, dtype=torch.float,
-                                       device=self.device)
-
-        target_q = self.critic_target(next_state, self.actor_target(next_state))
+                                   device=self.device)
+        #reward = target_q.new(reward)
+        #episode_done = target_q.new(episode_done)
         target_q = reward + (
                 (1.0 - episode_done) * self.discount * target_q).detach()
+
         current_q = self.critic(state, action)
         self.critic_loss = F.mse_loss(current_q, target_q)
         self.critic_optimizer.zero_grad()
