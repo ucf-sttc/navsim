@@ -60,7 +60,7 @@ class Executor:
         """
         self.run_id = run_id
 
-        self.conf = conf
+        #self.conf = conf
         self.resume = resume
 
         self.run_base_folder = Path(self.run_id).resolve()
@@ -76,11 +76,11 @@ class Executor:
         else:
 
             self.run_base_folder.mkdir(parents=True, exist_ok=True)
-            self.conf.save_to_json_file(f"{self.run_base_folder_str}/conf.json")
+            conf.save_to_json_file(f"{self.run_base_folder_str}/conf.json")
             self.file_mode = 'w+'
 
-        self.run_conf = ObjDict(self.conf.run_config)
-        self.env_config = ObjDict(self.conf.env_config)
+        self.run_conf = ObjDict(conf.run_config)
+        self.env_config = ObjDict(conf.env_config)
 
         pylog_filename = self.run_base_folder / 'py.log'  # TODO: use logger
         self.pylog_filename = str(pylog_filename)
@@ -104,7 +104,7 @@ class Executor:
                 folder.mkdir(parents=True, exist_ok=True)
 
         self.agent_folder_str = str(agent_folder)
-        self.env_config.log_folder = str(env_log_folder)
+        self.env_config["log_folder"] = str(env_log_folder)
         self.summary_writer = SummaryWriter(f"{str(tb_folder)}")
 
         self.rc = ResourceCounter()
@@ -115,9 +115,9 @@ class Executor:
                 with open(self.episode_num_filename,
                           mode='r') as episode_num_file:
                     episode_num = int(episode_num_file.read())
-                    self.conf.env_config["start_from_episode"] = episode_num + 1
+                    self.env_config["start_from_episode"] = episode_num + 1
             else:
-                self.conf.env_config["start_from_episode"] = 1
+                self.env_config["start_from_episode"] = 1
             self.env = None
             self.env_open()
 
@@ -254,7 +254,7 @@ class Executor:
     def env_open(self):
         self.rc.start()
 
-        self.env = gym.make(self.conf["env"], env_config=self.env_config)
+        self.env = gym.make(self.run_conf.env, env_config=self.env_config)
         time_since_start, current_memory, peak_memory = self.rc.stop()
         log_str = f'Unity env creation resource usage: \n' \
                   f'time:{time_since_start},' \
@@ -281,7 +281,7 @@ class Executor:
         t_max = int(self.run_conf['episode_max_steps'])
         total_episodes = int(self.run_conf['total_episodes'])
         num_episodes = total_episodes - (
-                self.conf.env_config["start_from_episode"] - 1)
+                self.env_config["start_from_episode"] - 1)
         train_interval = int(self.run_conf['train_interval'])
         checkpoint_interval = int(self.run_conf['checkpoint_interval'])
         num_episode_blocks = int(math.ceil(num_episodes / checkpoint_interval))
@@ -289,7 +289,7 @@ class Executor:
         batch_size = self.run_conf['batch_size']
         # save the state json at start of run
         model_filename = f"{self.run_base_folder_str}/" \
-                         f"{self.conf.env_config['start_from_episode']}_" \
+                         f"{self.env_config['start_from_episode']}_" \
                          f"{total_episodes}_start_agent_state.json"
         json.dump(self.agent.get_state_dict(), open(model_filename, 'w'),
                   indent=2, sort_keys=True, cls=TorchJSONEncoder)
@@ -308,9 +308,9 @@ class Executor:
         step_loss = np.full((checkpoint_interval, t_max, 2), 0.0)
 
         for i in range(0, num_episode_blocks):
-            start_episode = (self.conf.env_config["start_from_episode"] - 1) + (
+            start_episode = (self.env_config["start_from_episode"] - 1) + (
                     (i * checkpoint_interval) + 1)
-            stop_episode = min((self.conf.env_config["start_from_episode"] - 1)
+            stop_episode = min((self.env_config["start_from_episode"] - 1)
                                + ((i + 1) * checkpoint_interval),
                                total_episodes)
             episodes_in_block = stop_episode - start_episode + 1
@@ -546,7 +546,7 @@ class Executor:
             ckpt_e = 0
         # save the state json at end of run
         model_filename = f"{self.run_base_folder_str}/" \
-                         f"{self.conf.env_config['start_from_episode']}_" \
+                         f"{self.env_config['start_from_episode']}_" \
                          f"{total_episodes}_stop_agent_state.json"
         json.dump(self.agent.get_state_dict(), open(model_filename, 'w'),
                   indent=2, sort_keys=True, cls=TorchJSONEncoder)

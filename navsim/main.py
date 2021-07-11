@@ -71,7 +71,9 @@ def main():
 
     run_conf = ObjDict({
         "run_id": args["run_id"],
+        "env":'navsim-v0',
         "agent_gpu_id": int(args["agent_gpu_id"]),
+        "num_workers" : 1,
         "episode_max_steps": int(args["episode_max_steps"]),
         "total_episodes": int(args["total_episodes"]),
         "seed": int(args["seed"]),
@@ -99,8 +101,6 @@ def main():
         conf = ObjDict()
         conf['run_config'] = run_conf
 
-    conf["env"] = "navsim-v0"
-    conf["num_workers"] = 1
     conf['env_config'] = env_conf
 
     print("Passed arguments + defaults:")

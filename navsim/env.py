@@ -99,14 +99,8 @@ class NavSimGymEnv(UnityToGymWrapper):
         self.save_visual_obs = env_config.get("save_visual_obs", False)
         self.save_vector_obs = env_config.get("save_vector_obs", False)
 
-        if self.save_vector_obs or self.save_visual_obs:
-            self.keep_es_num = True
-        else:
-            self.keep_es_num = False
-
-        if self.keep_es_num:
-            self.e_num = self.start_from_episode - 1
-            self.s_num = 0
+        self.e_num = 0
+        self.s_num = 0
 
         self.spl_start = self.spl_current = None
         self.reward_spl_delta_mul = float(
@@ -199,8 +193,10 @@ class NavSimGymEnv(UnityToGymWrapper):
                          )
 
         # TODO: Once the environment has capability to start from an episode, then remove this
+        logger.info(f'jumping to episode {self.start_from_episode}')
         for i in range(1, self.start_from_episode):
             self.reset()
+            logger.info(f'skipping episode {self.e_num}')
 
         # TODO: the filenames should be prefixed with specific id of this instance of env
 
@@ -266,19 +262,19 @@ class NavSimGymEnv(UnityToGymWrapper):
 
     def reset(self) -> Union[List[np.ndarray], np.ndarray]:
         result = super().reset()
-        self.obs = result
-        if self.keep_es_num:
-            self.e_num += 1
-            self.s_num = 0
-        self.spl_start = self.spl_current = self.get_shortest_path_length()
-        self.save_obs(self.obs)
+
+        self.e_num += 1
+        self.s_num = 0
+        if self.e_num >= self.start_from_episode:
+            self.obs = result
+            self.spl_start = self.spl_current = self.get_shortest_path_length()
+            self.save_obs(self.obs)
         return result
 
     def step(self, action: List[Any]) -> GymStepResult:
         s_, r, episode_done, info = super().step(action)
         self.obs = s_
-        if self.keep_es_num:
-            self.s_num += 1
+        self.s_num += 1
         if self.save_vector_obs or self.save_visual_obs:
             self.actions_writer.writerow(
                 [self.e_num, self.s_num] + list(action))
@@ -287,12 +283,12 @@ class NavSimGymEnv(UnityToGymWrapper):
         self.save_obs(self.obs)
         return s_, r, episode_done, info
 
-    def close(self):
-        if self.save_vector_obs:
-            self.vec_file.close()
-        if self.save_vector_obs or self.save_visual_obs:
-            self.actions_file.close()
-        super().close()
+    #def close(self):
+    #    if self.save_vector_obs:
+    #        self.vec_file.close()
+    #    if self.save_vector_obs or self.save_visual_obs:
+    #        self.actions_file.close()
+    #    super().close()
 
     def info(self):
         """Prints the information about the environment
