@@ -218,10 +218,18 @@ def _create_argparser() -> argparse.ArgumentParser:
     )
     env_conf.add_argument(
         "--goal_distance",
-        default=50,
+        default=10,
         help="Distance to goal from current location",
         action=ArgAction,
     )
+
+    env_conf.add_argument(
+        "--traffic_vehicles",
+        default=0,
+        help="Number of traffic vehicles",
+        action=ArgAction,
+    )
+
     env_conf.add_argument(
         "--agent_car_physics",
         default=0,

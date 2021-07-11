@@ -186,8 +186,7 @@ class CupyMemory(Memory):
 
 
 class NumpyMemory(Memory):
-    """
-    Stores and returns list of numpy arrays for s a r s_ d
+    """Stores and returns list of numpy arrays for s a r s_ d
 
     assumes you are storing s a r s_ d : state action reward next_state done
     # state / next_state : tuple of n-dim numpy arrays

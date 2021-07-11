@@ -31,6 +31,9 @@ from mlagents_envs.side_channel.float_properties_channel import \
 
 logger = get_logger(__name__)
 
+
+#TODO: -showVisualObservations
+
 try:
     from cv2 import imwrite as imwrite
 
@@ -145,7 +148,8 @@ class NavSimGymEnv(UnityToGymWrapper):
         env_sfp("goalSelectionIndex", float(self.env_config.get('goal', 0)))
         env_sfp("agentCarPhysics",
                 float(self.env_config.get('agent_car_physics', 0)))
-        env_sfp("goalDistance", float(self.env_config.get('goal_distance', 50)))
+        env_sfp("goalDistance", float(self.env_config.get('goal_distance', 10)))
+        env_sfp("numberOfTrafficVehicles", float(self.env_config.get('traffic_vehicles', 0)))
 
         env_path = self.env_config.get('env_path')
         env_path = None if env_path is None else str(Path(env_path).resolve())

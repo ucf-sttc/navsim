@@ -3,9 +3,9 @@ from typing import Optional, List, Set
 
 import attr
 import navsim
-from .util import ObjDict
+from .util.dict import ObjDict
 from .cli_utils import argparser, non_default_args
-
+from navsim.executor.navsim_executor import Executor
 
 @attr.s(auto_attribs=True)
 class RunConfig:
@@ -24,9 +24,9 @@ def main():
     TODO: Implement configuration checks
     :return:
     """
-    print(f'===================================')
-    print(f'Navsim Version {navsim.__version__}')
-    print(f'===================================')
+    print(f'=========================================')
+    print(f'Navsim Python API Version {navsim.__version__}')
+    print(f'========================================')
     args = ObjDict(vars(argparser.parse_args()))
     print('arguments passed:')
     print(non_default_args)
@@ -57,6 +57,7 @@ def main():
         "task": int(args["task"]),
         "goal": int(args["goal"]),
         "goal_distance": int(args["goal_distance"]),
+        "traffic_vehicles": int(args["traffic_vehicles"]),
         "agent_car_physics": int(args["agent_car_physics"]),
         "reward_for_goal": float(args["reward_for_goal"]),
         "reward_for_no_viable_path": float(args["reward_for_no_viable_path"]),
@@ -160,7 +161,8 @@ def main():
             for arg in ["env_gpu_id", "seed", "timeout", "base_port",
                         "obs_mode", "obs_height", "obs_width",
                         "segmentation_mode", "episode_max_steps", "task",
-                        "goal", "goal_distance", "agent_car_physics"]:
+                        "goal", "goal_distance", "traffic_vehicles",
+                        "agent_car_physics"]:
                 conf["env_config"][arg] = int(conf["env_config"][arg])
             for arg in ["reward_for_goal",
                         "reward_for_no_viable_path",
@@ -168,7 +170,7 @@ def main():
                         "reward_spl_delta_mul"]:
                 conf["env_config"][arg] = float(conf["env_config"][arg])
 
-        executor = navsim.executor.Executor(run_id=args["run_id"],
+        executor = Executor(run_id=args["run_id"],
                                    resume=args["resume"],
                                    conf=conf)
         executor.execute()

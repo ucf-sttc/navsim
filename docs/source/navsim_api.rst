@@ -25,7 +25,7 @@ Rollback Memory
 
 Utilities
 --------------------
-.. autoclass:: navsim.util.ObjDict
+.. autoclass:: navsim.util.dict.ObjDict
    :members:
    :inherited-members:
    :undoc-members:

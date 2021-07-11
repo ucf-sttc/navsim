@@ -9,9 +9,10 @@ import numpy as np
 import math
 
 import gym
-from navsim.agent import DDPGAgent
+from navsim.agent.ddpg import DDPGAgent
 from navsim.util import sizeof_fmt, image_layout, s_hwc_to_chw
-from navsim.util import ObjDict, ResourceCounter
+from navsim.util.dict import ObjDict
+from navsim.util import ResourceCounter
 
 import traceback
 from torch.utils.tensorboard import SummaryWriter
