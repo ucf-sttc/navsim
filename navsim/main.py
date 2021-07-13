@@ -1,23 +1,10 @@
 from pathlib import Path
 from typing import Optional, List, Set
 
-import attr
 import navsim
 from .util.dict import ObjDict
 from .cli_utils import argparser, non_default_args
 from navsim.executor.navsim_executor import Executor
-
-
-@attr.s(auto_attribs=True)
-class RunConfig:
-    """
-    Configuration for running in general
-    """
-    run_id: str = argparser.get_default("run_id")
-    train = argparser.get_default("train")
-    debug = argparser.get_default("num_envs")
-    resume = argparser.get_default("resume")
-    seed = argparser.get_default("force")
 
 
 def main():
@@ -31,9 +18,11 @@ def main():
     args = ObjDict(vars(argparser.parse_args()))
     print('arguments passed:')
     print(non_default_args)
+    print("Passed arguments + defaults:")
+    print(args.to_yaml())
 
-    run_base_folder = Path(args.run_id)
-    run_base_folder_str = str(run_base_folder.resolve())
+    run_base_folder = Path(args.run_id).resolve()
+    run_base_folder_str = str(run_base_folder)
     if args.resume and run_base_folder.is_dir():
         # TODO: Logic for resume here
         pass
@@ -44,7 +33,7 @@ def main():
         run_base_folder.mkdir(parents=True, exist_ok=True)
 
     env_conf = ObjDict({
-        "log_folder": str((run_base_folder / "env_log").resolve()),
+        "log_folder": str(run_base_folder / "env_log"),
         "env_path": args["env_path"],
         "worker_id": 0,
         "base_port": 5005,
@@ -68,7 +57,8 @@ def main():
         "env_gpu_id": int(args["env_gpu_id"]),
         "debug": args["debug"],
         "save_vector_obs": args["save_vector_obs"],
-        "save_visual_obs": args["save_visual_obs"]
+        "save_visual_obs": args["save_visual_obs"],
+        "show_visual": args["show_visual"]
     })
 
     run_conf = ObjDict({
@@ -87,27 +77,25 @@ def main():
         "checkpoint_interval": int(args["checkpoint_interval"]),
         "train_interval": int(args["train_interval"]),
         "mem_backend": args["mem_backend"],
-        "clear_memory": args["clear_memory"]
+        "clear_memory": args["clear_memory"],
+        "log_level": "DEBUG" if args.debug else "INFO",
+        "framework": "torch"
     })
 
     if args["rl_backend"] == "rllib":
         import ray.rllib.agents.ppo as ppo
         conf = ppo.DEFAULT_CONFIG.copy()
-        if args.debug:
-            conf["log_level"] = "DEBUG"
-        else:
-            conf["log_level"] = "INFO"
-
-        conf["framework"] = "torch"
+        # copy from run_config to conf
+        for key in run_conf:
+            if key in conf:
+                conf[key] = run_conf[key]
         conf["ignore_worker_failures"] = True
     else:
         conf = ObjDict()
         conf['run_config'] = run_conf
-
     conf['env_config'] = env_conf
 
-    print("Passed arguments + defaults:")
-    print(args.to_yaml())
+
     # print("Final Configuration:")
     # print(conf.to_yaml())
 

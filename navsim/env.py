@@ -167,13 +167,14 @@ class NavSimGymEnv(UnityToGymWrapper):
                 ad_args = [
                     f"-force-device-index {self.env_config.get('env_gpu_id', 0)}",
                     f"-observationWidth {self.env_config.get('obs_width', 256)}",
-                    f"-observationHeight {self.env_config.get('obs_height', 256)}"
+                    f"-observationHeight {self.env_config.get('obs_height', 256)}",
+                    f"-fastForward {self.start_from_episode - 1}"
                 ]
                 uenv = UnityEnvironment(file_name=env_path,
                                         log_folder=str(log_folder),
                                         seed=seed,
                                         timeout_wait=self.env_config.get(
-                                            'timeout', 600),
+                                            'timeout', 600) + (5*(self.start_from_episode - 1)),
                                         worker_id=self._navsim_worker_id,
                                         base_port=self._navsim_base_port,
                                         no_graphics=False,
@@ -186,7 +187,8 @@ class NavSimGymEnv(UnityToGymWrapper):
                 self._navsim_base_port += 1
             else:
                 logger.info(f"Created UnityEnvironment at port "
-                            f"{self._navsim_base_port + self._navsim_worker_id}")
+                            f"{self._navsim_base_port + self._navsim_worker_id}"
+                            f" to start from episode {self.start_from_spisode}")
                 break
 
         super().__init__(unity_env=uenv,
@@ -197,26 +199,25 @@ class NavSimGymEnv(UnityToGymWrapper):
                          )
 
         # TODO: Once the environment has capability to start from an episode, then remove this
-        if self.start_from_episode > 1:
-            logger.info(f'jumping to episode {self.start_from_episode}')
-        for i in range(1, self.start_from_episode):
-            self.reset()
-            logger.info(f'skipping episode {self.e_num}')
+        #if self.start_from_episode > 1:
+        #    logger.info(f'jumping to episode {self.start_from_episode}')
+        #for i in range(1, self.start_from_episode):
+        #    self.reset()
+        #    logger.info(f'skipping episode {self.e_num}')
 
         # TODO: the filenames should be prefixed with specific id of this instance of env
 
-        if self.save_visual_obs or self.save_vector_obs:
-            # TODO: Read the file upto start_episode and purge the records
-            self.actions_file = log_folder / 'actions.csv'
-            if (self.start_from_episode == 1) or (
-                    self.actions_file.exists() == False):
-                self.actions_file = self.actions_file.open(mode='w')
-            else:
-                self.actions_file = self.actions_file.open(mode='a')
-            self.actions_writer = csv.writer(self.actions_file,
-                                             delimiter=',',
-                                             quotechar='"',
-                                             quoting=csv.QUOTE_MINIMAL)
+        # TODO: Read the file upto start_episode and purge the records
+        self.actions_file = log_folder / 'actions.csv'
+        if (self.start_from_episode == 1) or (
+                self.actions_file.exists() == False):
+            self.actions_file = self.actions_file.open(mode='w')
+        else:
+            self.actions_file = self.actions_file.open(mode='a')
+        self.actions_writer = csv.writer(self.actions_file,
+                                         delimiter=',',
+                                         quotechar='"',
+                                         quoting=csv.QUOTE_MINIMAL)
 
         if self.save_visual_obs and (self.obs_mode in [1, 2]):
             self.rgb_folder = log_folder / 'rgb_obs'
@@ -268,24 +269,22 @@ class NavSimGymEnv(UnityToGymWrapper):
     def reset(self) -> Union[List[np.ndarray], np.ndarray]:
         result = super().reset()
 
-        self.e_num += 1
         self.s_num = 0
-        if self.e_num >= self.start_from_episode:
-            self.obs = result
-            self.spl_start = self.spl_current = self.get_shortest_path_length()
-            self.save_obs(self.obs)
+        self.e_num += 1 if self.e_num else self.start_from_episode
+
+        self.obs = result
+        self.spl_start = self.spl_current = self.get_shortest_path_length()
+        self.save_obs(self.obs)
         return result
 
     def step(self, action: List[Any]) -> GymStepResult:
         s_, r, episode_done, info = super().step(action)
         self.obs = s_
         self.s_num += 1
-        if self.save_vector_obs or self.save_visual_obs:
-            self.actions_writer.writerow(
-                [self.e_num, self.s_num] + list(action))
-            self.actions_file.flush()
         self.spl_current = self.get_shortest_path_length()
         self.save_obs(self.obs)
+        self.actions_writer.writerow([self.e_num, self.s_num] + list(action))
+        self.actions_file.flush()
         return s_, r, episode_done, info
 
     #def close(self):

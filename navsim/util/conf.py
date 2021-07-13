@@ -38,4 +38,15 @@ class Config(BaseConfig):
             print(f"Config file not specified in command line, continuing.")
 
         return True
+        
+        @attr.s(auto_attribs=True)
+class RunConfig:
+
+Configuration for running in general
+
+    run_id: str = argparser.get_default("run_id")
+    train = argparser.get_default("train")
+    debug = argparser.get_default("num_envs")
+    resume = argparser.get_default("resume")
+    seed = argparser.get_default("force")
 """

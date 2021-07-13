@@ -286,6 +286,13 @@ def _create_argparser() -> argparse.ArgumentParser:
         action=ArgActionStoreTrue,
         help="Save the vector observations at every step",
     )
+    env_conf.add_argument(
+        "--show_visual",
+        default=False,
+        action=ArgActionStoreTrue,
+        help="Show visual obs window",
+    )
+
 
     dev_desc = "The arguments are used by developers to benchmark and debug navsim API"
     dev_conf = argparser.add_argument_group(title="Developer Configuration",

@@ -77,10 +77,10 @@ class Executor:
         else:
 
             self.run_base_folder.mkdir(parents=True, exist_ok=True)
-            conf.save_to_json_file(f"{self.run_base_folder_str}/conf.json")
+            conf.save_to_json_file(str(self.run_base_folder / "conf.json"))
             self.file_mode = 'w+'
 
-        self.run_conf = ObjDict(conf.run_config)
+        self.run_config = ObjDict(conf.run_config)
         self.env_config = ObjDict(conf.env_config)
 
         pylog_filename = self.run_base_folder / 'py.log'  # TODO: use logger
@@ -104,7 +104,7 @@ class Executor:
                     shutil.rmtree(folder)
                 folder.mkdir(parents=True, exist_ok=True)
 
-        self.agent_folder_str = str(agent_folder)
+        self.agent_folder = agent_folder
         self.env_config["log_folder"] = str(env_log_folder)
         self.summary_writer = SummaryWriter(f"{str(tb_folder)}")
 
@@ -130,8 +130,8 @@ class Executor:
                 torch.set_num_threads(1)
                 torch.set_num_interop_threads(1)
                 self.device = torch.device(
-                    f"cuda:{self.run_conf['agent_gpu_id']}")
-                torch.cuda.set_device(self.run_conf['agent_gpu_id'])
+                    f"cuda:{self.run_config['agent_gpu_id']}")
+                torch.cuda.set_device(self.run_config['agent_gpu_id'])
                 torch.cuda.empty_cache()
             else:
                 self.device = torch.device('cpu')
@@ -141,22 +141,22 @@ class Executor:
                   f'{torch.get_num_threads()} threads and '
                   f'{torch.get_num_interop_threads()} interop threads')
 
-            if self.run_conf["mem_backend"] == "cupy":
+            if self.run_config["mem_backend"] == "cupy":
                 if torch.cuda.is_available():
                     from navsim.memory import CupyMemory
-                    CupyMemory.set_device(self.run_conf['agent_gpu_id'])
+                    CupyMemory.set_device(self.run_config['agent_gpu_id'])
                     mem_backend = CupyMemory
                 else:
                     raise ValueError(
                         "mem_backend=cupy but GPU is not available")
-            elif self.run_conf["mem_backend"] == "numpy":
+            elif self.run_config["mem_backend"] == "numpy":
                 if torch.cuda.is_available():
                     print("Warning: GPU is available but mem_backend=numpy")
                 from navsim.memory import NumpyMemory
                 mem_backend = NumpyMemory
 
-            if resume and self.run_base_folder.is_dir() and (not self.run_conf["clear_memory"]):
-                memory_filename = f"{self.agent_folder_str}/{episode_num}_memory.pkl"
+            if resume and self.run_base_folder.is_dir() and (not self.run_config["clear_memory"]):
+                memory_filename = str(self.agent_folder / f"{episode_num}_memory.pkl")
                 self.memory = mem_backend.load_from_pkl(memory_filename)
             else:
                 memory_observation_space_shapes = []
@@ -169,20 +169,20 @@ class Executor:
                     else:
                         memory_observation_space_shapes.append(item)
                 self.memory = mem_backend(
-                    capacity=self.run_conf.memory_capacity,
+                    capacity=self.run_config.memory_capacity,
                     state_shapes=memory_observation_space_shapes,
                     action_shape=self.env.action_space.shape,
-                    seed=self.run_conf['seed']
+                    seed=self.run_config['seed']
                 )
             self.memory.info()
 
             self.agent = DDPGAgent(
                 env=self.env,
                 device=self.device,
-                discount=self.run_conf['discount'], tau=self.run_conf['tau']
+                discount=self.run_config['discount'], tau=self.run_config['tau']
             )
             if resume and self.run_base_folder.is_dir():
-                model_filename = f"{self.agent_folder_str}/{episode_num}_model_state.pt"
+                model_filename = str( self.agent_folder / f"{episode_num}_model_state.pt")
                 self.agent.load_checkpoint(model_filename)
             # TODO: self.agent.info()
 
@@ -201,8 +201,8 @@ class Executor:
                                           )
             del dummy_nn, dummy_obs, dummy_act
 
-            torch.manual_seed(self.run_conf['seed'])
-            np.random.seed(self.run_conf['seed'])
+            torch.manual_seed(self.run_config['seed'])
+            np.random.seed(self.run_config['seed'])
 
         except Exception as e:
             self.env_close()
@@ -255,7 +255,7 @@ class Executor:
     def env_open(self):
         self.rc.start()
 
-        self.env = gym.make(self.run_conf.env, env_config=self.env_config)
+        self.env = gym.make(self.run_config.env, env_config=self.env_config)
         time_since_start, current_memory, peak_memory = self.rc.stop()
         log_str = f'Unity env creation resource usage: \n' \
                   f'time:{time_since_start},' \
@@ -279,15 +279,15 @@ class Executor:
         Execute for the number of episodes
         :return:
         """
-        t_max = int(self.run_conf['episode_max_steps'])
-        total_episodes = int(self.run_conf['total_episodes'])
+        t_max = int(self.run_config['episode_max_steps'])
+        total_episodes = int(self.run_config['total_episodes'])
         num_episodes = total_episodes - (
                 self.env_config["start_from_episode"] - 1)
-        train_interval = int(self.run_conf['train_interval'])
-        checkpoint_interval = int(self.run_conf['checkpoint_interval'])
+        train_interval = int(self.run_config['train_interval'])
+        checkpoint_interval = int(self.run_config['checkpoint_interval'])
         num_episode_blocks = int(math.ceil(num_episodes / checkpoint_interval))
 
-        batch_size = self.run_conf['batch_size']
+        batch_size = self.run_config['batch_size']
         # save the state json at start of run
         model_filename = f"{self.run_base_folder_str}/" \
                          f"{self.env_config['start_from_episode']}_" \
@@ -388,7 +388,7 @@ class Executor:
                             # s1-4
 
                         a = (self.agent.select_action(s) + np.random.normal(
-                            0, self.max_action * self.run_conf['expl_noise'],
+                            0, self.max_action * self.run_config['expl_noise'],
                             size=self.env.action_space.shape[0])
                              ).clip(
                             -self.max_action,
@@ -427,7 +427,7 @@ class Executor:
                     # print(step_loss[ckpt_e, t - 1])
                     # episode_rewards[ckpt_e] += r
 
-                    # if self.memory.size >= self.run_conf['batch_size'] * self.run_conf['batches_before_train']:
+                    # if self.memory.size >= self.run_config['batch_size'] * self.run_config['batches_before_train']:
 
                     #                    if (t >= self.config['batch_size'] * self.config['batches_before_train']) and (t % 1000 == 0):
                     # episode_evaluations.append(evaluate_policy(self.agent, self.env, self.config['seed']))
@@ -463,8 +463,8 @@ class Executor:
             # model and memory checkpoint
             with open(self.episode_num_filename, mode='w') as episode_num_file:
                 episode_num_file.write(str(episode_num))
-            model_filename = f"{self.agent_folder_str}/{episode_num}_model_state.pt"
-            memory_filename = f"{self.agent_folder_str}/{episode_num}_memory.pkl"
+            model_filename = str(self.agent_folder / f"{episode_num}_model_state.pt")
+            memory_filename = str(self.agent_folder / f"{episode_num}_memory.pkl")
             self.agent.save_checkpoint(model_filename)
             self.memory.save_to_pkl(memory_filename)
 
