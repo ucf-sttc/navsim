@@ -155,8 +155,7 @@ class Executor:
                 from navsim.memory import NumpyMemory
                 mem_backend = NumpyMemory
 
-            if resume and self.run_base_folder.is_dir():
-                model_filename = f"{self.agent_folder_str}/{episode_num}_model_state.pt"
+            if resume and self.run_base_folder.is_dir() and (not self.run_conf["clear_memory"]):
                 memory_filename = f"{self.agent_folder_str}/{episode_num}_memory.pkl"
                 self.memory = mem_backend.load_from_pkl(memory_filename)
             else:
@@ -183,6 +182,7 @@ class Executor:
                 discount=self.run_conf['discount'], tau=self.run_conf['tau']
             )
             if resume and self.run_base_folder.is_dir():
+                model_filename = f"{self.agent_folder_str}/{episode_num}_model_state.pt"
                 self.agent.load_checkpoint(model_filename)
             # TODO: self.agent.info()
 

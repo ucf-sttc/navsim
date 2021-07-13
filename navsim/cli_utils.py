@@ -65,15 +65,6 @@ def _create_argparser() -> argparse.ArgumentParser:
     )
 
     run_conf.add_argument(
-        "--resume",
-        default=False,
-        action=ArgActionStoreTrue,
-        help="Whether to resume training or inference from a checkpoint. Specify a --run-id to use this option. "
-             "If set, the training code loads an already trained model to initialize the neural network "
-             "before resuming training. This option is only valid when the models exist, and have the same "
-             "behavior names as the current agents in your scene.",
-    )
-    run_conf.add_argument(
         "--force",
         default=False,
         action=ArgActionStoreTrue,
@@ -155,6 +146,21 @@ def _create_argparser() -> argparse.ArgumentParser:
         help="Total capacity of memory, should be > batch_size",
     )
 
+    run_conf.add_argument(
+        "--resume",
+        default=False,
+        action=ArgActionStoreTrue,
+        help="resumes the training from last saved checkpoint"
+    )
+
+    run_conf.add_argument(
+        "--clear_memory",
+        default=False,
+        action=ArgActionStoreTrue,
+        help="On resuming, the memory will be cleared and actions would be "
+             "sampled from the neural network, if neural network is not trained "
+             "yet, then actions would sample from action_space",
+    )
     env_desc = "The arguments are used to configure the environment."
     env_conf = argparser.add_argument_group(title="Environment Configuration",
                                             description=env_desc)

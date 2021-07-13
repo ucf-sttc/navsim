@@ -7,6 +7,7 @@ from .util.dict import ObjDict
 from .cli_utils import argparser, non_default_args
 from navsim.executor.navsim_executor import Executor
 
+
 @attr.s(auto_attribs=True)
 class RunConfig:
     """
@@ -72,9 +73,9 @@ def main():
 
     run_conf = ObjDict({
         "run_id": args["run_id"],
-        "env":'navsim-v0',
+        "env": 'navsim-v0',
         "agent_gpu_id": int(args["agent_gpu_id"]),
-        "num_workers" : 1,
+        "num_workers": 1,
         "episode_max_steps": int(args["episode_max_steps"]),
         "total_episodes": int(args["total_episodes"]),
         "seed": int(args["seed"]),
@@ -85,7 +86,8 @@ def main():
         "batch_size": int(args["batch_size"]),
         "checkpoint_interval": int(args["checkpoint_interval"]),
         "train_interval": int(args["train_interval"]),
-        "mem_backend": args["mem_backend"]
+        "mem_backend": args["mem_backend"],
+        "clear_memory": args["clear_memory"]
     })
 
     if args["rl_backend"] == "rllib":
@@ -144,6 +146,9 @@ def main():
         if args.resume and run_base_folder.is_dir():
             conf = ObjDict().load_from_json_file(f"{run_base_folder_str}/conf"
                                                  f".json")
+            if ("agent_car_physics" in non_default_args) and int(conf["env_config"]["agent_car_physics"]) != int(
+                    args["agent_car_physics"]):
+                non_default_args["clear_memory"] = True
             for passed_arg in non_default_args:
                 if passed_arg in conf["env_config"]:
                     conf["env_config"][passed_arg] = args[passed_arg]
@@ -171,8 +176,8 @@ def main():
                 conf["env_config"][arg] = float(conf["env_config"][arg])
 
         executor = Executor(run_id=args["run_id"],
-                                   resume=args["resume"],
-                                   conf=conf)
+                            resume=args["resume"],
+                            conf=conf)
         executor.execute()
         print("training finished")
 
