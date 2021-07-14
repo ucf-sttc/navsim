@@ -171,9 +171,8 @@ class NavSimGymEnv(UnityToGymWrapper):
                     "-observationHeight",f"{self.env_config.get('obs_height', 256)}",
                     "-fastForward",f"{self.start_from_episode - 1}",
                     "-showVisualObservations" if self.env_config.get('show_visual',False) else "",
-                    "-showStepLog" if self.debug else ""
+                    "-saveStepLog" if self.debug else ""
                 ]
-                print(ad_args)
                 uenv = UnityEnvironment(file_name=env_path,
                                         log_folder=str(log_folder),
                                         seed=seed,
@@ -273,10 +272,8 @@ class NavSimGymEnv(UnityToGymWrapper):
 
     def reset(self) -> Union[List[np.ndarray], np.ndarray]:
         result = super().reset()
-
         self.s_num = 0
         self.e_num += 1 if self.e_num else self.start_from_episode
-
         self.obs = result
         self.spl_start = self.spl_current = self.get_shortest_path_length()
         self.save_obs(self.obs)
