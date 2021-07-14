@@ -174,7 +174,7 @@ class NavSimGymEnv(UnityToGymWrapper):
                                         log_folder=str(log_folder),
                                         seed=seed,
                                         timeout_wait=self.env_config.get(
-                                            'timeout', 600) + (5*(self.start_from_episode - 1)),
+                                            'timeout', 600) + (0.5*(self.start_from_episode - 1)),
                                         worker_id=self._navsim_worker_id,
                                         base_port=self._navsim_base_port,
                                         no_graphics=False,
