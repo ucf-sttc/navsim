@@ -273,7 +273,12 @@ def _create_argparser() -> argparse.ArgumentParser:
         help="Shortest path length delta multiplier",
         action=ArgAction,
     )
-
+    env_conf.add_argument(
+        "--save_actions",
+        default=False,
+        action=ArgActionStoreTrue,
+        help="Save the actions vector at every step",
+    )
     env_conf.add_argument(
         "--save_visual_obs",
         default=False,

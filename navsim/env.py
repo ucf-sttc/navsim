@@ -99,6 +99,7 @@ class NavSimGymEnv(UnityToGymWrapper):
         elif self.obs_mode == 1:
             env_config["save_vector_obs"] = False
 
+        self.save_actions = env_config.get("save_actions", False)
         self.save_visual_obs = env_config.get("save_visual_obs", False)
         self.save_vector_obs = env_config.get("save_vector_obs", False)
 
@@ -165,11 +166,14 @@ class NavSimGymEnv(UnityToGymWrapper):
                     self.env_config.get('log_folder', './env_log')).resolve()
                 log_folder.mkdir(parents=True, exist_ok=True)
                 ad_args = [
-                    f"-force-device-index {self.env_config.get('env_gpu_id', 0)}",
-                    f"-observationWidth {self.env_config.get('obs_width', 256)}",
-                    f"-observationHeight {self.env_config.get('obs_height', 256)}",
-                    f"-fastForward {self.start_from_episode - 1}"
+                    "-force-device-index",f"{self.env_config.get('env_gpu_id', 0)}",
+                    "-observationWidth",f"{self.env_config.get('obs_width', 256)}",
+                    "-observationHeight",f"{self.env_config.get('obs_height', 256)}",
+                    "-fastForward",f"{self.start_from_episode - 1}",
+                    "-showVisualObservations" if self.env_config.get('show_visual',False) else "",
+                    "-showStepLog" if self.debug else ""
                 ]
+                print(ad_args)
                 uenv = UnityEnvironment(file_name=env_path,
                                         log_folder=str(log_folder),
                                         seed=seed,
@@ -188,7 +192,7 @@ class NavSimGymEnv(UnityToGymWrapper):
             else:
                 logger.info(f"Created UnityEnvironment at port "
                             f"{self._navsim_base_port + self._navsim_worker_id}"
-                            f" to start from episode {self.start_from_spisode}")
+                            f" to start from episode {self.start_from_episode}")
                 break
 
         super().__init__(unity_env=uenv,
@@ -209,15 +213,16 @@ class NavSimGymEnv(UnityToGymWrapper):
 
         # TODO: Read the file upto start_episode and purge the records
         self.actions_file = log_folder / 'actions.csv'
-        if (self.start_from_episode == 1) or (
-                self.actions_file.exists() == False):
-            self.actions_file = self.actions_file.open(mode='w')
-        else:
-            self.actions_file = self.actions_file.open(mode='a')
-        self.actions_writer = csv.writer(self.actions_file,
-                                         delimiter=',',
-                                         quotechar='"',
-                                         quoting=csv.QUOTE_MINIMAL)
+        if self.save_actions:
+            if (self.start_from_episode == 1) or (
+                    self.actions_file.exists() == False):
+                self.actions_file = self.actions_file.open(mode='w')
+            else:
+                self.actions_file = self.actions_file.open(mode='a')
+            self.actions_writer = csv.writer(self.actions_file,
+                                             delimiter=',',
+                                             quotechar='"',
+                                             quoting=csv.QUOTE_MINIMAL)
 
         if self.save_visual_obs and (self.obs_mode in [1, 2]):
             self.rgb_folder = log_folder / 'rgb_obs'
@@ -283,8 +288,9 @@ class NavSimGymEnv(UnityToGymWrapper):
         self.s_num += 1
         self.spl_current = self.get_shortest_path_length()
         self.save_obs(self.obs)
-        self.actions_writer.writerow([self.e_num, self.s_num] + list(action))
-        self.actions_file.flush()
+        if self.save_actions:
+            self.actions_writer.writerow([self.e_num, self.s_num] + list(action))
+            self.actions_file.flush()
         return s_, r, episode_done, info
 
     #def close(self):

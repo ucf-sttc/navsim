@@ -18,19 +18,10 @@ def main():
     args = ObjDict(vars(argparser.parse_args()))
     print('arguments passed:')
     print(non_default_args)
-    print("Passed arguments + defaults:")
+    print("Passed + default arguments:")
     print(args.to_yaml())
 
-    run_base_folder = Path(args.run_id).resolve()
-    run_base_folder_str = str(run_base_folder)
-    if args.resume and run_base_folder.is_dir():
-        # TODO: Logic for resume here
-        pass
-    # else just start fresh
-    else:
-        args.resume = False
-        print("Resume set to True, but nothing to resume from, starting fresh")
-        run_base_folder.mkdir(parents=True, exist_ok=True)
+    # lets get the arguments
 
     env_conf = ObjDict({
         "log_folder": str(run_base_folder / "env_log"),
@@ -56,6 +47,7 @@ def main():
         "reward_spl_delta_mul": float(args["reward_spl_delta_mul"]),
         "env_gpu_id": int(args["env_gpu_id"]),
         "debug": args["debug"],
+        "save_actions": args["save_actions"],
         "save_vector_obs": args["save_vector_obs"],
         "save_visual_obs": args["save_visual_obs"],
         "show_visual": args["show_visual"]
@@ -82,6 +74,24 @@ def main():
         "framework": "torch"
     })
 
+    run_base_folder = Path(args.run_id).resolve()
+
+    if args.resume:
+        if run_base_folder.exists():
+            # TODO: Logic for resume here
+            pass
+
+        else:  # else just start fresh
+            args.resume = False
+            print(
+                "Resume set to True, but nothing to resume from, starting fresh")
+
+    # start fresh logic
+    if not args.resume:
+        run_base_folder.mkdir(parents=True, exist_ok=True)
+
+
+
     if args["rl_backend"] == "rllib":
         import ray.rllib.agents.ppo as ppo
         conf = ppo.DEFAULT_CONFIG.copy()
@@ -94,7 +104,6 @@ def main():
         conf = ObjDict()
         conf['run_config'] = run_conf
     conf['env_config'] = env_conf
-
 
     # print("Final Configuration:")
     # print(conf.to_yaml())
@@ -109,7 +118,7 @@ def main():
             config=conf,
             name=run_conf.run_id,
             resume=args.resume,
-            local_dir=run_base_folder_str,
+            local_dir=str(run_base_folder),
             stop={"episodes_total": run_conf.total_episodes},
             checkpoint_freq=run_conf.checkpoint_interval,
             checkpoint_at_end=True
@@ -132,9 +141,10 @@ def main():
         # then overwrite with the args passed
         # TODO: Optimize this with respect to above arg/config setting
         if args.resume and run_base_folder.is_dir():
-            conf = ObjDict().load_from_json_file(f"{run_base_folder_str}/conf"
-                                                 f".json")
-            if ("agent_car_physics" in non_default_args) and int(conf["env_config"]["agent_car_physics"]) != int(
+            conf = ObjDict().load_from_json_file(
+                str(run_base_folder / "conf.json"))
+            if ("agent_car_physics" in non_default_args) and int(
+                    conf["env_config"]["agent_car_physics"]) != int(
                     args["agent_car_physics"]):
                 non_default_args["clear_memory"] = True
             for passed_arg in non_default_args:
@@ -163,8 +173,7 @@ def main():
                         "reward_spl_delta_mul"]:
                 conf["env_config"][arg] = float(conf["env_config"][arg])
 
-        executor = Executor(run_id=args["run_id"],
-                            resume=args["resume"],
+        executor = Executor(resume=args["resume"],
                             conf=conf)
         executor.execute()
         print("training finished")

@@ -50,8 +50,8 @@ class Executor:
         TODO
     """
 
-    def __init__(self, run_id='navsim_demo',
-                 resume=True, conf=None):
+    def __init__(self,
+                 resume=False, conf=None):
         """
 
         :param conf: A ObjDict containing dictionary and object interface
@@ -59,9 +59,9 @@ class Executor:
         :param resume: True: means continue if run exists, else start new
                            False: means overwrite if exists, else start new
         """
-        self.run_id = run_id
+        self.run_id = conf["run_config"]["run_id"]
 
-        #self.conf = conf
+        # self.conf = conf
         self.resume = resume
 
         self.run_base_folder = Path(self.run_id).resolve()
@@ -81,7 +81,17 @@ class Executor:
             self.file_mode = 'w+'
 
         self.run_config = ObjDict(conf.run_config)
-        self.env_config = ObjDict(conf.env_config)
+        self.env_config = conf.get("env_config", None)
+        if self.env_config is not None:
+            self.env_config = ObjDict(self.env_config)
+            env_log_folder = self.run_base_folder / 'env_log'
+            self.env_config["log_folder"] = str(
+                self.run_base_folder / 'env_log')
+            if not resume:
+                import shutil
+                if env_log_folder.exists():
+                    shutil.rmtree(env_log_folder)
+                env_log_folder.mkdir(parents=True, exist_ok=True)
 
         pylog_filename = self.run_base_folder / 'py.log'  # TODO: use logger
         self.pylog_filename = str(pylog_filename)
@@ -94,18 +104,18 @@ class Executor:
 
         # TODO: Add the code to delete previous files
         # TODO: Add the code to add categories
-        env_log_folder = self.run_base_folder / 'env_log'
+
         tb_folder = self.run_base_folder / 'tb'
         agent_folder = self.run_base_folder / 'agent'
         if not resume:
             import shutil
-            for folder in [tb_folder, agent_folder, env_log_folder]:
+            for folder in [tb_folder, agent_folder]:
                 if folder.exists():
                     shutil.rmtree(folder)
                 folder.mkdir(parents=True, exist_ok=True)
 
         self.agent_folder = agent_folder
-        self.env_config["log_folder"] = str(env_log_folder)
+
         self.summary_writer = SummaryWriter(f"{str(tb_folder)}")
 
         self.rc = ResourceCounter()
@@ -116,9 +126,11 @@ class Executor:
                 with open(self.episode_num_filename,
                           mode='r') as episode_num_file:
                     episode_num = int(episode_num_file.read())
-                    self.env_config["start_from_episode"] = episode_num + 1
+                    if self.env_config is not None:
+                        self.env_config["start_from_episode"] = episode_num + 1
             else:
-                self.env_config["start_from_episode"] = 1
+                if self.env_config is not None:
+                    self.env_config["start_from_episode"] = 1
             self.env = None
             self.env_open()
 
@@ -155,8 +167,10 @@ class Executor:
                 from navsim.memory import NumpyMemory
                 mem_backend = NumpyMemory
 
-            if resume and self.run_base_folder.is_dir() and (not self.run_config["clear_memory"]):
-                memory_filename = str(self.agent_folder / f"{episode_num}_memory.pkl")
+            if resume and self.run_base_folder.is_dir() and (
+                    not self.run_config["clear_memory"]):
+                memory_filename = str(
+                    self.agent_folder / f"{episode_num}_memory.pkl")
                 self.memory = mem_backend.load_from_pkl(memory_filename)
             else:
                 memory_observation_space_shapes = []
@@ -182,7 +196,8 @@ class Executor:
                 discount=self.run_config['discount'], tau=self.run_config['tau']
             )
             if resume and self.run_base_folder.is_dir():
-                model_filename = str( self.agent_folder / f"{episode_num}_model_state.pt")
+                model_filename = str(
+                    self.agent_folder / f"{episode_num}_model_state.pt")
                 self.agent.load_checkpoint(model_filename)
             # TODO: self.agent.info()
 
@@ -255,16 +270,24 @@ class Executor:
     def env_open(self):
         self.rc.start()
 
-        self.env = gym.make(self.run_config.env, env_config=self.env_config)
+        if self.env_config is None:
+            self.env = gym.make(self.run_config.env)
+        else:
+            self.env = gym.make(self.run_config.env, env_config=self.env_config)
+
         time_since_start, current_memory, peak_memory = self.rc.stop()
-        log_str = f'Unity env creation resource usage: \n' \
+        log_str = f'env creation resource usage: \n' \
                   f'time:{time_since_start},' \
                   f'peak_memory:{sizeof_fmt(peak_memory)},' \
                   f'current_memory:{sizeof_fmt(current_memory)}\n'
         self.pylog_file.write(log_str)
         print(log_str)
         self.pylog_file.flush()
-        self.env.info()
+        try:
+            self.env.info()
+        except:
+            print(str(self.env))
+
         # self.env.info_steps(save_visuals=True)
 
     def env_close(self):
@@ -279,10 +302,11 @@ class Executor:
         Execute for the number of episodes
         :return:
         """
+        start_from_episode = 1 if self.env_config is None else self.env_config[
+            "start_from_episode"]
         t_max = int(self.run_config['episode_max_steps'])
         total_episodes = int(self.run_config['total_episodes'])
-        num_episodes = total_episodes - (
-                self.env_config["start_from_episode"] - 1)
+        num_episodes = total_episodes - (start_from_episode - 1)
         train_interval = int(self.run_config['train_interval'])
         checkpoint_interval = int(self.run_config['checkpoint_interval'])
         num_episode_blocks = int(math.ceil(num_episodes / checkpoint_interval))
@@ -290,7 +314,7 @@ class Executor:
         batch_size = self.run_config['batch_size']
         # save the state json at start of run
         model_filename = f"{self.run_base_folder_str}/" \
-                         f"{self.env_config['start_from_episode']}_" \
+                         f"{start_from_episode}_" \
                          f"{total_episodes}_start_agent_state.json"
         json.dump(self.agent.get_state_dict(), open(model_filename, 'w'),
                   indent=2, sort_keys=True, cls=TorchJSONEncoder)
@@ -309,9 +333,9 @@ class Executor:
         step_loss = np.full((checkpoint_interval, t_max, 2), 0.0)
 
         for i in range(0, num_episode_blocks):
-            start_episode = (self.env_config["start_from_episode"] - 1) + (
+            start_episode = (start_from_episode - 1) + (
                     (i * checkpoint_interval) + 1)
-            stop_episode = min((self.env_config["start_from_episode"] - 1)
+            stop_episode = min((start_from_episode - 1)
                                + ((i + 1) * checkpoint_interval),
                                total_episodes)
             episodes_in_block = stop_episode - start_episode + 1
@@ -463,8 +487,10 @@ class Executor:
             # model and memory checkpoint
             with open(self.episode_num_filename, mode='w') as episode_num_file:
                 episode_num_file.write(str(episode_num))
-            model_filename = str(self.agent_folder / f"{episode_num}_model_state.pt")
-            memory_filename = str(self.agent_folder / f"{episode_num}_memory.pkl")
+            model_filename = str(
+                self.agent_folder / f"{episode_num}_model_state.pt")
+            memory_filename = str(
+                self.agent_folder / f"{episode_num}_memory.pkl")
             self.agent.save_checkpoint(model_filename)
             self.memory.save_to_pkl(memory_filename)
 
@@ -547,7 +573,7 @@ class Executor:
             ckpt_e = 0
         # save the state json at end of run
         model_filename = f"{self.run_base_folder_str}/" \
-                         f"{self.env_config['start_from_episode']}_" \
+                         f"{start_from_episode}_" \
                          f"{total_episodes}_stop_agent_state.json"
         json.dump(self.agent.get_state_dict(), open(model_filename, 'w'),
                   indent=2, sort_keys=True, cls=TorchJSONEncoder)

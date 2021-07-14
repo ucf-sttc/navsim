@@ -76,10 +76,10 @@ first follow the instructions to setup the host.
 1. Download and extract the unity binary zip file
 2. The following environment variables need to be set in both cases:
    ```shell
-   envdir=$(realpath "/data/work/unity-envs/Build2.10.0");
+   envdir=$(realpath "/data/work/unity-envs/Build2.10.1-dev");
    envbin="Berlin_Walk_V2.x86_64"; 
    expdir=$(realpath "$HOME/exp"); 
-   run_id="navsim_demo"; 
+   run_id="demo"; 
    repo="ghcr.io/armando-fandango";
    cd $expdir
    ```
