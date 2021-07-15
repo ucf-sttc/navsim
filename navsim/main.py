@@ -22,6 +22,7 @@ def main():
     print(args.to_yaml())
 
     # lets get the arguments
+    run_base_folder = Path(args.run_id).resolve()
 
     env_conf = ObjDict({
         "log_folder": str(run_base_folder / "env_log"),
@@ -73,8 +74,6 @@ def main():
         "log_level": "DEBUG" if args.debug else "INFO",
         "framework": "torch"
     })
-
-    run_base_folder = Path(args.run_id).resolve()
 
     if args.resume:
         if run_base_folder.exists():
@@ -143,10 +142,18 @@ def main():
         if args.resume and run_base_folder.is_dir():
             conf = ObjDict().load_from_json_file(
                 str(run_base_folder / "conf.json"))
+
+            # detect if physics lebvel has changed in resume
             if ("agent_car_physics" in non_default_args) and int(
                     conf["env_config"]["agent_car_physics"]) != int(
-                    args["agent_car_physics"]):
-                non_default_args["clear_memory"] = True
+                args["agent_car_physics"]):
+                # detect if clear memory was overridden from command prompt
+                if "clear_memory" not in non_default_args:
+                    conf["run_config"]["clear_memory"] = True
+                else:
+                    # clear_memory will be set from passed args below
+                    pass
+
             for passed_arg in non_default_args:
                 if passed_arg in conf["env_config"]:
                     conf["env_config"][passed_arg] = args[passed_arg]
@@ -154,6 +161,7 @@ def main():
                     conf["run_config"][passed_arg] = args[passed_arg]
                 if passed_arg in conf:
                     conf[passed_arg] = args[passed_arg]
+
 
             for arg in ["seed", "memory_capacity", "batch_size",
                         "checkpoint_interval",
