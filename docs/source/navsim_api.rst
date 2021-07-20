@@ -3,6 +3,7 @@ NavSim API
 
 NavSim Environment
 ---------------------
+
 .. autoclass:: navsim.NavSimGymEnv
    :members:
    :inherited-members:
@@ -10,15 +11,16 @@ NavSim Environment
 
 Rollback Memory
 ---------------------
-.. autoclass:: navsim.memory.Memory
-   :members:
-   :inherited-members:
-   :show-inheritance:
+
 .. autoclass:: navsim.memory.CupyMemory
    :members:
    :inherited-members:
    :show-inheritance:
 .. autoclass:: navsim.memory.NumpyMemory
+   :members:
+   :inherited-members:
+   :show-inheritance:
+.. autoclass:: navsim.memory.Memory
    :members:
    :inherited-members:
    :show-inheritance:
