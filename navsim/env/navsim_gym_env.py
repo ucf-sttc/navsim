@@ -404,6 +404,11 @@ class NavSimGymEnv(UnityToGymWrapper):
         return map_x, map_y
 
     def sample_navigable_point(self):
+        """Provides a random sample of navigable point
+
+        Returns: x,y point on the navigable map
+
+        """
         x, y = np.choice(np.argwhere(self.map_side_channel.requested_map == 1),
                          replace=False)
         return x, y
@@ -437,7 +442,7 @@ class NavSimGymEnv(UnityToGymWrapper):
         # prepare input data
         obs_names = []
         obs_data = []
-        for state_dim in self.observation_space_shapes:
+        for state_dim in [obs.shape for obs in self.observation_space.spaces]:
             # obs_dim = [1] + [state_dim[2],state_dim[1],state_dim[0],
             obs = np.zeros([1] + list(state_dim))
             obs_name = 'state'
@@ -558,6 +563,7 @@ class NavSimGymEnv(UnityToGymWrapper):
 
         """
         return self.fpc.get_property("ShortestPath")
+
 
 
 class MapSideChannel(SideChannel):
