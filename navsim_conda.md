@@ -12,14 +12,14 @@ Following should be pre-installed on the host machine:
 
 ### For directly running on the host
 
+* [nvidia driver](https://github.com/NVIDIA/nvidia-docker/wiki/Frequently-Asked-Questions#how-do-i-install-the-nvidia-driver)
 * X-window system
-* nvidia drivers
 
 ## Versions
 
 There are three components: navsim binary, navsim python api, navsim container
 You can use any version of each of them as long as first two digits match.
-These are latest releases of each of them:
+These are the latest releases of each of them:
 * binary 2.10.x
 * python api 2.10.x
 * container 2.10.x
@@ -69,39 +69,22 @@ as container will dump the files there.
 The display variable points to X Display server, and takes a value of `hostname:D.S`, where:
 * `hostname` can be empty.
 * `D` refers to the display index, which is 0 generally.
-* `S` refers to the screen index, which is 0 generally but in a GPU based system, each GPU might be connected to a different screen. In our container, this number refers to the GPU on which the environment binary will run.
+* `S` refers to the screen index, which is 0 generally but in a GPU based 
+  system, each GPU might be connected to a different screen. 
+  In our container, this number refers to the GPU on which the environment 
+  binary will run.
 
-For the purpose of navsim container, use `DISPLAY=:0.0` and change the last zero to the index number if GPU where environment binary can run.
+For the purpose of navsim container, use `DISPLAY=:0.0` and change the last 
+zero to the index number of GPU for environment binary.
 
 ### Option 2: Run on host directly - doesn't run headless.
 
-To run on the host, activate the `navsim` virtual environment, only once,
-with following command: `conda activate navsim || source activate navsim`.
-
-Now the navsim env should be activated. If not then go to host setup steps
-and troubleshoot.
-
-Run the `navsim` command as described in its section below.
-
-### The `<navsim command>`
-
-* `navsim --help` shows the options
-* `navsim --run_id $run_id --env $envdir/$envbin` - executes and/or trains the model
-* `navsim-benchmark $envdir/$envbin` - benchmarks the model
-* `navsim-saturate-gpu $envdir/$envbin` - Saturates the GPU
-* Replace the navsim command with your own command if you are just importing
-  the NavSim env and have your own code in experiment directory.
-
-## Setup the host to run directly
-### Assumptions
-* Following are installed: X, nvidia drivers
-
-### Steps
+#### Create conda env - to be done only once
 
 1. Download following files:
-    * `ezai-conda.sh`
-    * `ezai-conda-req.txt`
-    * `ezai-pip-req.txt`
+   * `ezai-conda.sh`
+   * `ezai-conda-req.txt`
+   * `ezai-pip-req.txt`
 2. miniconda: We suggest you install miniconda from our script, but if you have
    miniconda installed already then you can skip to next step to create conda
    environment. If next step doesn't work, then come back and follow the
@@ -117,6 +100,26 @@ Run the `navsim` command as described in its section below.
     ENVS_ROOT=$(conda info --base)/envs
     source ezai-conda.sh && ezai_conda_create --venv "$ENVS_ROOT/navsim"
     ```
+   
+#### Run the navsim on host
+
+First activate the `navsim` virtual environment - only once, with following 
+command: `conda activate navsim || source activate navsim`.
+
+Now the navsim env should be activated. If not then go to host setup steps
+and troubleshoot.
+
+Run the `navsim` command as described in its section below.
+
+### The `<navsim command>`
+
+* `navsim --help` shows the options
+* `navsim --run_id $run_id --env $envdir/$envbin` - executes and/or trains the model
+* `navsim-benchmark $envdir/$envbin` - benchmarks the model
+* `navsim-saturate-gpu $envdir/$envbin` - Saturates the GPU
+* Replace the navsim command with your own command if you are just importing
+  the NavSim env and have your own code in experiment directory.
+
 
 ## TODO: Clean up the following section
 

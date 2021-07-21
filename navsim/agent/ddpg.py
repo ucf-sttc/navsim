@@ -9,7 +9,7 @@ from copy import deepcopy
 #   output: max_action * tanh(fc3)
 #   returns a
 # for critic:
-#   n_x is state_dimension + action_dimension
+#   n_x is state_dimension + action_dim
 #   n_y is 1
 #   input:  cat([state,action],1)
 #   returns q
@@ -19,30 +19,33 @@ from navsim.agent.nn import ActorCriticWrapper, Actor, Critic
 
 
 class DDPGAgent(object):
-
     NN_WRAPPER = ActorCriticWrapper
 
-    def __init__(self, env, device, discount=0.99, tau=0.005):
-        self.env = env
+    def __init__(self, observation_space_shapes, action_space_shape, action_max,
+                 device, discount=0.99, tau=0.005):
+        # self.env = env
+        self.state_dims = observation_space_shapes
+        self.action_dim = action_space_shape[0]
+        self.action_max = action_max
         self.device = device
         self.discount = discount
         self.tau = tau
         # self.state_dim = state_dim
 
-        self.max_action = self.env.action_space.high[0]
+        # self.max_action = self.env.action_space.high[0]
 
         # if self.env.obs_mode == 0:
-        #    self.vector_state_dimension = self.env.observation_space_shapes[0][0]
+        #    self.vector_state_dimension = self.env.state_dims[0][0]
         # elif self.env.obs_mode == 1:
         #    self.vector_state_dimension = None
         # elif self.env.obs_mode == 2:
-        #    self.vector_state_dimension = self.env.observation_space_shapes[3][0]
+        #    self.vector_state_dimension = self.env.state_dims[3][0]
 
-        self.actor = Actor(self.env.observation_space_shapes,
-                           self.env.action_space.shape[0],
-                           self.max_action).to(device)
-        self.critic = Critic(self.env.observation_space_shapes,
-                             self.env.action_space.shape[0]).to(device)
+        self.actor = Actor(self.state_dims,
+                           self.action_dim,
+                           self.action_max).to(device)
+        self.critic = Critic(self.state_dims,
+                             self.action_dim).to(device)
 
         self.actor_target = deepcopy(self.actor)
         self.actor_optimizer = torch.optim.Adam(self.actor.parameters())
@@ -95,7 +98,7 @@ class DDPGAgent(object):
         # prepare input data
         input_data = []
         input_names = []
-        for state_dim in self.env.observation_space_shapes:
+        for state_dim in self.state_dims:
             if len(state_dim) == 1:
                 random_input = torch.randn(1, state_dim[0]).to(device)
                 input_name = f'state_{state_dim[0]}'
@@ -120,7 +123,7 @@ class DDPGAgent(object):
 
         if critic:
             # add action data for critic
-            action_dim = self.env.action_space_shape[0]
+            action_dim = self.action_dim[0]
             random_input = torch.randn(1, action_dim).to(device)
             input_name = f'action_{action_dim}'
             input_data = [input_data]
@@ -193,9 +196,9 @@ class DDPGAgent(object):
 
         reward = torch.as_tensor(reward, dtype=torch.float, device=self.device)
         episode_done = torch.as_tensor(episode_done, dtype=torch.float,
-                                   device=self.device)
-        #reward = target_q.new(reward)
-        #episode_done = target_q.new(episode_done)
+                                       device=self.device)
+        # reward = target_q.new(reward)
+        # episode_done = target_q.new(episode_done)
         target_q = reward + (
                 (1.0 - episode_done) * self.discount * target_q).detach()
 
@@ -215,6 +218,36 @@ class DDPGAgent(object):
         print("Agent Info")
         print('-----------')
         print('Not implemented yet')
+
+    def get_nn_wrapper(self):
+        return ActorCriticWrapper(self.state_dims,
+                                  self.action_dim,
+                                  self.action_max).to(self.device)
+
+    def get_dummy_state(self):
+        # prepare input data
+        state_names = []
+        state_data = []
+        for state_dim in self.state_dims:
+            # obs_dim = [1] + [state_dim[2],state_dim[1],state_dim[0],
+            #hwc to chw
+            state_d = state_dim.reverse() if len(state_dim)==3 else state_dim
+            obs = torch.zeros([1] + list(state_d), dtype=torch.float,
+                              device=self.device)
+            obs_name = 'state'
+            for i in range(len(state_d)):
+                #    input_dim.append(state_dim[i])
+                obs_name += f'_{state_d[i]}'
+            state_names.append(obs_name)
+            state_data.append(obs)
+
+        # print([o.shape for o in state_data],state_names)
+        return state_data, state_names
+
+    def get_dummy_actions(self):
+        actions_data = torch.zeros([1, self.action_dim], dtype=torch.float, device=self.device)
+        actions_names = f'action_{self.action_dim}'
+        return actions_data, actions_names
 
 
 def evaluate_policy(policy, env, seed, eval_episodes=10, render=False):

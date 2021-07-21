@@ -12,6 +12,7 @@ import gym
 from navsim.agent.ddpg import DDPGAgent
 from navsim.util import sizeof_fmt, image_layout, s_hwc_to_chw
 from navsim.util.dict import ObjDict
+from navsim.util import env_info
 from navsim.util import ResourceCounter
 
 import traceback
@@ -50,10 +51,8 @@ class Executor:
         TODO
     """
 
-    def __init__(self,
-                 resume=False, conf=None):
+    def __init__(self, resume=False, conf=None):
         """
-
         :param conf: A ObjDict containing dictionary and object interface
         :param env: Any gym compatible environment
         :param resume: True: means continue if run exists, else start new
@@ -100,7 +99,8 @@ class Executor:
         episode_results_filename = self.run_base_folder / 'episode_results.csv'
         self.episode_results_filename = str(episode_results_filename)
 
-        self.episode_num_filename = f"{self.run_base_folder_str}/last_checkpointed_episode_num.txt"
+        self.episode_num_filename = str(
+            self.run_base_folder / "last_checkpointed_episode_num.txt")
 
         # TODO: Add the code to delete previous files
         # TODO: Add the code to add categories
@@ -167,6 +167,8 @@ class Executor:
                 from navsim.memory import NumpyMemory
                 mem_backend = NumpyMemory
 
+            obs_shapes = [obs.shape for obs in self.env.observation_space.spaces] if hasattr(self.env,'spaces') else [self.env.observation_space.shape]
+
             if resume and self.run_base_folder.is_dir() and (
                     not self.run_config["clear_memory"]):
                 memory_filename = str(
@@ -174,14 +176,14 @@ class Executor:
                 self.memory = mem_backend.load_from_pkl(memory_filename)
             else:
                 memory_observation_space_shapes = []
-                for item in self.env.observation_space_shapes:
-                    if len(item) == 3:
+                for o_shape in obs_shapes:
+                    if len(o_shape) == 3:
                         # means its an image in HWC
                         # we pass the shapes as CWH
                         memory_observation_space_shapes.append(
-                            (item[2], item[1], item[0]))
+                            (o_shape[2], o_shape[1], o_shape[0]))
                     else:
-                        memory_observation_space_shapes.append(item)
+                        memory_observation_space_shapes.append(o_shape)
                 self.memory = mem_backend(
                     capacity=self.run_config.memory_capacity,
                     state_shapes=memory_observation_space_shapes,
@@ -191,7 +193,9 @@ class Executor:
             self.memory.info()
 
             self.agent = DDPGAgent(
-                env=self.env,
+                observation_space_shapes = obs_shapes,
+                action_space_shape = self.env.action_space.shape,
+                action_max=self.env.action_space.high[0],
                 device=self.device,
                 discount=self.run_config['discount'], tau=self.run_config['tau']
             )
@@ -201,19 +205,12 @@ class Executor:
                 self.agent.load_checkpoint(model_filename)
             # TODO: self.agent.info()
 
-            dummy_obs = [torch.as_tensor(obs,
-                                         dtype=torch.float) for obs in
-                         s_hwc_to_chw(self.env.get_dummy_obs()[0])]
-            dummy_act = torch.as_tensor(self.env.get_dummy_actions()[0],
-                                        dtype=torch.float
-                                        )
+            dummy_obs = self.agent.get_dummy_state()[0]
+            dummy_act = self.agent.get_dummy_actions()[0]
 
-            dummy_nn = self.agent.NN_WRAPPER(self.env.observation_space_shapes,
-                                             self.env.action_space.shape[0],
-                                             self.env.action_space.high[0])
-            self.summary_writer.add_graph(dummy_nn,
-                                          [dummy_obs, dummy_act]
-                                          )
+            dummy_nn = self.agent.get_nn_wrapper()
+
+            self.summary_writer.add_graph(dummy_nn,[dummy_obs, dummy_act])
             del dummy_nn, dummy_obs, dummy_act
 
             torch.manual_seed(self.run_config['seed'])
@@ -283,10 +280,10 @@ class Executor:
         self.pylog_file.write(log_str)
         print(log_str)
         self.pylog_file.flush()
-        try:
-            self.env.info()
-        except:
-            print(str(self.env))
+        #try:
+        #    self.env.info()
+        #except:
+        env_info(self.env)
 
         # self.env.info_steps(save_visuals=True)
 
@@ -313,9 +310,9 @@ class Executor:
 
         batch_size = self.run_config['batch_size']
         # save the state json at start of run
-        model_filename = f"{self.run_base_folder_str}/" \
-                         f"{start_from_episode}_" \
-                         f"{total_episodes}_start_agent_state.json"
+        model_filename = str(self.run_base_folder /
+                             f"{start_from_episode}_" \
+                             f"{total_episodes}_start_agent_state.json")
         json.dump(self.agent.get_state_dict(), open(model_filename, 'w'),
                   indent=2, sort_keys=True, cls=TorchJSONEncoder)
 

@@ -3,9 +3,10 @@ from pathlib import Path
 import numpy as np
 import uuid
 
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, List, Union
 
 import time
+import math
 
 from gym_unity.envs import (
     UnityToGymWrapper,
@@ -29,30 +30,25 @@ from mlagents_envs.side_channel.environment_parameters_channel import \
 from mlagents_envs.side_channel.float_properties_channel import \
     FloatPropertiesChannel
 
-logger = get_logger(__name__)
-
-
-#TODO: -showVisualObservations
-
 try:
     from cv2 import imwrite as imwrite
 
-    logger.info("Navsim is using cv2 as image library")
+    print("Navsim: using cv2 as image library")
 except:
     try:
         from imageio import imwrite as imwrite
 
-        logger.info("Navsim is using imageio as image library")
+        print("Navsim: using imageio as image library")
     except:
         try:
             from matplotlib.pyplot import imsave as imwrite
 
-            logger.info("Navsim is using matplotlib as image library")
+            print("Navsim: using matplotlib as image library")
         except:
             try:
                 from PIL import Image
 
-                logger.info("Navsim is using PIL as image library")
+                print("Navsim: using PIL as image library")
 
 
                 def imwrite(filename, arr):
@@ -60,10 +56,11 @@ except:
                     im.save(filename)
             except:
                 def imwrite(filename=None, arr=None):
-                    logger.warning("Navsim is unable to load any of the following "
-                                  "image libraries: cv2, imageio, matplotlib, "
-                                  "PIL. Install one of these libraries to "
-                                  "save visuals.")
+                    print("Navsim: unable to load any of the following "
+                          "image libraries: cv2, imageio, matplotlib, "
+                          "PIL. Install one of these libraries to "
+                          "save visuals.")
+
 
                 imwrite()
 
@@ -77,7 +74,9 @@ class NavSimGymEnv(UnityToGymWrapper):
 
     Read the **NavSim Environment Tutorial** on how to use this class.
     """
-    metadata = {'render.modes': ['rgb_array', 'depth', 'segmentation']}
+    metadata = {
+        'render.modes': ['rgb_array', 'depth', 'segmentation', 'vector']}
+    logger = get_logger(__name__)
 
     def __init__(self, env_config) -> None:
         """
@@ -105,6 +104,11 @@ class NavSimGymEnv(UnityToGymWrapper):
 
         self.e_num = 0
         self.s_num = 0
+
+        self._agent_position = None
+        self._agent_velocity = None
+        self._agent_rotation = None
+        self._goal_position = None
 
         self.spl_start = self.spl_current = None
         self.reward_spl_delta_mul = float(
@@ -150,7 +154,8 @@ class NavSimGymEnv(UnityToGymWrapper):
         env_sfp("agentCarPhysics",
                 float(self.env_config.get('agent_car_physics', 0)))
         env_sfp("goalDistance", float(self.env_config.get('goal_distance', 10)))
-        env_sfp("numberOfTrafficVehicles", float(self.env_config.get('traffic_vehicles', 0)))
+        env_sfp("numberOfTrafficVehicles",
+                float(self.env_config.get('traffic_vehicles', 0)))
 
         env_path = self.env_config.get('env_path')
         env_path = None if env_path is None else str(Path(env_path).resolve())
@@ -166,18 +171,23 @@ class NavSimGymEnv(UnityToGymWrapper):
                     self.env_config.get('log_folder', './env_log')).resolve()
                 log_folder.mkdir(parents=True, exist_ok=True)
                 ad_args = [
-                    "-force-device-index",f"{self.env_config.get('env_gpu_id', 0)}",
-                    "-observationWidth",f"{self.env_config.get('obs_width', 256)}",
-                    "-observationHeight",f"{self.env_config.get('obs_height', 256)}",
-                    "-fastForward",f"{self.start_from_episode - 1}",
-                    "-showVisualObservations" if self.env_config.get('show_visual',False) else "",
+                    "-force-device-index",
+                    f"{self.env_config.get('env_gpu_id', 0)}",
+                    "-observationWidth",
+                    f"{self.env_config.get('obs_width', 256)}",
+                    "-observationHeight",
+                    f"{self.env_config.get('obs_height', 256)}",
+                    "-fastForward", f"{self.start_from_episode - 1}",
+                    "-showVisualObservations" if self.env_config.get(
+                        'show_visual', False) else "",
                     "-saveStepLog" if self.debug else ""
                 ]
                 uenv = UnityEnvironment(file_name=env_path,
                                         log_folder=str(log_folder),
                                         seed=seed,
                                         timeout_wait=self.env_config.get(
-                                            'timeout', 600) + (0.5*(self.start_from_episode - 1)),
+                                            'timeout', 600) + (0.5 * (
+                                                self.start_from_episode - 1)),
                                         worker_id=self._navsim_worker_id,
                                         base_port=self._navsim_base_port,
                                         no_graphics=False,
@@ -189,9 +199,9 @@ class NavSimGymEnv(UnityToGymWrapper):
                 time.sleep(2)
                 self._navsim_base_port += 1
             else:
-                logger.info(f"Created UnityEnvironment at port "
-                            f"{self._navsim_base_port + self._navsim_worker_id}"
-                            f" to start from episode {self.start_from_episode}")
+                NavSimGymEnv.logger.info(f"Created UnityEnvironment at port "
+                                         f"{self._navsim_base_port + self._navsim_worker_id}"
+                                         f" to start from episode {self.start_from_episode}")
                 break
 
         super().__init__(unity_env=uenv,
@@ -202,9 +212,9 @@ class NavSimGymEnv(UnityToGymWrapper):
                          )
 
         # TODO: Once the environment has capability to start from an episode, then remove this
-        #if self.start_from_episode > 1:
+        # if self.start_from_episode > 1:
         #    logger.info(f'jumping to episode {self.start_from_episode}')
-        #for i in range(1, self.start_from_episode):
+        # for i in range(1, self.start_from_episode):
         #    self.reset()
         #    logger.info(f'skipping episode {self.e_num}')
 
@@ -271,103 +281,82 @@ class NavSimGymEnv(UnityToGymWrapper):
             imwrite(str(self.seg_folder / filename), obs[2] * 255)
 
     def reset(self) -> Union[List[np.ndarray], np.ndarray]:
-        result = super().reset()
+        s0 = super().reset()
+        self.obs = s0
+        if self.obs_mode in [0, 2]:
+            vec_obs = self.obs[-1]
+            self._agent_position = vec_obs[0:3]
+            self._agent_velocity = vec_obs[3:6]
+            self._agent_rotation = vec_obs[6:10]
+            self._goal_position = vec_obs[10:13]
         self.s_num = 0
         self.e_num += 1 if self.e_num else self.start_from_episode
-        self.obs = result
-        self.spl_start = self.spl_current = self.get_shortest_path_length()
+        self.spl_start = self.spl_current = self.shortest_path_length
         self.save_obs(self.obs)
-        return result
+        return s0
 
     def step(self, action: List[Any]) -> GymStepResult:
         s_, r, episode_done, info = super().step(action)
         self.obs = s_
+        if self.obs_mode in [0, 2]:
+            vec_obs = self.obs[-1]
+            self._agent_position = vec_obs[0:3]
+            self._agent_velocity = vec_obs[3:6]
+            self._agent_rotation = vec_obs[6:10]
+            self._goal_position = vec_obs[10:13]
         self.s_num += 1
-        self.spl_current = self.get_shortest_path_length()
+        self.spl_current = self.shortest_path_length
         self.save_obs(self.obs)
         if self.save_actions:
-            self.actions_writer.writerow([self.e_num, self.s_num] + list(action))
+            self.actions_writer.writerow(
+                [self.e_num, self.s_num] + list(action))
             self.actions_file.flush()
         return s_, r, episode_done, info
 
-    #def close(self):
+    # def close(self):
     #    if self.save_vector_obs:
     #        self.vec_file.close()
     #    if self.save_vector_obs or self.save_visual_obs:
     #        self.actions_file.close()
     #    super().close()
 
-    def info(self):
-        """Prints the information about the environment
-
-        """
-        print('-----------')
-        print("Env Info")
-        print('-----------')
-        if self.spec is not None:
-            print(self.spec.id)
-        print('Action Space:', self.action_space)
-        print('Action Space Shape:', self.action_space.shape)
-        print('Action Space Low:', self.action_space.low)
-        print('Action Space High:', self.action_space.high)
-        print('Observation Mode:', self.obs_mode)
-        # print('Gym Observation Space:', self.genv.observation_space)
-        # print('Gym Observation Space Shape:', self.genv.observation_space.shape)
-        print('Observation Space:', self.observation_space)
-        print('Observation Space Shape:', self.observation_space.shape)
-        print('Observation Space Shapes:', self.observation_space_shapes)
-        print('Observation Space Types:', self.observation_space_types)
-        print('Reward Range:', self.reward_range)
-        print('Metadata:', self.metadata)
-        print('--------------------------------------')
-        return self
-
-    @property
-    def current_episode_num(self):
-        """Currently executing episode number, 0 means env just initialized
-        """
-        return self.e_num
-
-    @property
-    def last_step_num(self):
-        """Last executed step number, 0 mean env just initialized or reset
-        """
-        return self.s_num
-
-
-    @property
-    def observation_space_shapes(self) -> list:
-        """Returns the dimensions of the observation space
-        """
-        return [obs.shape for obs in self.observation_space.spaces]
-
-    @property
-    def observation_space_types(self) -> list:
-        """Returns the dimensions of the observation space
-        """
-        return [type(obs) for obs in self.observation_space.spaces]
+    #    @property
+    #    def observation_space_shapes(self) -> list:
+    #        """Returns the dimensions of the observation space
+    #        """
+    #        return [obs.shape for obs in self.observation_space.spaces]
+    #
+    #    @property
+    #    def observation_space_types(self) -> list:
+    #        """Returns the dimensions of the observation space
+    #        """
+    #        return [type(obs) for obs in self.observation_space.spaces]
 
     def render(self, mode='rgb_array') -> None:
         """Returns the image array based on the render mode
 
         Args:
-            mode: 'rgb_array' or 'depth' or 'segmentation'
+            mode: 'rgb_array' or 'depth' or 'segmentation' or 'vector'
 
         Returns:
             For Observation Modes 1 and 2:
-                For each render mode returns a numpy array of the image.
-            For Observation Mode 0:
-                None
+                For each render mode returns a numpy array of the image
+            For Observation Mode 0 and 2:
+                The observation vector when the vector mode is specified
         """
-        if self.obs_mode in [1, 2]:
-            if mode == 'rgb_array':
-                obs = self.obs[0]
-            elif mode == 'depth':
-                obs = self.obs[1]
-            elif mode == 'segmentation':
-                obs = self.obs[2]
-        else:
+        if mode == 'rgb_array' and self.obs_mode in [1, 2]:
+            obs = self.obs[0]
+        elif mode == 'depth' and self.obs_mode in [1, 2]:
+            obs = self.obs[1]
+        elif mode == 'segmentation' and self.obs_mode in [1, 2]:
+            obs = self.obs[2]
+        elif mode == 'vector' and self.obs_mode in [0, 2]:
             obs = self.obs[-1]
+        else:
+            raise ValueError("Bad render mode was specified or the "
+                             "observation mode of the environment doesnt "
+                             "support this render mode. render mode = "
+                             "{mode}, observation mode = {self.obs_mode}")
         return obs
 
     def start_navigable_map(self, resolution_x=256, resolution_y=256,
@@ -375,16 +364,18 @@ class NavSimGymEnv(UnityToGymWrapper):
         """Start the Navigable Areas map
 
         Args:
-            resolution_x: The size of the x axis of the resulting grid, default = 256
+            resolution_x: The size of the agent_x axis of the resulting grid, default = 256
             resolution_y: The size of the y axis of the resulting grid, default = 256
             cell_occupancy_threshold: If at least this much % of the cell is occupied, then it will be marked as non-navigable, default = 50%
 
         Returns:
-
+            Nothing
 
         Note:
-            Largest resolution that was found to be working was 2000 x 2000
+            Largest resolution is 3284 agent_x 2666
         """
+        if (resolution_x > 3284) or (resolution_y > 2666):
+            raise ValueError("maximum map size is 3284 agent_x 2666")
         self.map_side_channel.send_request("binaryMap",
                                            [resolution_x, resolution_y,
                                             cell_occupancy_threshold])
@@ -404,29 +395,30 @@ class NavSimGymEnv(UnityToGymWrapper):
         """
         return self.map_side_channel.requested_map
 
-    def get_shortest_path_length(self):
-        return self.fpc.get_property("ShortestPath")
-
-    def get_navigable_map_point_from_unity_map_point(self, x, y):
-        map_x = FloorToInt(x / (unity_max_x / map_max_x))
-        map_y = FloorToInt(y / (unity_max_y / map_max_y))
+    def unity_loc_to_navmap_loc(self, unity_x, unity_z, navmap_max_x=256,
+                                navmap_max_y=256):
+        unity_max_x, _, unity_max_z = self.unity_map_dims
+        map_x = math.floor(unity_x / (math.floor(unity_max_x) / navmap_max_x))
+        map_y = (navmap_max_y - 1) - math.floor(
+            unity_z / (math.floor(unity_max_z) / navmap_max_y))
+        return map_x, map_y
 
     @staticmethod
     def register_with_gym():
         """Registers the environment with gym registry with the name navsim
 
         """
-        id = 'navsim-v0'
+        env_id = 'navsim-v0'
         from gym.envs.registration import register, registry
 
         env_dict = registry.env_specs.copy()
         for env in env_dict:
-            if id in env:
-                logger.info(f"Removing {env} from Gym registry")
+            if env_id in env:
+                print(f"Navsim: Removing {env} from Gym registry")
                 del registry.env_specs[env]
 
-        logger.info(f"Adding {id} to Gym registry")
-        register(id=id, entry_point='navsim:NavSimGymEnv')
+        print(f"Navsim: Adding {env_id} to Gym registry")
+        register(id=env_id, entry_point='navsim:NavSimGymEnv')
 
     @staticmethod
     def register_with_ray():
@@ -464,7 +456,7 @@ class NavSimGymEnv(UnityToGymWrapper):
         # prepare input data
         input_data = []
         input_names = []
-        for state_dim in self.env.observation_space_shapes:
+        for state_dim in self.env.state_dims:
             if len(state_dim) == 1:
                 random_input = torch.randn(1, state_dim[0]).to(device)
                 input_name = f'state_{state_dim[0]}'
@@ -489,7 +481,7 @@ class NavSimGymEnv(UnityToGymWrapper):
 
         if critic:
             # add action data for critic
-            action_dim = self.env.action_space_shape[0]
+            action_dim = self.env.action_dim[0]
             random_input = torch.randn(1, action_dim).to(device)
             input_name = f'action_{action_dim}'
             input_data = [input_data]
@@ -515,7 +507,7 @@ class NavSimGymEnv(UnityToGymWrapper):
     # Functions added to have parity with Env and RLEnv of habitat lab
     @property
     def sim(self):
-        """Returns itself
+        """Returns an instance of the sim
 
         Added for compatibility with habitat API.
 
@@ -525,21 +517,102 @@ class NavSimGymEnv(UnityToGymWrapper):
         return self
 
     @property
-    def get_unity_map_dims(self):
-        return 3276.8, 2662.4
+    def unity_map_dims(self):
+        """Returns the maximum x,y,z values of Unity Map
 
+        Note: While converting to 2-D map, the Z-axis max of 3-D Unity Map
+        corresponds to Y-axis max of 2-D map
 
-# sim.get_agent_state() -> x, y, orientation
-# sim.set_agent_state(position, orientation)
-# sim.get_observations_at(position, orientation) -> observation when agent is at position with specified orientation
-# sim.sample_navigable_point() -> x,y (must be a navigable location in the map)
+        Returns: maximum agent_x,y,agent_z from unity map
+
+        """
+        return 3284.0, 52.9, 2666.3
+
+    @property
+    def agent_position(self):
+        """Position of agent in unity map coordinates x,y,z
+        """
+        return self._agent_position
+
+    @property
+    def agent_velocity(self):
+        """Velocity of agent in unity map coordinates x,y,z
+        """
+        return self._agent_velocity
+
+    @property
+    def agent_rotation(self):
+        """Rotation of agent in unity map coordinates x,y,z,w (Quaternions)
+        """
+        return self._agent_rotation
+
+    @property
+    def agent_rotation_in_euler(self):
+        """Position of agent in Euler coordinates roll_x, pitch_y, yaw_z
+        """
+        if self.agent_rotation is None:
+            return None
+        else:
+            x, y, z, w = self.agent_rotation
+            # Convert a quaternion into euler angles (roll, pitch, yaw)
+            # roll is rotation around x in radians (counterclockwise)
+            # pitch is rotation around y in radians (counterclockwise)
+            # yaw is rotation around z in radians (counterclockwise)
+
+            t0 = +2.0 * (w * x + y * z)
+            t1 = +1.0 - 2.0 * (x * x + y * y)
+            roll_x = math.atan2(t0, t1)
+
+            t2 = +2.0 * (w * y - z * x)
+            t2 = +1.0 if t2 > +1.0 else t2
+            t2 = -1.0 if t2 < -1.0 else t2
+            pitch_y = math.asin(t2)
+
+            t3 = +2.0 * (w * z + x * y)
+            t4 = +1.0 - 2.0 * (y * y + z * z)
+            yaw_z = math.atan2(t3, t4)
+
+            return roll_x, pitch_y, yaw_z  # in radians
+
+    # sim.get_agent_state() -> agent_x, y, orientation
+    # sim.set_agent_state(position, orientation)
+    # sim.get_observations_at(position, orientation) -> observation when agent is at position with specified orientation
+    # sim.sample_navigable_point() -> agent_x,y (must be a navigable location in the map)
+
+    @property
+    def goal_position(self):
+        """Position of goal in unity map coordinates x,y,z
+        """
+        return self._goal_position
+
+    @property
+    def current_episode_num(self):
+        """Currently executing episode number, 0 means env just initialized
+        """
+        return self.e_num
+
+    @property
+    def last_step_num(self):
+        """Last executed step number, 0 mean env just initialized or reset
+        """
+        return self.s_num
+
+    @property
+    def shortest_path_length(self):
+        """Return the Shortest Path Length
+
+        Returns: Return the Shortest Path Length
+
+        """
+        return self.fpc.get_property("ShortestPath")
+
 
 class MapSideChannel(SideChannel):
     """This is the SideChannel for retrieving map data from Unity.
     You can send map requests to Unity using send_request.
     The arguments for a mapRequest are ("binaryMap", [RESOLUTION_X, RESOLUTION_Y, THRESHOLD])
     """
-    resolution = []
+    resolution = None
 
     def __init__(self) -> None:
         channel_id = uuid.UUID("24b099f1-b184-407c-af72-f3d439950bdb")
@@ -550,22 +623,12 @@ class MapSideChannel(SideChannel):
         if self.resolution is None:
             return None
 
-        # mode as grayscale 'L' and convert to binary '1' because for some reason using only '1' doesn't work (possible bug)
-
-        # img = Image.frombuffer('L', (self.resolution[0],self.resolution[1]), np.array(msg.get_raw_bytes())).convert('1')
-        # timestr = time.strftime("%Y%m%d-%H%M%S")
-        # img.save("img-"+timestr+".png")
-
         raw_bytes = msg.get_raw_bytes()
         self.requested_map = np.unpackbits(raw_bytes)[
                              0:self.resolution[0] * self.resolution[1]]
-        self.requested_map = self.requested_map.reshape(
-            (self.resolution[0], self.resolution[1]))
-        # self.requested_map = np.array(msg.get_raw_bytes()).reshape((self.resolution[0],self.resolution[1]))
-        # print('map inside on message received:',self.requested_map, self.requested_map.shape)
+        self.requested_map = self.requested_map.reshape((self.resolution[0],
+                                                         self.resolution[1]))
         return self.requested_map
-
-        # np.savetxt("arrayfile", np.asarray(img), fmt='%1d', delimiter='')
 
     def send_request(self, key: str, value: List[float]) -> None:
         """Sends a request to Unity

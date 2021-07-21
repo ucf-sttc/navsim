@@ -141,10 +141,10 @@ class ActorCriticWrapper(torch.nn.Module):
     """Wraps Actor and Critic for the purpose of TensorBoard
 
     """
-    def __init__(self, state_dimensions, action_dimension, max_action):
+    def __init__(self, state_dims, action_dim, max_action):
         super().__init__()
-        self.actor = Actor(state_dimensions, action_dimension, max_action)
-        self.critic = Critic(state_dimensions, action_dimension)
+        self.actor = Actor(state_dims, action_dim, max_action)
+        self.critic = Critic(state_dims, action_dim)
 
     def forward(self, state, action):
         q1 = self.actor(state)
@@ -154,12 +154,12 @@ class ActorCriticWrapper(torch.nn.Module):
 
 class Actor(torch.nn.Module):
     """Actor class
-    state_dimensions: Should always be a list of state_dimension
+    state_dims: Should always be a list of state_dimension
                       if vector is True then vector obs should always be last
                       if visual is True then visual obs should come before vec dimension
     """
 
-    def __init__(self, state_dimensions, action_dimension, max_action):
+    def __init__(self, state_dims, action_dim, max_action):
         super(Actor, self).__init__()
 
         # All feature_layers end up with ReLU output
@@ -174,7 +174,7 @@ class Actor(torch.nn.Module):
         out_channels = 4
 
         # input layer
-        for state_dim in state_dimensions:
+        for state_dim in state_dims:
             if len(state_dim) == 1:  # means we have vector observation
                 out_size = state_dim[0]*16  # make sure its always int
                 l_out_size.append(out_size)
@@ -222,16 +222,16 @@ class Actor(torch.nn.Module):
                 l_out_size.append(h * w * out_channels)
                 self.feature_layers.append(layer)
 
-        #        self.l3 = torch.nn.Linear(300, action_dimension)
+        #        self.l3 = torch.nn.Linear(300, action_dim)
 
         cat_dim = sum(l_out_size)
 
         self.out_layer = torch.nn.Sequential(OrderedDict([
-            ('linear_out',torch.nn.Linear(cat_dim, action_dimension)),
+            ('linear_out',torch.nn.Linear(cat_dim, action_dim)),
             ('activ_out',torch.nn.Tanh())
         ]))
-        # print(f'{l_out_size},cat_dim:{cat_dim},action_dim:{action_dimension}')
-        # self.action_out = torch.nn.Linear(cat_dim, action_dimension)
+        # print(f'{l_out_size},cat_dim:{cat_dim},action_dim:{action_dim}')
+        # self.action_out = torch.nn.Linear(cat_dim, action_dim)
 
         self.max_action = max_action
 
@@ -276,7 +276,7 @@ class Critic(torch.nn.Module):
     Should we combine the state with action after some layers or right at the first layer?
     """
 
-    def __init__(self, state_dimensions, action_dimension):
+    def __init__(self, state_dims, action_dim):
         super(Critic, self).__init__()
 
         # All feature_layers end up with ReLU output
@@ -290,7 +290,7 @@ class Critic(torch.nn.Module):
         kernel_size = 2
         out_channels = 4
 
-        for state_dim in state_dimensions:
+        for state_dim in state_dims:
             if len(state_dim) == 1:  # means we have vector observation
                 out_size = state_dim[0]*16  # make sure its always int
                 l_out_size.append(out_size)
@@ -338,9 +338,9 @@ class Critic(torch.nn.Module):
                 self.feature_layers.append(layer)
 
         # add action also as one of the feature layers
-        out_size = action_dimension  # make sure its always int
+        out_size = action_dim  # make sure its always int
         layer = torch.nn.Sequential(
-            torch.nn.Linear(action_dimension, out_size),
+            torch.nn.Linear(action_dim, out_size),
             torch.nn.ReLU()
             #                torch.nn.Linear(400, 300),
             #                torch.nn.ReLU()

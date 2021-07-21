@@ -29,7 +29,7 @@ def main():
     # nvidia-smi  --help-query-gpu
     # p=subprocess.Popen(["nvidia-smi", '--query-gpu=count', '--format=csv', '-i', 0])
     # p=subprocess.Popen(["nvidia-smi", '--query-gpu=memory.total', '--format=csv', '-i', 0])
-    parser.add_argument('-x-disp', metavar='X', default="0", help="X DISPLAY port")
+    parser.add_argument('-agent_x-disp', metavar='X', default="0", help="X DISPLAY port")
     parser.add_argument('--num-gpus', default=4, type=int, help="Number of available gpus")
     parser.add_argument('--max-proc-vram', default=5000, type=int, help="Maximum VRAM used by Unity Game")
     parser.add_argument('--single-gpu-vram', default=11178, type=int, help="Total amount of available vram per gpu")

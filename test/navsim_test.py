@@ -53,8 +53,8 @@ def helper(env_conf):
 
             # create a memory for random play
             #memory = airsim.NumpyMemory(capacity = rl_conf.memory_capacity,
-            #                       state_shapes = env.observation_space_shapes,
-            #                       action_shape = env.action_space_shape,
+            #                       state_shapes = env.state_dims,
+            #                       action_shape = env.action_dim,
             #                       seed = env.seed)
             #memory.info()
 

@@ -159,7 +159,7 @@ ezai_conda_create () {
   # TODO: Uncomment above in final version
   echo " "
   echo " "
-  echo "Activate your environment with  conda activate $venv  and then test with pytest -p no:warnings -vv"
+  echo "Activate your environment with  conda activate $venv"
 }
 
 install_miniconda () {
