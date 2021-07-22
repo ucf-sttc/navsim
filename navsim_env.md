@@ -126,7 +126,7 @@ other reward recieved at the same step.
 * `Throttle` : -1.0 to 1.0 : Moves the agent backward or forward  
 * `Steering` : -1.0 to 1.0 : Turns the steering column of the vehicle towards 
   left or right    
-* `Brake` : 0.0 to 1.0 : Reduces the agents current velocity    
+* `Brake` : -1.0 to 1.0 : Reduces the agents current velocity    
 
 ## Car Motion Explanation:
 **Simple Car Physics** (Agent car physics `0`)   

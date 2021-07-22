@@ -422,11 +422,48 @@ class NavSimGymEnv(UnityToGymWrapper):
 
     def unity_loc_to_navmap_loc(self, unity_x, unity_z, navmap_max_x=256,
                                 navmap_max_y=256):
+        """
+
+        Args:
+            unity_x:
+            unity_z:
+            navmap_max_x:
+            navmap_max_y:
+
+        Returns:
+            navmap_x, navmap_y
+        """
         unity_max_x, _, unity_max_z = self.unity_map_dims
-        map_x = math.floor(unity_x / (math.floor(unity_max_x) / navmap_max_x))
-        map_y = (navmap_max_y - 1) - math.floor(
+        navmap_x = math.floor(unity_x / (math.floor(unity_max_x) / navmap_max_x))
+        navmap_y = (navmap_max_y - 1) - math.floor(
             unity_z / (math.floor(unity_max_z) / navmap_max_y))
-        return map_x, map_y
+        return navmap_x, navmap_y
+
+    def navmap_loc_to_unity_loc(self, navmap_x, navmap_y, navmap_max_x=256,
+                                navmap_max_y=256, navmap_cell_center=True):
+        """
+
+        Args:
+            navmap_x:
+            navmap_y:
+            navmap_max_x:
+            navmap_max_y:
+            navmap_cell_center:
+
+        Returns:
+            unity_x, unity_z
+        """
+        unity_max_x, unity_max_y, unity_max_z = self.unity_map_dims
+
+        unity_x = navmap_x*(unity_max_x/navmap_max_x)
+
+        unity_z = navmap_y*(unity_max_z/navmap_max_y)
+
+        if navmap_cell_center:
+            unity_x += (unity_max_x/navmap_max_x)/2
+            unity_z += (unity_max_z/navmap_max_y)/2
+
+        return unity_x, unity_z
 
     def sample_navigable_point(self, resolution_x=256, resolution_y=256,
                                cell_occupancy_threshold=0.5):
@@ -566,6 +603,10 @@ class NavSimGymEnv(UnityToGymWrapper):
     # sim.set_agent_state(position, orientation)
     # sim.get_observations_at(position, orientation) -> observation when agent is at position with specified orientation
     # sim.sample_navigable_point() -> agent_x,y (must be a navigable location in the map)
+
+    @property
+    def agent_rotation_in_navmap(self):
+        return None
 
     @property
     def goal_position(self):
