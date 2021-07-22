@@ -108,6 +108,11 @@ install_txt () {
   return $?
 }
 
+patch_mlagents () {
+  cp mlagents_patch/environment.py /opt/conda/envs/navsim/lib/python3.8/site-packages/mlagents_envs
+  cp mlagents_patch/command_pb2.py /opt/conda/envs/navsim/lib/python3.8/site-packages/mlagents_envs
+}
+
 ezai_conda_create () {
   venv=${venv:-$(conda info --base)/envs/ezai}
   piptxt=${piptxt:-"./ezai-pip-req.txt"}

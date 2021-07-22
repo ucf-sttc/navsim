@@ -91,7 +91,7 @@ RUN dpkg -i phoronix-test-suite_10.4.0_all.deb
 COPY test-profiles/local /var/lib/phoronix-test-suite/test-profiles/
 
 #Install MINICONDA and navsim_env in base
-COPY scripts/* ezai-conda* ezai-pip-* /root/
+COPY scripts/* ezai-conda* ezai-pip-* mlagents_patch /root/
 RUN chmod +x /root/*.sh && \
     source ezai-conda.sh && \
     install_miniconda --conda_dir ${CONDA_DIR}
