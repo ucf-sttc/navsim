@@ -102,17 +102,41 @@ Reaching any of the sedans results in a success.
 * `Else` - SEDAN  
 
 ### Rewards
+#### Reward Values
 * `reward_for_goal` : For pointnav goal is the target position to complete the 
 task.  
 * `reward_for_ep` : Exploration points are randomly placed in the environment to 
 reward exploration.  
-* `reward_for_other` : Other collision are anythin that is not a goal point or 
-exploration point, this includes other cars, building, trees, etc.  
-* `reward_for_falling_off_map` :  The map is a tiled XXkm area. If the agent 
-goes outside of this area falls XXm below the environment area this reward is 
+* `reward_collision_mul` : This reward multiple is used to determine the reward upon collision are anything that is not a goal point or 
+exploration point. This includes other cars, building, trees, etc.  
+* `reward_for_no_viable_path` : The map is a tiled specified bounded by the values of env.unity_map_dims(). If the agent 
+goes outside of this area and falls -15m below the environment area or enters an area outside of the navigable area then this reward is 
 activated. This will also result in a reset.  
-* `reward_for_step` : This reward will be given at every step in addition to any 
+* `reward_step_mul` : This reward multiplier is used to determine the rewards given at every step in addition to any 
 other reward recieved at the same step.  
+* `reward_spl_delta_mul` : This reward multiplier is used to determine the reward as the agent reduces the current SPL to the goal
+
+#### Reward Specifications
+```python
+ 
+spl_delta = spl_prev_step – spl_current_step 
+#If spl_delta is positive: the agent is closer to the goal according to spl 
+#If spl_delta is negative: the agent is further away from the goal according to spl 
+
+spl_reward = -(1 * reward_spl_delta_mul)  if delta==0 else spl_delta * reward_spl_delta_mul 
+step_reward = -(reward_for_goal / start_spl)  * reward_step_mul 
+collision_reward = reward_collision_mul * step_reward
+
+if `agent reached goal`:
+    total_reward = goal_reward 
+
+elif `agent has no viable path`: 
+    total reward = -no_viable_path_reward
+
+else: 
+    total_reward = spl_reward + step_reward + collision_reward 
+
+```
 
 ### Agent Car Physics
 * `0` - Simple : Collisions and gravity only - An agent that moves by a 
@@ -134,6 +158,7 @@ In this mode, the steering and travel of a car is imitated without driven
 wheels. This means that the car will have a turning radius, but there is no 
 momentum or acceleration that is experienced from torque being applied to 
 wheels as in a real car.    
+### Details
 * `[0, 0, 0]` - No throttle, steering, or braking is applied. No agent travel.  
 * `[1, 0, 0]` - Full forward throttle is applied. The agent travels forward at 
   max velocity for the duration of the step.    
@@ -161,6 +186,7 @@ The agent car is driven forward by applying torque to each drive wheel. The
 agent will have momentum, so travel is possible in a step where no throttle is 
 input. With those differences in mind, the action space examples are similar 
 with some minor behavioral differences:    
+### Details
 * `[0, 0, 1]` - Full braking is applied. The agent will slow to a complete stop 
   if in motion.   
 * `[0, 0, 0.5]` - Half braking is applied. The agent will slow at a lesser rate 
@@ -174,7 +200,6 @@ with some minor behavioral differences:
 
 
 ## Observation Space: 
-
 
 ### The vector observation space
     Agent_Position.x, Agent_Position.y, Agent_Position.z,
@@ -192,13 +217,7 @@ with some minor behavioral differences:
 Used to request and receive a binary navigable map. The binary map indicates 
 navigable and obstacle areas. 
 
-Map requests to Unity are sent using: 
-
-    NavSimGymEnv.start_navigable_map(resolution_x, resolution_y, cell_occupancy_threshold)
-
-The map is then retrieved with:
-
-    NavSimGymEnv.get_navigable_map()
+    NavSimGymEnv.get_navigable_map(resolution_x, resolution_y, cell_occupancy_threshold)
 
 Parameter value ranges:    
 ```
