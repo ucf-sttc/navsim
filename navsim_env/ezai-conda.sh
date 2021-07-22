@@ -109,8 +109,8 @@ install_txt () {
 }
 
 patch_mlagents () {
-  cp mlagents_patch/environment.py /opt/conda/envs/navsim/lib/python3.8/site-packages/mlagents_envs
-  cp mlagents_patch/command_pb2.py /opt/conda/envs/navsim/lib/python3.8/site-packages/mlagents_envs
+  cp -f mlagents_patch/environment.py ${CONDA_PREFIX}/lib/python3.8/site-packages/mlagents_envs
+  cp -f mlagents_patch/command_pb2.py ${CONDA_PREFIX}/lib/python3.8/site-packages/mlagents_envs/communicator_objects/
 }
 
 ezai_conda_create () {

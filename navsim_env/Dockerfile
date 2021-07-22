@@ -91,7 +91,8 @@ RUN dpkg -i phoronix-test-suite_10.4.0_all.deb
 COPY test-profiles/local /var/lib/phoronix-test-suite/test-profiles/
 
 #Install MINICONDA and navsim_env in base
-COPY scripts/* ezai-conda* ezai-pip-* mlagents_patch /root/
+COPY scripts/* ezai-conda* ezai-pip-* /root/
+COPY mlagents_patch /root/mlagents_patch
 RUN chmod +x /root/*.sh && \
     source ezai-conda.sh && \
     install_miniconda --conda_dir ${CONDA_DIR}
@@ -100,6 +101,7 @@ ENV PATH=${CONDA_DIR}/bin:$PATH
 RUN source /root/.bashrc && source ezai-conda.sh && \
     ezai_conda_create --venv "base" && \
     chmod -R 777 ${CONDA_DIR} && \
+    patch_mlagents && \
     rm ezai-conda* ezai-pip-*
 #ENTRYPOINT ["bash", "-c", "(/root/chuser.sh && python /root/x_server.py) && bash"]
 ENTRYPOINT ["/root/entrypoint.sh"]

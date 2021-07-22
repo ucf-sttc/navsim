@@ -368,7 +368,8 @@ class NavSimGymEnv(UnityToGymWrapper):
             cell_occupancy_threshold: If at least this much % of the cell is occupied, then it will be marked as non-navigable, default = 50%
 
         Returns:
-            A numpy array having 0 for non-navigable and 1 for navigable cells
+            A numpy array having 0 for non-navigable and 1 for navigable cells,
+            and the 0,0 in the top-left corner
 
         Note:
             Largest resolution is 3284 agent_x 2666
@@ -548,7 +549,7 @@ class NavSimGymEnv(UnityToGymWrapper):
         Note: While converting to 2-D map, the Z-axis max of 3-D Unity Map
         corresponds to Y-axis max of 2-D map
 
-        Returns: maximum agent_x,y,agent_z from unity map
+        Returns: maximum x, y, z from unity map
 
         """
         return 3284.0, 52.9, 2666.3
