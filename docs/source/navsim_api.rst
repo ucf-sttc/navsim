@@ -1,13 +1,16 @@
 NavSim API
 ==============
 
-NavSim Environment
----------------------
+NavSim environment and related utilities
+----------------------------------------
+
+.. autofunction:: navsim.env.env_info
 
 .. autoclass:: navsim.NavSimGymEnv
    :members:
    :undoc-members:
    :member-order: bysource
+
 
 Rollback Memory
 ---------------------

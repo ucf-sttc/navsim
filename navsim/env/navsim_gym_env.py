@@ -426,7 +426,7 @@ class NavSimGymEnv(UnityToGymWrapper):
                 del registry.env_specs[env]
 
         print(f"Navsim: Adding {env_id} to Gym registry")
-        register(id=env_id, entry_point='navsim:NavSimGymEnv')
+        register(id=env_id, entry_point='navsim.env:NavSimGymEnv')
 
     @staticmethod
     def register_with_ray():
@@ -563,7 +563,6 @@ class NavSimGymEnv(UnityToGymWrapper):
         return self.fpc.get_property("ShortestPath")
 
 
-
 class MapSideChannel(SideChannel):
     """This is the SideChannel for retrieving map data from Unity.
     You can send map requests to Unity using send_request.
@@ -596,3 +595,5 @@ class MapSideChannel(SideChannel):
         msg.write_string(key)
         msg.write_float32_list(value)
         super().queue_message_to_send(msg)
+
+

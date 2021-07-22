@@ -32,7 +32,7 @@ env_config = navsim.util.ObjDict({
     
 env = gym.make("navsim-v0", env_config=env_config) 
 # or use the following method to create an env
-env = navsim.NavSimGymEnv(env_config)
+env = navsim.env.NavSimGymEnv(env_config)
 ```
 
 If you want to use our `navsim` conda environment or `navsim` container then
@@ -41,7 +41,7 @@ follow the instructions <insert_link_here>.
 ## Config Parameters
 
 ```python
-env_config = ObjDict({
+env_config = {
     "log_folder": "unity.log",
     "seed": 123,
     "timeout": 600,
@@ -61,7 +61,7 @@ env_config = ObjDict({
     "agent_car_physics": 0,
     "episode_max_steps": 10,
     "env_path":args["env_path"]
-})
+}
 ```
 ### Observation Mode
 * `0` - Vector - Returns \[Agent Position (3-x,y,z) ,Agent Velocity (3-x,y,z), 

@@ -35,30 +35,6 @@ def s_hwc_to_chw(s):
     return s
 
 
-def env_info(env):
-    """Prints the information about the environment
-
-    """
-    print('-----------')
-    print("Env Info")
-    print('-----------')
-    if env.spec is not None:
-        print(env.spec.id)
-    print('Action Space <gym_type(low,high,shape,type)>:', env.action_space)
-    # TODO: print env_config if it exists
-    # print('Observation Mode:', env.obs_mode)
-    # print('Gym Observation Space:', self.genv.observation_space)
-    # print('Gym Observation Space Shape:', self.genv.observation_space.shape)
-    print('Observation Space:', env.observation_space)
-    if hasattr(env.observation_space, 'spaces'):
-        print('Observation Space Spaces:',
-              [obs for obs in env.observation_space.spaces])
-    #    print('Observation Space Types:', [type(obs) for obs in env.observation_space.spaces])
-    print('Reward Range:', env.reward_range)
-    print('Metadata:', env.metadata)
-    print('--------------------------------------')
-
-
 def env_state_shapes(env):
     return [obs.shape for obs in env.observation_space.spaces] \
         if hasattr(env,'spaces') else [env.observation_space.shape]

@@ -12,7 +12,7 @@ import gym
 from navsim.agent.ddpg import DDPGAgent
 from navsim.util import sizeof_fmt, image_layout, s_hwc_to_chw
 from navsim.util.dict import ObjDict
-from navsim.util import env_info
+from navsim.env import env_info
 from navsim.util import ResourceCounter
 
 import traceback
