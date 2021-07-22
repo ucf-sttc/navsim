@@ -30,7 +30,7 @@ def s_hwc_to_chw(s):
         s = hwc_to_chw(s)
     elif isinstance(s, list):  # state is a list of states
         for i in range(len(s)):
-            if isinstance(s[i], np.ndarray) and (s.ndim > 2):
+            if isinstance(s[i], np.ndarray) and (s[i].ndim > 2):
                 s[i] = hwc_to_chw(s[i])
     return s
 

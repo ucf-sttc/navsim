@@ -231,7 +231,7 @@ class DDPGAgent(object):
         for state_dim in self.state_dims:
             # obs_dim = [1] + [state_dim[2],state_dim[1],state_dim[0],
             #hwc to chw
-            state_d = state_dim.reverse() if len(state_dim)==3 else state_dim
+            state_d = (state_dim[2],state_dim[1],state_dim[0]) if len(state_dim)==3 else state_dim
             obs = torch.zeros([1] + list(state_d), dtype=torch.float,
                               device=self.device)
             obs_name = 'state'
