@@ -167,7 +167,7 @@ class Executor:
                 from navsim.memory import NumpyMemory
                 mem_backend = NumpyMemory
 
-            obs_shapes = [obs.shape for obs in self.env.observation_space.spaces] if hasattr(self.env,'spaces') else [self.env.observation_space.shape]
+            obs_shapes = [obs.shape for obs in self.env.observation_space.spaces] if hasattr(self.env.observation_space,'spaces') else [self.env.observation_space.shape]
 
             if resume and self.run_base_folder.is_dir() and (
                     not self.run_config["clear_memory"]):
