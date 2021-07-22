@@ -268,7 +268,7 @@ class NavSimGymEnv(UnityToGymWrapper):
         else:
             self.save_vector_obs = False
 
-    def save_obs(self, obs):
+    def _save_obs(self, obs):
         if self.save_vector_obs:
             self.vec_writer.writerow(
                 [self.e_num, self.s_num, self.spl_current, time.time()] +
@@ -292,7 +292,7 @@ class NavSimGymEnv(UnityToGymWrapper):
         self.s_num = 0
         self.e_num += 1 if self.e_num else self.start_from_episode
         self.spl_start = self.spl_current = self.shortest_path_length
-        self.save_obs(self.obs)
+        self._save_obs(self.obs)
         return s0
 
     def step(self, action: List[Any]) -> GymStepResult:
@@ -306,7 +306,7 @@ class NavSimGymEnv(UnityToGymWrapper):
             self._goal_position = vec_obs[10:13]
         self.s_num += 1
         self.spl_current = self.shortest_path_length
-        self.save_obs(self.obs)
+        self._save_obs(self.obs)
         if self.save_actions:
             self.actions_writer.writerow(
                 [self.e_num, self.s_num] + list(action))
@@ -339,10 +339,8 @@ class NavSimGymEnv(UnityToGymWrapper):
             mode: 'rgb_array' or 'depth' or 'segmentation' or 'vector'
 
         Returns:
-            For Observation Modes 1 and 2:
-                For each render mode returns a numpy array of the image
-            For Observation Mode 0 and 2:
-                The observation vector when the vector mode is specified
+            For Observation Mode 1 and 2: each render mode returns a numpy array of the image
+            For Observation Mode 0 and 2: render mode vector returns vector observations
         """
         if mode == 'rgb_array' and self.obs_mode in [1, 2]:
             obs = self.obs[0]
