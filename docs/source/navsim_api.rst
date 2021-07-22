@@ -6,7 +6,7 @@ NavSim environment and related utilities
 
 .. autofunction:: navsim.env.env_info
 
-.. autoclass:: navsim.NavSimGymEnv
+.. autoclass:: navsim.env.NavSimGymEnv
    :members:
    :undoc-members:
    :member-order: bysource

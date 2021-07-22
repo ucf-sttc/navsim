@@ -1,4 +1,5 @@
 import csv
+import struct
 from pathlib import Path
 import numpy as np
 import uuid
@@ -182,7 +183,7 @@ class NavSimGymEnv(UnityToGymWrapper):
                         'show_visual', False) else "",
                     "-saveStepLog" if self.debug else ""
                 ]
-                uenv = UnityEnvironment(file_name=env_path,
+                self.uenv = UnityEnvironment(file_name=env_path,
                                         log_folder=str(log_folder),
                                         seed=seed,
                                         timeout_wait=self.env_config.get(
@@ -204,7 +205,7 @@ class NavSimGymEnv(UnityToGymWrapper):
                                          f" to start from episode {self.start_from_episode}")
                 break
 
-        super().__init__(unity_env=uenv,
+        super().__init__(unity_env=self.uenv,
                          uint8_visual=False,
                          flatten_branched=False,
                          allow_multiple_obs=True,
@@ -357,8 +358,31 @@ class NavSimGymEnv(UnityToGymWrapper):
                              "{mode}, observation mode = {self.obs_mode}")
         return obs
 
-    def start_navigable_map(self, resolution_x=256, resolution_y=256,
-                            cell_occupancy_threshold=0.5):
+    def get_navigable_map(self, resolution_x=256, resolution_y=256,
+                            cell_occupancy_threshold=0.5) -> np.ndarray:
+        """Get the Navigable Areas map
+
+        Args:
+            resolution_x: The size of the agent_x axis of the resulting grid, default = 256
+            resolution_y: The size of the y axis of the resulting grid, default = 256
+            cell_occupancy_threshold: If at least this much % of the cell is occupied, then it will be marked as non-navigable, default = 50%
+
+        Returns:
+            A numpy array having 0 for non-navigable and 1 for navigable cells
+
+        Note:
+            Largest resolution is 3284 agent_x 2666
+        """
+        if (resolution_x > 3284) or (resolution_y > 2666):
+            raise ValueError("maximum map size is 3284 agent_x 2666")
+
+        self.uenv._process_immediate_message(self.map_side_channel.build_immediate_request("binaryMap", [resolution_x, resolution_y,
+                                                                                                             cell_occupancy_threshold]))
+        return self.map_side_channel.requested_map
+
+
+    #def start_navigable_map(self, resolution_x=256, resolution_y=256,
+    #                        cell_occupancy_threshold=0.5):
         """Start the Navigable Areas map
 
         Args:
@@ -372,14 +396,14 @@ class NavSimGymEnv(UnityToGymWrapper):
         Note:
             Largest resolution is 3284 agent_x 2666
         """
-        if (resolution_x > 3284) or (resolution_y > 2666):
-            raise ValueError("maximum map size is 3284 agent_x 2666")
-        self.map_side_channel.send_request("binaryMap",
-                                           [resolution_x, resolution_y,
-                                            cell_occupancy_threshold])
+    #    if (resolution_x > 3284) or (resolution_y > 2666):
+    #        raise ValueError("maximum map size is 3284 agent_x 2666")
+    #    self.map_side_channel.send_request("binaryMap",
+    #                                       [resolution_x, resolution_y,
+    #                                        cell_occupancy_threshold])
         # print('Inside get navigable map function:',self.map_side_channel.requested_map)
 
-    def get_navigable_map(self) -> np.ndarray:
+    #def get_navigable_map(self) -> np.ndarray:
         """Get the Navigable Areas map
 
         Args:
@@ -391,7 +415,7 @@ class NavSimGymEnv(UnityToGymWrapper):
             This only works if you have called ``reset()`` or ``step()`` on the
             environment at least once after calling start_navigable_map() method.
         """
-        return self.map_side_channel.requested_map
+    #    return self.map_side_channel.requested_map
 
     def unity_loc_to_navmap_loc(self, unity_x, unity_z, navmap_max_x=256,
                                 navmap_max_y=256):
@@ -595,5 +619,17 @@ class MapSideChannel(SideChannel):
         msg.write_string(key)
         msg.write_float32_list(value)
         super().queue_message_to_send(msg)
+
+    def build_immediate_request(self, key: str, value: List[float]) -> bytearray:
+        self.resolution = value
+        msg = OutgoingMessage()
+        msg.write_string(key)
+        msg.write_float32_list(value)
+
+        result = bytearray()
+        result += self.channel_id.bytes_le
+        result += struct.pack("<i", len(msg.buffer))
+        result += msg.buffer
+        return result
 
 
