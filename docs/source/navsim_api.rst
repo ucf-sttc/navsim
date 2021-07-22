@@ -6,22 +6,20 @@ NavSim Environment
 
 .. autoclass:: navsim.NavSimGymEnv
    :members:
-   :inherited-members:
-   :show-inheritance:
+   :undoc-members:
+   :member-order: bysource
 
 Rollback Memory
 ---------------------
 
 .. autoclass:: navsim.memory.CupyMemory
    :members:
+   :undoc-members:
    :inherited-members:
    :show-inheritance:
 .. autoclass:: navsim.memory.NumpyMemory
    :members:
-   :inherited-members:
-   :show-inheritance:
-.. autoclass:: navsim.memory.Memory
-   :members:
+   :undoc-members:
    :inherited-members:
    :show-inheritance:
 

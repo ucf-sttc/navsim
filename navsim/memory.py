@@ -186,15 +186,14 @@ class CupyMemory(Memory):
 
 
 class NumpyMemory(Memory):
-    """Stores and returns list of numpy arrays for s a r s_ d
+    """Stores and returns list of numpy arrays for s a r \s_ d
 
-    assumes you are storing s a r s_ d : state action reward next_state done
+    assumes you are storing s a r \s_ d : state action reward next_state done
     # state / next_state : tuple of n-dim numpy arrays
     # a : 1-d numpy array of floats or ints
-    # r : 1-d numpy array of floats #TODO: rewards could also be n-dim
+    # r : 1-d numpy array of floats
     # d : 1-d numpy array of booleans
 
-    # TODO: if we made this tensor based instead of np, would it make it better ?
     """
 
     def __init__(self, capacity: int,
