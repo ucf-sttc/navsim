@@ -431,7 +431,7 @@ class NavSimGymEnv(UnityToGymWrapper):
         Returns: x,y point on the navigable map
 
         """
-        x, y = np.choice(np.argwhere(self.map_side_channel.requested_map == 1),
+        x, y = np.random.choice(np.argwhere(self.map_side_channel.requested_map == 1),
                          replace=False)
         return x, y
 
