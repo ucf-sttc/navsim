@@ -101,7 +101,6 @@ ENV PATH=${CONDA_DIR}/bin:$PATH
 RUN source /root/.bashrc && source ezai-conda.sh && \
     ezai_conda_create --venv "base" && \
     chmod -R 777 ${CONDA_DIR} && \
-    patch_mlagents && \
     rm ezai-conda* ezai-pip-*
 #ENTRYPOINT ["bash", "-c", "(/root/chuser.sh && python /root/x_server.py) && bash"]
 ENTRYPOINT ["/root/entrypoint.sh"]

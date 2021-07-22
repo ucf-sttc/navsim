@@ -109,8 +109,9 @@ install_txt () {
 }
 
 patch_mlagents () {
-  cp -f mlagents_patch/environment.py ${CONDA_PREFIX}/lib/python3.8/site-packages/mlagents_envs
+  cp -f mlagents_patch/environment.py ${CONDA_PREFIX}/lib/python3.8/site-packages/mlagents_envs/
   cp -f mlagents_patch/command_pb2.py ${CONDA_PREFIX}/lib/python3.8/site-packages/mlagents_envs/communicator_objects/
+  return $?
 }
 
 ezai_conda_create () {
@@ -148,7 +149,7 @@ ezai_conda_create () {
 
   config_env
 
-  install_cuda && install_fastai_pytorch && install_txt
+  install_cuda && install_fastai_pytorch && install_txt && patch_mlagents
   if [ "$?" != "0" ];
   then
     echo "Conda install failed in ${venv}" && return $?
