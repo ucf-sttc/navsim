@@ -435,6 +435,7 @@ class NavSimGymEnv(UnityToGymWrapper):
             navmap_x, navmap_y
         """
         unity_max_x, _, unity_max_z = self.unity_map_dims
+        #TODO: 0 <= unity_x < math.floor(unity_max_x) && 0 <= unity_z < math.floor(unity_max_z)
         navmap_x = math.floor(unity_x / (math.floor(unity_max_x) / navmap_max_x))
         navmap_y = (navmap_max_y - 1) - math.floor(
             unity_z / (math.floor(unity_max_z) / navmap_max_y))
@@ -456,13 +457,12 @@ class NavSimGymEnv(UnityToGymWrapper):
         """
         unity_max_x, unity_max_y, unity_max_z = self.unity_map_dims
 
-        unity_x = navmap_x*(unity_max_x/navmap_max_x)
-
-        unity_z = navmap_y*(unity_max_z/navmap_max_y)
-
+        #TODO:  input: 0 <= navmap_x < navmap_max_x && 0<= navmap_y < navmap_max_y
+        unity_x = navmap_x * (math.floor(unity_max_x) / navmap_max_x)
+        unity_z = math.floor(unity_max_z) - (navmap_y + 1) * (math.floor(unity_max_z) / navmap_max_y)
         if navmap_cell_center:
-            unity_x += (unity_max_x/navmap_max_x)/2
-            unity_z += (unity_max_z/navmap_max_y)/2
+            unity_x += (math.floor(unity_max_x)/navmap_max_x)/2
+            unity_z += (math.floor(unity_max_z)/navmap_max_y)/2
 
         return unity_x, unity_z
 
@@ -579,7 +579,7 @@ class NavSimGymEnv(UnityToGymWrapper):
         if self.agent_rotation is None:
             return None
         else:
-            x, y, z, w = self.agent_rotation
+            y, z, x, w = self.agent_rotation
             # Convert a quaternion into euler angles (roll, pitch, yaw)
             # roll is rotation around x in radians (counterclockwise)
             # pitch is rotation around y in radians (counterclockwise)
@@ -599,6 +599,11 @@ class NavSimGymEnv(UnityToGymWrapper):
             yaw_z = math.atan2(t3, t4)
 
             return roll_x, pitch_y, yaw_z  # in radians
+
+    @property
+    def agent_rotation_in_navmap(self):
+        _,_,yaw_z = self.agent_rotation_in_euler
+        return yaw_z
 
     # sim.get_agent_state() -> agent_x, y, orientation
     # sim.set_agent_state(position, orientation)
