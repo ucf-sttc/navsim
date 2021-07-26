@@ -2,7 +2,6 @@
 .idea
 __pycache__
 .pytest_cache
-navsim_test
 /notebooks/.ipynb_checkpoints/
 /notebooks/logs/
 /notebooks/navsim_test/
@@ -20,3 +19,9 @@ navsim_test
 /docs/build/
 /docs/navsim_html_docs.zip
 /examples/env_log/
+/navsim_envs/build/
+/navsim/build/
+/navsim/dist/
+/navsim/navsim.egg-info/
+/navsim_envs/dist/
+/navsim_envs/navsim_envs.egg-info/
