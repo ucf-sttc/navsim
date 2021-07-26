@@ -10,7 +10,8 @@ if [ ! -e $CONTAINER_ALREADY_STARTED ]; then
     echo "-- First container startup --"
     # YOUR_JUST_ONCE_LOGIC_HERE
     NVIDIA_VERSION=$NVIDIA_VERSION /root/install_nvidia.sh
-    pip install --no-cache-dir --upgrade "navsim>=2.10,<2.11"
+    pip install --no-cache-dir --pre --upgrade "navsim>=2.10,<2.11"
+    #pip install --no-cache-dir --upgrade  "navsim>=2.10,<2.11"
 else
     echo "-- Second or later container startup --"
 fi

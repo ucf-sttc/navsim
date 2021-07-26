@@ -33,7 +33,7 @@ first follow the instructions to setup the host.
 1. Download and extract the unity binary zip file
 2. The following environment variables need to be set in both cases:
    ```shell
-   envdir=$(realpath "/data/work/unity-envs/Build2.10.1-dev");
+   envdir=$(realpath "/data/work/unity-envs/Build2.10.2");
    envbin="Berlin_Walk_V2.x86_64"; 
    expdir=$(realpath "$HOME/exp"); 
    run_id="demo"; 
@@ -62,7 +62,7 @@ as container will dump the files there.
    -v $envdir:$envdir \
    -v $expdir:$expdir \
    -w $expdir \
-   $repo/navsim:2.10.0 DISPLAY=:0.0 <navsim command>
+   $repo/navsim:2.10.4-dev0 DISPLAY=:0.0 <navsim command>
    ```
 
 #### The Variable `DISPLAY=:0.0`
@@ -97,8 +97,7 @@ zero to the index number of GPU for environment binary.
     ```
 3. Create the conda env for `navsim`
     ```
-    ENVS_ROOT=$(conda info --base)/envs
-    source ezai-conda.sh && ezai_conda_create --venv "$ENVS_ROOT/navsim"
+    source ezai-conda.sh && ezai_conda_create --venv "$(conda info --base)/envs/navsim"
     ```
    
 #### Run the navsim on host
