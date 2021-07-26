@@ -87,7 +87,7 @@ SHELL ["/bin/bash", "-c"]
 #install phoronix
 RUN wget http://phoronix-test-suite.com/releases/repo/pts.debian/files/phoronix-test-suite_10.4.0_all.deb
 RUN gdebi phoronix-test-suite_10.4.0_all.deb
-RUN dpkg -i phoronix-test-suite_10.4.0_all.deb
+#RUN dpkg -i phoronix-test-suite_10.4.0_all.deb
 COPY test-profiles/local /var/lib/phoronix-test-suite/test-profiles/
 
 #Install MINICONDA and navsim_env in base

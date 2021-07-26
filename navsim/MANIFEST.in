@@ -1,3 +1,2 @@
 include MANIFEST.in
 include navsim/version.txt
-prune navsim_env

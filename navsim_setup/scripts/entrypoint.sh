@@ -9,9 +9,11 @@ if [ ! -e $CONTAINER_ALREADY_STARTED ]; then
     touch $CONTAINER_ALREADY_STARTED
     echo "-- First container startup --"
     # YOUR_JUST_ONCE_LOGIC_HERE
+    echo "Installing nvidia drivers for NVIDIA_VERSION=${NVIDIA_VERSION}...."
     NVIDIA_VERSION=$NVIDIA_VERSION /root/install_nvidia.sh
-    pip install --no-cache-dir --pre --upgrade "navsim>=2.10,<2.11"
-    #pip install --no-cache-dir --upgrade  "navsim>=2.10,<2.11"
+    echo "Upgrading navsim*......."
+    #pip install --no-cache-dir --pre --upgrade "navsim>=2.10,<2.11"
+    pip install --no-cache-dir --upgrade  "navsim>=2.10,<2.11" "navsim_envs>=2.10,<2.11"
 else
     echo "-- Second or later container startup --"
 fi
