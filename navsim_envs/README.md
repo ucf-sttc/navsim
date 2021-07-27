@@ -205,46 +205,4 @@ with some minor behavioral differences:
 
     [[Raw Agent Camera],[Depth Agent Camera],[Segmentation Agent Camera]]
 
-## Queries from the Env
 
-### Map
-Used to request and receive a binary navigable map. The binary map indicates 
-navigable and obstacle areas. 
-
-    NavSimGymEnv.get_navigable_map(resolution_x, resolution_y, cell_occupancy_threshold)
-
-Parameter value ranges:    
-```
-                          Min   Max      
-resolution_x              1     3276   
-resolution_y              1     2662    
-cell_occupancy_threshold  0     1.0
-```
-
-The raw map array received from the Unity game is a row-major 1D flattened 
-bitpacked array with the y-axis data ordered for image output 
-(origin at top left).    
-
-For example, if reshaping to a 2D array without reordering with 
-dimensions `(resolution_y, resolution_x)`, then the desired coordinate `(x,y)` 
-is at array element `[resolution_y-1-y, x]`.    
-Finding the agent map position based on world position*:    
-`map_x = floor(world_x / (max_x / resolution_x) )`    
-`map_y = (resolution_y - 1) - floor(world_z / (max_y / resolution_y) )`    
-
-*Note: When converting from the 3-dimensional world position to the 
-2-dimensional map, the world y-axis is omitted. The map's y-axis represents 
-the world's z-axis.    
-
-### Position Scan - Not Available
-Given a position and this returns the attribution data of the first object 
-found at the given position. Objects are searched for within a 1 meter radius 
-of the given position. If the position is not loaded in the environment then 
-None will be returned. 
-
-### Shortest Path from Starting Location to Goal
-
-`ShortestPath` : Returns the shortest path value from the agent's start 
-location to the goal position from the navigable area.
-
-	NavSimGymEnv.get_shortest_path_length()

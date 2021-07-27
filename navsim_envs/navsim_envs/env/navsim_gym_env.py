@@ -14,10 +14,10 @@ from gym_unity.envs import (
     GymStepResult
 )
 
-@attr.s(auto_attribs=True)
-class AgentState:
-    position: Optional["np.ndarray"]
-    rotation: Optional["np.ndarray"] = None
+#@attr.s(auto_attribs=True)
+#class AgentState:
+#    position: Optional["np.ndarray"]
+#    rotation: Optional["np.ndarray"] = None
 
 from mlagents_envs.logging_util import get_logger
 
@@ -365,17 +365,33 @@ class NavSimGymEnv(UnityToGymWrapper):
         """Get the Navigable Areas map
 
         Args:
-            resolution_x: The size of the agent_x axis of the resulting grid, default = 256
-            resolution_y: The size of the y axis of the resulting grid, default = 256
-            cell_occupancy_threshold: If at least this much % of the cell is occupied, then it will be marked as non-navigable, default = 50%
+            resolution_x: The size of the agent_x axis of the resulting grid, 1 to 3276, default = 256
+            resolution_y: The size of the y axis of the resulting grid, 1 to 2662, default = 256
+            cell_occupancy_threshold: If at least this much % of the cell is occupied, then it will be marked as non-navigable, 0 to 1.0, default = 50%
 
         Returns:
-            A numpy array having 0 for non-navigable and 1 for navigable cells,
-            and the 0,0 in the top-left corner
+            A numpy array having 0 for non-navigable and 1 for navigable cells.
 
         Note:
-            Largest resolution is 3284 agent_x 2666
+            Largest resolution is 3284 x 2666
         """
+
+        #TODO : Clean up these notes
+        #The raw map array received from the Unity game is a row-major 1D flattened
+        #bitpacked array with the y-axis data ordered for image output
+        #(origin at top left).
+
+        #For example, if reshaping to a 2D array without reordering with
+        #dimensions `(resolution_y, resolution_x)`, then the desired coordinate `(x,y)`
+        #is at array element `[resolution_y-1-y, x]`.
+        #Finding the agent map position based on world position*:
+        #`map_x = floor(world_x / (max_x / resolution_x) )`
+        #`map_y = (resolution_y - 1) - floor(world_z / (max_y / resolution_y) )`
+
+        #*Note: When converting from the 3-dimensional world position to the
+        #2-dimensional map, the world y-axis is omitted. The map's y-axis represents
+        #the world's z-axis.
+
         if (resolution_x > 3284) or (resolution_y > 2666):
             raise ValueError("maximum map size is 3284 agent_x 2666")
 
@@ -388,19 +404,19 @@ class NavSimGymEnv(UnityToGymWrapper):
 
         # def start_navigable_map(self, resolution_x=256, resolution_y=256,
         #                        cell_occupancy_threshold=0.5):
-        """Start the Navigable Areas map
+        #"""Start the Navigable Areas map
+        #
+        #Args:
+        #    resolution_x: The size of the agent_x axis of the resulting grid, default = 256
+        #    resolution_y: The size of the y axis of the resulting grid, default = 256
+        #    cell_occupancy_threshold: If at least this much % of the cell is occupied, then it will be marked as non-navigable, default = 50%
+        #
+        #Returns:
+        #    Nothing
 
-        Args:
-            resolution_x: The size of the agent_x axis of the resulting grid, default = 256
-            resolution_y: The size of the y axis of the resulting grid, default = 256
-            cell_occupancy_threshold: If at least this much % of the cell is occupied, then it will be marked as non-navigable, default = 50%
-
-        Returns:
-            Nothing
-
-        Note:
-            Largest resolution is 3284 agent_x 2666
-        """
+        #Note:
+        #    Largest resolution is 3284 agent_x 2666
+        #"""
         #    if (resolution_x > 3284) or (resolution_y > 2666):
         #        raise ValueError("maximum map size is 3284 agent_x 2666")
         #    self.map_side_channel.send_request("binaryMap",
@@ -409,17 +425,17 @@ class NavSimGymEnv(UnityToGymWrapper):
         # print('Inside get navigable map function:',self.map_side_channel.requested_map)
 
         # def get_navigable_map(self) -> np.ndarray:
-        """Get the Navigable Areas map
-
-        Args:
-
-        Returns:
-            A numpy array having 0 for non-navigable and 1 for navigable cells
-
-        Note:
-            This only works if you have called ``reset()`` or ``step()`` on the
-            environment at least once after calling start_navigable_map() method.
-        """
+        #"""Get the Navigable Areas map
+        #
+        #Args:
+        #
+        #Returns:
+        #    A numpy array having 0 for non-navigable and 1 for navigable cells
+        #
+        #Note:
+        #    This only works if you have called ``reset()`` or ``step()`` on the
+        #    environment at least once after calling start_navigable_map() method.
+        #"""
 
     #    return self.map_side_channel.requested_map
 
@@ -641,12 +657,19 @@ class NavSimGymEnv(UnityToGymWrapper):
 
     @property
     def shortest_path_length(self):
-        """Return the Shortest Path Length
+        """the shortest navigable path length from current location to
+        goal position
 
-        Returns: Return the Shortest Path Length
-
+        Returns: Shortest Path Length
         """
         return self.fpc.get_property("ShortestPath")
 
+
+
+### Position Scan - Not Available
+#Given a position and this returns the attribution data of the first object
+#found at the given position. Objects are searched for within a 1 meter radius
+#of the given position. If the position is not loaded in the environment then
+#None will be returned.
 
 
