@@ -1,10 +1,11 @@
 Welcome to NavSim |version| documentation
 *******************************************
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
-   Introduction <README.md>
-   NavSim Env Tutorial <navsim_env.md>
-   Conda/Container Tutorial <navsim_conda.md>
-   Contributing <contribute.md>
+   Introduction <navsim/README.md>
+   NavSim Env Tutorial <navsim_envs/README.md>
+   Conda/Container Tutorial <navsim/navsim_conda.md>
+   Contributing <navsim/contribute.md>
+   navsim_envs_api
    navsim_api

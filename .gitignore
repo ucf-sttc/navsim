@@ -18,7 +18,7 @@ __pycache__
 /sync
 /docs/build/
 /docs/navsim_html_docs.zip
-/examples/env_log/
+/examples/env_log*/
 /navsim_envs/build/
 /navsim/build/
 /navsim/dist/

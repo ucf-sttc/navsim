@@ -61,8 +61,8 @@ class MapSideChannel(SideChannel):
         raw_bytes = msg.get_raw_bytes()
         self.requested_map = np.unpackbits(raw_bytes)[
                              0:self.resolution[0] * self.resolution[1]]
-        self.requested_map = self.requested_map.reshape((self.resolution[0],
-                                                         self.resolution[1]))
+        self.requested_map = self.requested_map.reshape((self.resolution[1],
+                                                         self.resolution[0]))
         return self.requested_map
 
     def send_request(self, key: str, value: List[float]) -> None:

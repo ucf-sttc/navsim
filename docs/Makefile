@@ -17,8 +17,9 @@ help:
 # Catch-all target: route all unknown targets to Sphinx using the new
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
 %: Makefile
-	cp ../*.md "$(SOURCEDIR)"
+	cp ../*.md "$(SOURCEDIR)"/navsim
+	cp ../navsim_envs/*.md "$(SOURCEDIR)"/navsim_envs
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
-	rm "$(SOURCEDIR)"/*.md
+	rm "$(SOURCEDIR)"/navsim/*.md "$(SOURCEDIR)"/navsim_envs/*.md
 	cp build/latex/navsim.pdf .
 	zip -r navsim_html_docs.zip build/html/*

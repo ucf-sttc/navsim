@@ -14,6 +14,11 @@ from gym_unity.envs import (
     GymStepResult
 )
 
+@attr.s(auto_attribs=True)
+class AgentState:
+    position: Optional["np.ndarray"]
+    rotation: Optional["np.ndarray"] = None
+
 from mlagents_envs.logging_util import get_logger
 
 from mlagents_envs.exception import UnityWorkerInUseException
@@ -32,29 +37,29 @@ from .navsim_unity_env import MapSideChannel
 try:
     from cv2 import imwrite as imwrite
 
-    print("Navsim: using cv2 as image library")
+    print("navsim_envs: using cv2 as image library")
 except ImportError as error:
     try:
         from imageio import imwrite as imwrite
 
-        print("Navsim: using imageio as image library")
+        print("navsim_envs: using imageio as image library")
     except ImportError as error:
         try:
             from matplotlib.pyplot import imsave as imwrite
 
-            print("Navsim: using matplotlib as image library")
+            print("navsim_envs: using matplotlib as image library")
         except ImportError as error:
             try:
                 from PIL import Image
 
-                print("Navsim: using PIL as image library")
+                print("navsim_envs: using PIL as image library")
 
                 def imwrite(filename, arr):
                     im = Image.fromarray(arr)
                     im.save(filename)
             except ImportError as error:
                 def imwrite(filename=None, arr=None):
-                    print("Navsim: unable to load any of the following "
+                    print("navsim_envs: unable to load any of the following "
                           "image libraries: cv2, imageio, matplotlib, "
                           "PIL. Install one of these libraries to "
                           "save visuals.")
@@ -435,7 +440,7 @@ class NavSimGymEnv(UnityToGymWrapper):
         # TODO: 0 <= unity_x < math.floor(unity_max_x) && 0 <= unity_z < math.floor(unity_max_z)
         navmap_x = math.floor(
             unity_x / (math.floor(unity_max_x) / navmap_max_x))
-        navmap_y = (navmap_max_y - 1) - math.floor(
+        navmap_y = math.floor(
             unity_z / (math.floor(unity_max_z) / navmap_max_y))
         return navmap_x, navmap_y
 
@@ -457,8 +462,7 @@ class NavSimGymEnv(UnityToGymWrapper):
 
         # TODO:  input: 0 <= navmap_x < navmap_max_x && 0<= navmap_y < navmap_max_y
         unity_x = navmap_x * (math.floor(unity_max_x) / navmap_max_x)
-        unity_z = math.floor(unity_max_z) - (navmap_y + 1) * (
-                    math.floor(unity_max_z) / navmap_max_y)
+        unity_z = navmap_y * (math.floor(unity_max_z) / navmap_max_y)
         if navmap_cell_center:
             unity_x += (math.floor(unity_max_x) / navmap_max_x) / 2
             unity_z += (math.floor(unity_max_z) / navmap_max_y) / 2
@@ -469,7 +473,7 @@ class NavSimGymEnv(UnityToGymWrapper):
                                cell_occupancy_threshold=0.5):
         """Provides a random sample of navigable point
 
-        Returns: x,y point on the navigable map
+        Returns: y,x point on the navigable map
 
         """
         if self.map_side_channel.requested_map is None:
@@ -479,6 +483,10 @@ class NavSimGymEnv(UnityToGymWrapper):
         idx = np.argwhere(self.map_side_channel.requested_map == 1)
         idx_sample = np.random.choice(len(idx), replace=False)
         return idx[idx_sample]
+
+    def is_navigable(self, point: List[float]) -> bool:
+        #TODO
+        return True
 
     @staticmethod
     def register_with_gym():
@@ -491,10 +499,10 @@ class NavSimGymEnv(UnityToGymWrapper):
         env_dict = registry.env_specs.copy()
         for env in env_dict:
             if env_id in env:
-                print(f"Navsim: Removing {env} from Gym registry")
+                print(f"navsim_envs: Removing {env} from Gym registry")
                 del registry.env_specs[env]
 
-        print(f"Navsim: Adding {env_id} to Gym registry")
+        print(f"navsim_envs: Adding {env_id} to Gym registry")
         register(id=env_id, entry_point='navsim_envs.env:NavSimGymEnv')
 
     @staticmethod

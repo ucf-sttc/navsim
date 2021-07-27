@@ -18,11 +18,11 @@ sys.path.insert(0, os.path.abspath('../..'))
 
 # -- Project information -----------------------------------------------------
 
-with open('../../navsim/version.txt', 'r') as vf:
+with open('../../navsim/navsim/version.txt', 'r') as vf:
     version = vf.read().strip()
 project = f'NavSim'
-copyright = '2021, Armando Fandango'
-author = 'Armando Fandango, Troyle Thomas'
+copyright = '2021, STTC, UCF'
+author = 'STTC, UCF'
 
 # -- General configuration ---------------------------------------------------
 

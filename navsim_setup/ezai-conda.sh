@@ -47,7 +47,7 @@ install_jupyter () {
   jupyter nbextension enable --user spellchecker/main && \
   jupyter nbextension enable --user scratchpad/main && \
   jupyter nbextension enable --user collapsible_headings/main && \
-  jupyter nbextension enable --user codefolding/main && \
+  jupyter nbextension enable --user codefolding/main
   return $?
 }
 
