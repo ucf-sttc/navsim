@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+loc="/data/work/exp-outputs"
+echo "-----------------------------------------------------"
+echo "............Syncing from Ultimo......................"
+echo "-----------------------------------------------------"
+rsync -avzhP --exclude={'*.pkl','*.pt','*/*.pkl','*/*.pt'} ultimo:${loc}/ ${loc}
