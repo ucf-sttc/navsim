@@ -38,8 +38,7 @@ setuptools.setup(
         'numpy',
         # 'opencv-python',
         'gym>=0.18.0',
-        'mlagents==0.27.0',
-        'mlagents_envs==0.27.0',
+        'navsim_mlagents_envs==0.27.0',
         'gym_unity==0.27.0'
     ],
     entry_points={

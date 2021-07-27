@@ -3,6 +3,10 @@
 NavSimGymEnv Class is a wrapper to Unity2Gym that inherits from the Gym interface
 The configuration provided is as follows:
 
+## Installation
+
+`pip install --upgrade navsim_envs navsim_mlagents_envs`
+
 ## How to use the navsim env
 
 If you only want to use `NavSimGymEnv`, then all you need to do is install

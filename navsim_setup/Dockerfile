@@ -92,7 +92,7 @@ COPY test-profiles/local /var/lib/phoronix-test-suite/test-profiles/
 
 #Install MINICONDA and navsim_env in base
 COPY scripts/* ezai-conda* ezai-pip-* /root/
-COPY mlagents_patch /root/mlagents_patch
+#COPY mlagents_patch /root/mlagents_patch
 RUN chmod +x /root/*.sh && \
     source ezai-conda.sh && \
     install_miniconda --conda_dir ${CONDA_DIR}

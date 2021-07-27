@@ -149,7 +149,7 @@ ezai_conda_create () {
 
   config_env
 
-  install_cuda && install_fastai_pytorch && install_txt && patch_mlagents
+  install_cuda && install_fastai_pytorch && install_txt #&& patch_mlagents
   if [ "$?" != "0" ];
   then
     echo "Conda install failed in ${venv}" && return $?
