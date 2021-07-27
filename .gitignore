@@ -25,3 +25,4 @@ __pycache__
 /navsim/navsim.egg-info/
 /navsim_envs/dist/
 /navsim_envs/navsim_envs.egg-info/
+/examples/mcar_demo/
