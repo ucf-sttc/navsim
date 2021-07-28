@@ -6,6 +6,10 @@ import os
 with open(os.path.join(os.path.dirname(__file__), 'version.txt'), 'r') as vf:
     __version__ = vf.read().strip()
 
-from navsim_envs import env, util
+__version_banner__ = f'=========================================\n' \
+                     f'navsim_env version {__version__}\n' \
+                     f'=========================================\n'
 
-__all__ = ['env','util']
+from . import env, util
+
+__all__ = ['env', 'util']

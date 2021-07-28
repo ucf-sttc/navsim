@@ -624,7 +624,12 @@ class NavSimGymEnv(UnityToGymWrapper):
             return roll_x, pitch_y, yaw_z  # in radians
 
     @property
-    def agent_rotation_in_navmap(self):
+    def agent_rotation_in_navmap_in_angle(self):
+        _, _, yaw_z = self.agent_rotation_in_euler
+        return yaw_z
+
+    @property
+    def agent_rotation_in_navmap_in_vec2d(self):
         _, _, yaw_z = self.agent_rotation_in_euler
         return yaw_z
 
