@@ -485,6 +485,14 @@ class NavSimGymEnv(UnityToGymWrapper):
 
         return unity_x, unity_z
 
+    def unity_rot_to_navmap_rot(self):
+
+        return navmap_x, navmap_y
+
+    def navmap_rot_to_unity_rot(self):
+
+        return unity_x, unity_z
+
     def sample_navigable_point(self, resolution_x=256, resolution_y=256,
                                cell_occupancy_threshold=0.5):
         """Provides a random sample of navigable point
@@ -623,15 +631,6 @@ class NavSimGymEnv(UnityToGymWrapper):
 
             return roll_x, pitch_y, yaw_z  # in radians
 
-    @property
-    def agent_rotation_in_navmap_in_angle(self):
-        _, _, yaw_z = self.agent_rotation_in_euler
-        return yaw_z
-
-    @property
-    def agent_rotation_in_navmap_in_vec2d(self):
-        _, _, yaw_z = self.agent_rotation_in_euler
-        return yaw_z
 
     # sim.get_agent_state() -> agent_x, y, orientation
     # sim.set_agent_state(position, orientation)
