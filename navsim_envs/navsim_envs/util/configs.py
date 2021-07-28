@@ -7,7 +7,7 @@ run_base_folder.mkdir(parents=True, exist_ok=True)
 
 env_config = {
     "log_folder": str(run_base_folder / "env_log"),
-    "env_path": "/data/work/unity-envs/Build2.10.2/Berlin_Walk_V2.x86_64",
+    "env_path": None,#"/data/work/unity-envs/Build2.10.2/Berlin_Walk_V2.x86_64",
     "worker_id": 0,
     "base_port": 5005,
     "seed": 1,
