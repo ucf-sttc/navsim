@@ -637,9 +637,6 @@ class NavSimGymEnv(UnityToGymWrapper):
     # sim.get_observations_at(position, orientation) -> observation when agent is at position with specified orientation
     # sim.sample_navigable_point() -> agent_x,y (must be a navigable location in the map)
 
-    @property
-    def agent_rotation_in_navmap(self):
-        return None
 
     @property
     def goal_position(self):

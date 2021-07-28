@@ -43,7 +43,8 @@ setuptools.setup(
     ],
     entry_points={
         "console_scripts": [
-            "navsim_env_test=navsim_envs.runtst:main",
+            "navsim_env_test=navsim_envs.env_tst:main",
+            "navsim_env_kill=navsim_envs.env_kill:main",
         ]
     },
 )
