@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import gym
 import sys
 import numpy as np
@@ -16,6 +18,9 @@ logger = NavSimGymEnv.logger
 @pytest.fixture(scope="module")
 def env_config():
     config = deepcopy(env_conf)
+    run_base_folder = Path('.').resolve() / 'tst_logs'
+    run_base_folder.mkdir(parents=True, exist_ok=True)
+    config["log_folder"] = str(run_base_folder / "env_log")
     if len(sys.argv) > 1:
         env_config_file = sys.argv.pop()
         env_config_from_file = load_config(env_config_file)

@@ -1,38 +1,33 @@
-from pathlib import Path
-
 import yaml
 
-run_base_folder = Path('.').resolve() / 'tst_logs'
-run_base_folder.mkdir(parents=True, exist_ok=True)
-
 env_config = {
-    "log_folder": str(run_base_folder / "env_log"),
-    "env_path": None,#"/data/work/unity-envs/Build2.10.2/Berlin_Walk_V2.x86_64",
+    "agent_car_physics": 0,
+    "debug": False,
+    "episode_max_steps": 1000,
+    "env_gpu_id": 0,
+    "env_path": None,
+    "goal": 0,
+    "goal_distance": 50,
+    "log_folder": "./env_log",
+    "obs_mode": 0,
+    "obs_height": 256,
+    "obs_width": 256,
+    "seed": 123,
+    "start_from_episode": 1,
+    "reward_for_goal": 50,
+    "reward_for_no_viable_path": -50,
+    "reward_step_mul": 0.1,
+    "reward_collision_mul": 4,
+    "reward_spl_delta_mul": 1,
+    "save_actions": True,
+    "save_vector_obs": True,
+    "save_visual_obs": True,
+    "show_visual": False,
+    "task": 0,
+    "timeout": 600,
+    "traffic_vehicles": 0,
     "worker_id": 0,
     "base_port": 5005,
-    "seed": 1,
-    "timeout": 120,
-    "obs_mode": 0,
-    "obs_height": 128,
-    "obs_width": 128,
-    "segmentation_mode": 0,
-    "episode_max_steps": 1000,
-    "task": 0,
-    "goal": 0,
-    "goal_distance": 10,
-    "traffic_vehicles": 0,
-    "agent_car_physics": 0,
-    "reward_for_goal": 1.0,
-    "reward_for_no_viable_path": -1.0,
-    "reward_step_mul": 1.0,
-    "reward_collision_mul": 1.0,
-    "reward_spl_delta_mul": 1.0,
-    "env_gpu_id": 0,
-    "debug": False,
-    "save_actions": False,
-    "save_vector_obs": False,
-    "save_visual_obs": False,
-    "show_visual": False
 }
 
 
