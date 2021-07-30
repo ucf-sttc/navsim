@@ -520,13 +520,12 @@ class NavSimGymEnv(UnityToGymWrapper):
         x,y = navmap_rotation
 
         v1 = self._normalize([x, 0, y])
-        v2 = self._normalize(np.cross([0.1.0], v1))
+        v2 = self._normalize(np.cross([0.1,0], v1))
         v3 = np.cross(v1, v2)
         m00,m01,m02 = v2
         m10, m11, m12 = v3
         m20, m21, m22 = v1
         num8 = (m00 + m11) + m22
-        float x, y, z, w;
         if num8 > 0:
             num = math.sqrt(num8 + 1)
             w = num * 0.5
@@ -571,7 +570,7 @@ class NavSimGymEnv(UnityToGymWrapper):
         vx,vy,vz = v
         qc = [-q.x, -qy, -qz, qw]
         d = [v.x, v.y, v.z, 0]
-        result = _q_mult(_q_mult(q, d), qc)
+        result = self._q_mult(self._q_mult(q, d), qc)
         return result[0:3]
 
     def _q_mult(q1, q2):
