@@ -16,6 +16,7 @@ class NavigableSideChannel(SideChannel):
     def __init__(self) -> None:
         channel_id = uuid.UUID("fbae7da3-76e8-4c37-86c9-ad647c74fd69")
         super().__init__(channel_id)
+        self.point = None
 
     def on_message_received(self, msg: IncomingMessage) -> None:
         """
@@ -23,18 +24,11 @@ class NavigableSideChannel(SideChannel):
         IncomingMessage is empty if there was no point that satisfied the request,
         otherwise it will contain the requested navigable point in Unity's world space
         """
-        print("Navigable side channel message received")
         if self.resolution is None:
-            print('no resolution set')
+            self.point = None
             return
 
-        point = msg.read_float32_list()
-
-        if point == []:
-            print('No navigable point!')
-        else:
-            print(point)
-        print('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
+        self.point = msg.read_float32_list()
 
 
     def send_request(self, key: str, value: List[float]) -> None:

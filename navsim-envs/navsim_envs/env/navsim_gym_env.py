@@ -368,10 +368,14 @@ class NavSimGymEnv(UnityToGymWrapper):
     def set_agent_state(self, position: Optional[List[float]] = None,
                         rotation: Optional[List[float]] = None):
 
+        print("Agent Position", position)
         agent_id = 0
-        state = [agent_id]
-        state += self.agent_position if position is None else position
-        state += self.agent_rotation if rotation is None else rotation
+        current_pos = self.agent_position if position is None else position
+        current_rot =  self.agent_rotation if rotation is None else rotation
+
+        state = np.concatenate(([agent_id], current_pos, current_rot))
+
+        print("State", state)
 
         self.uenv._process_immediate_message(
             self.sapsc.build_immediate_request("agentPosition",
@@ -609,8 +613,10 @@ class NavSimGymEnv(UnityToGymWrapper):
             else:
                 point = [x, y, z]
 
-        return self.uenv._process_immediate_message(
+        self.uenv._process_immediate_message(
             self.nsc.build_immediate_request("navigable", point))
+
+        return self.nsc.point
 
     def is_navigable(self, x: float, y: float, z: float) -> bool:
         """Returns if the point is navigable or not

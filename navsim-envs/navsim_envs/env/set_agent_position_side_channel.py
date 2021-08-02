@@ -15,18 +15,13 @@ class SetAgentPositionSideChannel(SideChannel):
     """
     This is the SideChannel for setting an agent's position in Unity.
     """
-    success = False
     def __init__(self) -> None:
         channel_id = uuid.UUID("821d1b06-5035-4518-9e67-a34946637260")
         super().__init__(channel_id)
+        self.success = None 
 
     def on_message_received(self, msg: IncomingMessage) -> None:
-        print("Set agent position side channel message received. Status: ")
-        success = msg.read_bool()
-        if(success):
-            print("Success")
-        else:
-            print("Failed to set position")
+        self.success = msg.read_bool()
 
     def send_request(self, key: str, value: List[float]) -> None:
         """
