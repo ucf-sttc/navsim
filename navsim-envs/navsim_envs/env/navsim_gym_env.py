@@ -292,7 +292,7 @@ class NavSimGymEnv(UnityToGymWrapper):
         s0 = super().reset()
         self.obs = s0
         if self.obs_mode in [0, 2]:
-            vec_obs = self.obs[-1]
+            vec_obs = list(self.obs[-1])
             self._agent_position = vec_obs[0:3]
             self._agent_velocity = vec_obs[3:6]
             self._agent_rotation = vec_obs[6:10]
@@ -307,7 +307,7 @@ class NavSimGymEnv(UnityToGymWrapper):
         s_, r, episode_done, info = super().step(action)
         self.obs = s_
         if self.obs_mode in [0, 2]:
-            vec_obs = self.obs[-1]
+            vec_obs = list(self.obs[-1])
             self._agent_position = vec_obs[0:3]
             self._agent_velocity = vec_obs[3:6]
             self._agent_rotation = vec_obs[6:10]
@@ -370,10 +370,13 @@ class NavSimGymEnv(UnityToGymWrapper):
 
         print("Agent Position", position)
         agent_id = 0
-        current_pos = self.agent_position if position is None else position
-        current_rot =  self.agent_rotation if rotation is None else rotation
-
-        state = np.concatenate(([agent_id], current_pos, current_rot))
+        #current_pos = self.agent_position if position is None else position
+        #current_rot = self.agent_rotation if rotation is None else rotation
+        #
+        #state = np.concatenate(([agent_id], current_pos, current_rot))
+        state = [agent_id]
+        state += self.agent_position if position is None else position
+        state += self.agent_rotation if rotation is None else rotation
 
         print("State", state)
 
@@ -389,7 +392,6 @@ class NavSimGymEnv(UnityToGymWrapper):
     def set_agent_rotation(self, rotation: Optional[List[float]]):
 
         return self.set_agent_state(rotation=rotation)
-
 
     def get_navigable_map(self, resolution_x=256, resolution_y=256,
                           cell_occupancy_threshold=0.5) -> np.ndarray:
@@ -516,17 +518,17 @@ class NavSimGymEnv(UnityToGymWrapper):
 
         return unity_x, unity_z
 
-    def unity_to_navmap_rotation(self, unity_rotation = List[float]):
-        x,_,z = self._qv_mult(unity_rotation,[0,0,1])
-        return self._normalize([x,z])
+    def unity_to_navmap_rotation(self, unity_rotation: List[float]):
+        x, _, z = self._qv_mult(unity_rotation, [0, 0, 1])
+        return self._normalize([x, z])
 
-    def navmap_to_unity_rotation(self, navmap_rotation = List[float]):
-        x,y = navmap_rotation
+    def navmap_to_unity_rotation(self, navmap_rotation: List[float]):
+        x, y = navmap_rotation
 
         v1 = self._normalize([x, 0, y])
-        v2 = self._normalize(np.cross([0.1,0], v1))
+        v2 = self._normalize(np.cross([0.1, 0], v1))
         v3 = np.cross(v1, v2)
-        m00,m01,m02 = v2
+        m00, m01, m02 = v2
         m10, m11, m12 = v3
         m20, m21, m22 = v1
         num8 = (m00 + m11) + m22
@@ -554,39 +556,37 @@ class NavSimGymEnv(UnityToGymWrapper):
 
         else:
             num5 = math.sqrt(1 + m22 - m00 - m11)
-            num2 = 0.5/ num5
+            num2 = 0.5 / num5
             x = (m20 + m02) * num2
             y = (m21 + m12) * num2
             z = 0.5 * num5
             w = (m01 - m10) * num2
         return [x, y, z, w]
 
-
-    def _normalize(self, vec:List[float]):
+    def _normalize(self, vec: List[float]):
         magnitude = 0.0
         for i in vec:
             magnitude += (i * i)
         magnitude = math.sqrt(magnitude)
         return vec / magnitude
 
-    def _qv_mult(self,q:List[float], v:List[float]):
-        qx,qy,qz,qw = q
-        vx,vy,vz = v
+    def _qv_mult(self, q: List[float], v: List[float]):
+        qx, qy, qz, qw = q
+        vx, vy, vz = v
         qc = [-q.x, -qy, -qz, qw]
-        d = [v.x, v.y, v.z, 0]
+        d = [vx, vy, vz, 0]
         result = self._q_mult(self._q_mult(q, d), qc)
         return result[0:3]
 
     def _q_mult(q1, q2):
-        x1,y1,z1,w1 = q1
-        x2,y2,z2,w2 = q1
+        x1, y1, z1, w1 = q1
+        x2, y2, z2, w2 = q1
 
-        x = w1*x2 + x1*w2 + y1*z2 - z1*y2
-        y = w1*y2 + y1*w2 + z1*x2 - x1*z2
-        z = w1*z2 + z1*w2 + x1*y2 - y1*x2
-        w = w1*w2 - x1*x2 - y1*y2 - z1*z2
+        x = w1 * x2 + x1 * w2 + y1 * z2 - z1 * y2
+        y = w1 * y2 + y1 * w2 + z1 * x2 - x1 * z2
+        z = w1 * z2 + z1 * w2 + x1 * y2 - y1 * x2
+        w = w1 * w2 - x1 * x2 - y1 * y2 - z1 * z2
         return [x, y, z, w]
-
 
     def sample_navigable_point(self, x: float = None, y: float = None,
                                z: float = None):
