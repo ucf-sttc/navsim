@@ -18,6 +18,8 @@ from gym_unity.envs import (
 #    position: Optional["np.ndarray"]
 #    rotation: Optional["np.ndarray"] = None
 
+from ..util.exceptions import EnvNotInitializedError
+
 from mlagents_envs.logging_util import get_logger
 
 from mlagents_envs.exception import UnityWorkerInUseException
@@ -706,24 +708,32 @@ class NavSimGymEnv(UnityToGymWrapper):
     def agent_state(self):
         """Agent state is position (x,y,z), rotation (x,y,,z,w)
         """
-        return self._agent_position, self._agent_rotation
+        return self.agent_position, self.agent_rotation
 
     @property
     def agent_position(self):
         """Position of agent in unity map coordinates x,y,z
         """
+        if self._agent_position is None:
+            raise EnvNotInitializedError()
+
         return self._agent_position
 
     @property
     def agent_rotation(self):
         """Rotation of agent in unity map coordinates x,y,z,w (Quaternions)
         """
+        if self._agent_rotation is None:
+            raise EnvNotInitializedError()
+
         return self._agent_rotation
 
     @property
     def agent_velocity(self):
         """Velocity of agent in unity map coordinates x,y,z
         """
+        if self._agent_velocity is None:
+            raise EnvNotInitializedError()
         return self._agent_velocity
 
     @property
@@ -763,6 +773,9 @@ class NavSimGymEnv(UnityToGymWrapper):
     def goal_position(self):
         """Position of goal in unity map coordinates x,y,z
         """
+        if self._goal_positiomn is None:
+            raise EnvNotInitializedError()
+
         return self._goal_position
 
     @property
