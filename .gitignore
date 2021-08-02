@@ -26,3 +26,7 @@ __pycache__
 /navsim_envs/dist/
 /navsim_envs/navsim_envs.egg-info/
 /examples/mcar_demo/
+/navsim-envs/build/
+/navsim-envs/dist/
+/navsim-envs/navsim_envs.egg-info/
+/.hypothesis/
