@@ -3,8 +3,7 @@ import struct
 from pathlib import Path
 import numpy as np
 
-
-from typing import Any, List, Union
+from typing import Any, List, Union, Optional
 
 import time
 import math
@@ -14,8 +13,8 @@ from gym_unity.envs import (
     GymStepResult
 )
 
-#@attr.s(auto_attribs=True)
-#class AgentState:
+# @attr.s(auto_attribs=True)
+# class AgentState:
 #    position: Optional["np.ndarray"]
 #    rotation: Optional["np.ndarray"] = None
 
@@ -32,7 +31,9 @@ from mlagents_envs.side_channel.environment_parameters_channel import \
 from mlagents_envs.side_channel.float_properties_channel import \
     FloatPropertiesChannel
 
-from .navsim_unity_env import MapSideChannel
+from .map_side_channel import MapSideChannel
+from .navigable_side_channel import NavigableSideChannel
+from .set_agent_position_side_channel import SetAgentPositionSideChannel
 
 try:
     from cv2 import imwrite as imwrite
@@ -53,6 +54,7 @@ except ImportError as error:
                 from PIL import Image
 
                 print("navsim_envs: using PIL as image library")
+
 
                 def imwrite(filename, arr):
                     im = Image.fromarray(arr)
@@ -127,8 +129,10 @@ class NavSimGymEnv(UnityToGymWrapper):
 
         self.map_side_channel = MapSideChannel()
         self.fpc = FloatPropertiesChannel()
-
-        # print(self.map_side_channel)
+        self.nsc = NavigableSideChannel()
+        self.sapsc = SetAgentPositionSideChannel()
+        # print(self.map_side_channel
+        # )
 
         eng_sc = EngineConfigurationChannel()
         eng_sc.set_configuration_parameters(time_scale=10, quality_level=0)
@@ -196,7 +200,8 @@ class NavSimGymEnv(UnityToGymWrapper):
                                              no_graphics=False,
                                              side_channels=[eng_sc, env_pc,
                                                             self.map_side_channel,
-                                                            self.fpc],
+                                                            self.fpc, self.nsc,
+                                                            self.sapsc],
                                              additional_args=ad_args)
             except UnityWorkerInUseException:
                 time.sleep(2)
@@ -360,6 +365,28 @@ class NavSimGymEnv(UnityToGymWrapper):
                              "{mode}, observation mode = {self.obs_mode}")
         return obs
 
+    def set_agent_state(self, position: Optional[List[float]] = None,
+                        rotation: Optional[List[float]] = None):
+
+        agent_id = 0
+        state = [agent_id]
+        state += self.agent_position if position is None else position
+        state += self.agent_rotation if rotation is None else rotation
+
+        self.uenv._process_immediate_message(
+            self.sapsc.build_immediate_request("agentPosition",
+                                               state))
+        return self.sapsc.success
+
+    def set_agent_position(self, position: Optional[List[float]]):
+
+        return self.set_agent_state(position=position)
+
+    def set_agent_rotation(self, rotation: Optional[List[float]]):
+
+        return self.set_agent_state(rotation=rotation)
+
+
     def get_navigable_map(self, resolution_x=256, resolution_y=256,
                           cell_occupancy_threshold=0.5) -> np.ndarray:
         """Get the Navigable Areas map
@@ -376,21 +403,21 @@ class NavSimGymEnv(UnityToGymWrapper):
             Largest resolution is 3284 x 2666
         """
 
-        #TODO : Clean up these notes
-        #The raw map array received from the Unity game is a row-major 1D flattened
-        #bitpacked array with the y-axis data ordered for image output
-        #(origin at top left).
+        # TODO : Clean up these notes
+        # The raw map array received from the Unity game is a row-major 1D flattened
+        # bitpacked array with the y-axis data ordered for image output
+        # (origin at top left).
 
-        #For example, if reshaping to a 2D array without reordering with
-        #dimensions `(resolution_y, resolution_x)`, then the desired coordinate `(x,y)`
-        #is at array element `[resolution_y-1-y, x]`.
-        #Finding the agent map position based on world position*:
-        #`map_x = floor(world_x / (max_x / resolution_x) )`
-        #`map_y = (resolution_y - 1) - floor(world_z / (max_y / resolution_y) )`
+        # For example, if reshaping to a 2D array without reordering with
+        # dimensions `(resolution_y, resolution_x)`, then the desired coordinate `(x,y)`
+        # is at array element `[resolution_y-1-y, x]`.
+        # Finding the agent map position based on world position*:
+        # `map_x = floor(world_x / (max_x / resolution_x) )`
+        # `map_y = (resolution_y - 1) - floor(world_z / (max_y / resolution_y) )`
 
-        #*Note: When converting from the 3-dimensional world position to the
-        #2-dimensional map, the world y-axis is omitted. The map's y-axis represents
-        #the world's z-axis.
+        # *Note: When converting from the 3-dimensional world position to the
+        # 2-dimensional map, the world y-axis is omitted. The map's y-axis represents
+        # the world's z-axis.
 
         if (resolution_x > 3284) or (resolution_y > 2666):
             raise ValueError("maximum map size is 3284 agent_x 2666")
@@ -404,19 +431,19 @@ class NavSimGymEnv(UnityToGymWrapper):
 
         # def start_navigable_map(self, resolution_x=256, resolution_y=256,
         #                        cell_occupancy_threshold=0.5):
-        #"""Start the Navigable Areas map
+        # """Start the Navigable Areas map
         #
-        #Args:
+        # Args:
         #    resolution_x: The size of the agent_x axis of the resulting grid, default = 256
         #    resolution_y: The size of the y axis of the resulting grid, default = 256
         #    cell_occupancy_threshold: If at least this much % of the cell is occupied, then it will be marked as non-navigable, default = 50%
         #
-        #Returns:
+        # Returns:
         #    Nothing
 
-        #Note:
+        # Note:
         #    Largest resolution is 3284 agent_x 2666
-        #"""
+        # """
         #    if (resolution_x > 3284) or (resolution_y > 2666):
         #        raise ValueError("maximum map size is 3284 agent_x 2666")
         #    self.map_side_channel.send_request("binaryMap",
@@ -425,22 +452,22 @@ class NavSimGymEnv(UnityToGymWrapper):
         # print('Inside get navigable map function:',self.map_side_channel.requested_map)
 
         # def get_navigable_map(self) -> np.ndarray:
-        #"""Get the Navigable Areas map
+        # """Get the Navigable Areas map
         #
-        #Args:
+        # Args:
         #
-        #Returns:
+        # Returns:
         #    A numpy array having 0 for non-navigable and 1 for navigable cells
         #
-        #Note:
+        # Note:
         #    This only works if you have called ``reset()`` or ``step()`` on the
         #    environment at least once after calling start_navigable_map() method.
-        #"""
+        # """
 
     #    return self.map_side_channel.requested_map
 
-    def unity_loc_to_navmap_loc(self, unity_x, unity_z, navmap_max_x=256,
-                                navmap_max_y=256):
+    def unity_to_navmap_location(self, unity_x, unity_z, navmap_max_x=256,
+                                 navmap_max_y=256):
         """
 
         Args:
@@ -460,8 +487,8 @@ class NavSimGymEnv(UnityToGymWrapper):
             unity_z / (math.floor(unity_max_z) / navmap_max_y))
         return navmap_x, navmap_y
 
-    def navmap_loc_to_unity_loc(self, navmap_x, navmap_y, navmap_max_x=256,
-                                navmap_max_y=256, navmap_cell_center=True):
+    def navmap_to_unity_location(self, navmap_x, navmap_y, navmap_max_x=256,
+                                 navmap_max_y=256, navmap_cell_center=True):
         """
 
         Args:
@@ -485,24 +512,116 @@ class NavSimGymEnv(UnityToGymWrapper):
 
         return unity_x, unity_z
 
-    def sample_navigable_point(self, resolution_x=256, resolution_y=256,
-                               cell_occupancy_threshold=0.5):
+    def unity_to_navmap_rotation(self, unity_rotation = List[float]):
+        x,_,z = self._qv_mult(unity_rotation,[0,0,1])
+        return self._normalize([x,z])
+
+    def navmap_to_unity_rotation(self, navmap_rotation = List[float]):
+        x,y = navmap_rotation
+
+        v1 = self._normalize([x, 0, y])
+        v2 = self._normalize(np.cross([0.1,0], v1))
+        v3 = np.cross(v1, v2)
+        m00,m01,m02 = v2
+        m10, m11, m12 = v3
+        m20, m21, m22 = v1
+        num8 = (m00 + m11) + m22
+        if num8 > 0:
+            num = math.sqrt(num8 + 1)
+            w = num * 0.5
+            num = 0.5 / num
+            x = (m12 - m21) * num
+            y = (m20 - m02) * num
+            z = (m01 - m10) * num
+        elif m00 >= m11 and m00 >= m22:
+            num7 = math.sqrt(1 + m00 - m11 - m22)
+            num4 = 0.5 / num7
+            x = 0.5 / num7
+            y = (m01 + m10) * num4
+            z = (m02 + m20) * num4
+            w = (m12 - m21) * num4
+        elif m11 > m22:
+            num6 = math.sqrt(1 + m11 - m00 - m22)
+            num3 = 0.5 / num6
+            x = (m10 + m01) * num3
+            y = 0.5 * num6
+            z = (m21 + m12) * num3
+            w = (m20 - m02) * num3
+
+        else:
+            num5 = math.sqrt(1 + m22 - m00 - m11)
+            num2 = 0.5/ num5
+            x = (m20 + m02) * num2
+            y = (m21 + m12) * num2
+            z = 0.5 * num5
+            w = (m01 - m10) * num2
+        return [x, y, z, w]
+
+
+    def _normalize(self, vec:List[float]):
+        magnitude = 0.0
+        for i in vec:
+            magnitude += (i * i)
+        magnitude = math.sqrt(magnitude)
+        return vec / magnitude
+
+    def _qv_mult(self,q:List[float], v:List[float]):
+        qx,qy,qz,qw = q
+        vx,vy,vz = v
+        qc = [-q.x, -qy, -qz, qw]
+        d = [v.x, v.y, v.z, 0]
+        result = self._q_mult(self._q_mult(q, d), qc)
+        return result[0:3]
+
+    def _q_mult(q1, q2):
+        x1,y1,z1,w1 = q1
+        x2,y2,z2,w2 = q1
+
+        x = w1*x2 + x1*w2 + y1*z2 - z1*y2
+        y = w1*y2 + y1*w2 + z1*x2 - x1*z2
+        z = w1*z2 + z1*w2 + x1*y2 - y1*x2
+        w = w1*w2 - x1*x2 - y1*y2 - z1*z2
+        return [x, y, z, w]
+
+
+    def sample_navigable_point(self, x: float = None, y: float = None,
+                               z: float = None):
         """Provides a random sample of navigable point
 
-        Returns: y,x point on the navigable map
-
+        Returns:
+            [] x,y,z all are None: returns a navigable point
+            [x,z] only y is none: returns if x,z is navigable at some ht y
+            [x,y,z] None of them are none: returns if x,y,z is navigable or not
         """
-        if self.map_side_channel.requested_map is None:
-            self.get_navigable_map(resolution_x, resolution_y,
-                                   cell_occupancy_threshold)
 
-        idx = np.argwhere(self.map_side_channel.requested_map == 1)
-        idx_sample = np.random.choice(len(idx), replace=False)
-        return idx[idx_sample]
+        # if self.map_side_channel.requested_map is None:
+        #    self.get_navigable_map(resolution_x, resolution_y,
+        #                           cell_occupancy_threshold)
+        #
+        # idx = np.argwhere(self.map_side_channel.requested_map == 1)
+        # idx_sample = np.random.choice(len(idx), replace=False)
+        # return idx[idx_sample]
+        if x is None or z is None:
+            point = []
+        else:
+            if y is None:
+                point = [x, z]
+            else:
+                point = [x, y, z]
 
-    def is_navigable(self, point: List[float]) -> bool:
-        #TODO
-        return True
+        return self.uenv._process_immediate_message(
+            self.nsc.build_immediate_request("navigable", point))
+
+    def is_navigable(self, x: float, y: float, z: float) -> bool:
+        """Returns if the point is navigable or not
+
+        Args:
+            x,y,z: the unity coordinates of the point to check
+
+        Returns:
+            if the point represented by x,y,z is navigable or not
+        """
+        return self.sample_navigable_point(x, y, z)
 
     @staticmethod
     def register_with_gym():
@@ -578,22 +697,28 @@ class NavSimGymEnv(UnityToGymWrapper):
         return 3284.0, 52.9, 2666.3
 
     @property
+    def agent_state(self):
+        """Agent state is position (x,y,z), rotation (x,y,,z,w)
+        """
+        return self._agent_position, self._agent_rotation
+
+    @property
     def agent_position(self):
         """Position of agent in unity map coordinates x,y,z
         """
         return self._agent_position
 
     @property
-    def agent_velocity(self):
-        """Velocity of agent in unity map coordinates x,y,z
-        """
-        return self._agent_velocity
-
-    @property
     def agent_rotation(self):
         """Rotation of agent in unity map coordinates x,y,z,w (Quaternions)
         """
         return self._agent_rotation
+
+    @property
+    def agent_velocity(self):
+        """Velocity of agent in unity map coordinates x,y,z
+        """
+        return self._agent_velocity
 
     @property
     def agent_rotation_in_euler(self):
@@ -621,26 +746,12 @@ class NavSimGymEnv(UnityToGymWrapper):
             t4 = +1.0 - 2.0 * (y * y + z * z)
             yaw_z = math.atan2(t3, t4)
 
-            return roll_x, pitch_y, yaw_z  # in radians
-
-    @property
-    def agent_rotation_in_navmap_in_angle(self):
-        _, _, yaw_z = self.agent_rotation_in_euler
-        return yaw_z
-
-    @property
-    def agent_rotation_in_navmap_in_vec2d(self):
-        _, _, yaw_z = self.agent_rotation_in_euler
-        return yaw_z
+            return pitch_y, yaw_z, roll_x  # in radians
 
     # sim.get_agent_state() -> agent_x, y, orientation
     # sim.set_agent_state(position, orientation)
     # sim.get_observations_at(position, orientation) -> observation when agent is at position with specified orientation
     # sim.sample_navigable_point() -> agent_x,y (must be a navigable location in the map)
-
-    @property
-    def agent_rotation_in_navmap(self):
-        return None
 
     @property
     def goal_position(self):
@@ -669,12 +780,8 @@ class NavSimGymEnv(UnityToGymWrapper):
         """
         return self.fpc.get_property("ShortestPath")
 
-
-
 ### Position Scan - Not Available
-#Given a position and this returns the attribution data of the first object
-#found at the given position. Objects are searched for within a 1 meter radius
-#of the given position. If the position is not loaded in the environment then
-#None will be returned.
-
-
+# Given a position and this returns the attribution data of the first object
+# found at the given position. Objects are searched for within a 1 meter radius
+# of the given position. If the position is not loaded in the environment then
+# None will be returned.

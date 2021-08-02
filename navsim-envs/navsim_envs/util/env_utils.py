@@ -7,7 +7,7 @@ def env_info(env):
     print('-----------')
     if env.spec is not None:
         print(env.spec.id)
-    print('Action Space <gym_type(low,high,shape,type)>:', env.action_space)
+    print('Action Space:', env.action_space)
     # TODO: print env_config if it exists
     # print('Observation Mode:', env.obs_mode)
     # print('Gym Observation Space:', self.genv.observation_space)

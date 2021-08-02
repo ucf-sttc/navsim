@@ -1,83 +1,105 @@
-import unittest
+from pathlib import Path
 
 import gym
 import sys
 import numpy as np
+import pytest
+from copy import deepcopy
 
 import navsim_envs
-from .configs import env_config, config_banner, load_config
+from navsim_envs.env import NavSimGymEnv
+from navsim_envs.util.configs import config_banner, load_config
+from navsim_envs.util.configs import env_config as env_conf
 
-logger = navsim_envs.env.NavSimGymEnv.logger
+logger = NavSimGymEnv.logger
 
 
 # This runs first before any class in this module runs
-def setUpModule():
+@pytest.fixture(scope="module")
+def env_config():
+    config = deepcopy(env_conf)
+    run_base_folder = Path('.').resolve() / 'tst_logs'
+    run_base_folder.mkdir(parents=True, exist_ok=True)
+    config["log_folder"] = str(run_base_folder / "env_log")
     if len(sys.argv) > 1:
         env_config_file = sys.argv.pop()
         env_config_from_file = load_config(env_config_file)
         if env_config_from_file is not None:
             logger.info(f'Updating env_config from {env_config_file}')
-            env_config.update(env_config_from_file)
+            config.update(env_config_from_file)
 
     logger.info(f'\n'
-                f'{navsim_envs.__version_banner__}'
-                f'{config_banner(env_config, "env_config")}'
+                f'{config_banner(config, "env_config")}'
                 )
+    return config
 
 
-# This runs after all class in this module runs
-def tearDownModule():
-    pass
+def env_deletor(env):
+    env.close()
+    del env
+
+
+@pytest.fixture(scope="class")
+def env_4_class():
+    env = None
+
+    def env_creator(env_config):
+        nonlocal env
+        if env is None:
+            env = gym.make("navsim-v0", env_config=env_config)
+        return env
+
+    yield env_creator
+    env_deletor(env)
+
+
+@pytest.fixture(scope="function")
+def env_4_func():
+    env = None
+
+    def env_creator(env_config):
+        nonlocal env
+        if env is None:
+            env = gym.make("navsim-v0", env_config=env_config)
+        return env
+
+    yield env_creator
+    env_deletor(env)
 
 
 """
-NavSimGymEnvTests1 : env once per class
-NavSimGymEnvTests2 : env once per test
-NavSimGymEnvTests3 : env more than once within a test
+TestNavSimGymEnv1 : env once per class
+TestNavSimGymEnv2 : env once per test
+TestNavSimGymEnv3 : env more than once within a test
 """
 
 
-class NavSimGymEnvTests1(unittest.TestCase):
+class TestNavSimGymEnv1:
     """
     env is initialized once per class
     """
 
-    @classmethod
-    def setUpClass(cls):
-        cls.env = gym.make("navsim-v0", env_config=env_config)
-
-    @classmethod
-    def tearDownClass(cls):
-        cls.env.close()
-        del cls.env
-
-    def setUp(self):
-        pass
-
-    def tearDown(self):
-        pass
-
-
     # Tests whether the navigable map returned has navigable points
-    def test_navigable_map(self):
-        logger.info("========Test Navigable Map")
-
-        navigable_map = self.env.get_navigable_map()
+    def test_navigable_map(self, request, env_4_class, env_config):
+        env = env_4_class(env_config)
+        logger.info(f"=========== Running {request.node.name}")
+        navigable_map = env.get_navigable_map()
         logger.debug(type(navigable_map))
         logger.debug(navigable_map)
         logger.info(f'Navigable cells: {navigable_map.sum()}')
         assert navigable_map.sum() > 1
 
     # Tests whether the return sample points are navigable accouting to the returned navigable map
-    def test_sample_navigable_point(self):
-        logger.info("========Test Sample Navigable Point")
+    def test_sample_navigable_point(self, request, env_4_class, env_config):
+        env = env_4_class(env_config)
+        logger.info(f"=========== Running {request.node.name}")
         resolution_x = 256
         resolution_y = 256
-        navigable_map = self.env.get_navigable_map(resolution_x=resolution_x,
-                                                   resolution_y=resolution_y)
+        navigable_map = env.get_navigable_map(resolution_x=resolution_x,
+                                              resolution_y=resolution_y)
         samples = 100000
         for i in range(0, samples):
-            sampled_point = self.env.sample_navigable_point(
+            sampled_point = env.sample_navigable_point(
                 resolution_x=resolution_x, resolution_y=resolution_y)
             map_point = navigable_map[sampled_point[0]][sampled_point[1]]
             logger.debug(f'{sampled_point}, {map_point}')
@@ -86,34 +108,36 @@ class NavSimGymEnvTests1(unittest.TestCase):
         logger.info(f'{samples} sampled points are navigable')
 
     # Tests whether the navmap to unity and back coordinate conversion are correct
-    def test_coordinate_conversion(self):
-        logger.info("========Test Coordinate Conversion")
+    def test_coordinate_conversion(self, request, env_4_class, env_config):
+        env = env_4_class(env_config)
+        logger.info(f"=========== Running {request.node.name}")
         navmap_max_x = 256
         navmap_max_y = 256
 
         resolution_margin = 15
 
         unity_loc_original = (0, 0)
-        navmap_loc = self.env.unity_loc_to_navmap_loc(*unity_loc_original,
-                                                      navmap_max_x=navmap_max_x,
-                                                      navmap_max_y=navmap_max_y)
-        unity_loc = self.env.navmap_loc_to_unity_loc(*navmap_loc,
-                                                     navmap_max_x=navmap_max_x,
-                                                     navmap_max_y=navmap_max_y,
-                                                     navmap_cell_center=False)
+
+        navmap_loc = env.unity_loc_to_navmap_loc(*unity_loc_original,
+                                                 navmap_max_x=navmap_max_x,
+                                                 navmap_max_y=navmap_max_y)
+        unity_loc = env.navmap_loc_to_unity_loc(*navmap_loc,
+                                                navmap_max_x=navmap_max_x,
+                                                navmap_max_y=navmap_max_y,
+                                                navmap_cell_center=False)
         logger.info("unity to nav to unity")
         logger.info(f'{unity_loc_original}, {navmap_loc}, {unity_loc}')
         assert navmap_loc == (0, 0)
         assert unity_loc == (0, 0)
 
         unity_loc_original = (0, 2665)
-        navmap_loc = self.env.unity_loc_to_navmap_loc(*unity_loc_original,
-                                                      navmap_max_x=navmap_max_x,
-                                                      navmap_max_y=navmap_max_y)
-        unity_loc = self.env.navmap_loc_to_unity_loc(*navmap_loc,
-                                                     navmap_max_x=navmap_max_x,
-                                                     navmap_max_y=navmap_max_y,
-                                                     navmap_cell_center=False)
+        navmap_loc = env.unity_loc_to_navmap_loc(*unity_loc_original,
+                                                 navmap_max_x=navmap_max_x,
+                                                 navmap_max_y=navmap_max_y)
+        unity_loc = env.navmap_loc_to_unity_loc(*navmap_loc,
+                                                navmap_max_x=navmap_max_x,
+                                                navmap_max_y=navmap_max_y,
+                                                navmap_cell_center=False)
         logger.info(f'{unity_loc_original}, {navmap_loc}, {unity_loc}')
         assert navmap_loc == (0, 255)
         assert unity_loc[0] == 0 and (
@@ -121,26 +145,26 @@ class NavSimGymEnvTests1(unittest.TestCase):
             1] < 2665 + resolution_margin)
 
         unity_loc_original = (3283, 0)
-        navmap_loc = self.env.unity_loc_to_navmap_loc(*unity_loc_original,
-                                                      navmap_max_x=navmap_max_x,
-                                                      navmap_max_y=navmap_max_y)
-        unity_loc = self.env.navmap_loc_to_unity_loc(*navmap_loc,
-                                                     navmap_max_x=navmap_max_x,
-                                                     navmap_max_y=navmap_max_y,
-                                                     navmap_cell_center=False)
+        navmap_loc = env.unity_loc_to_navmap_loc(*unity_loc_original,
+                                                 navmap_max_x=navmap_max_x,
+                                                 navmap_max_y=navmap_max_y)
+        unity_loc = env.navmap_loc_to_unity_loc(*navmap_loc,
+                                                navmap_max_x=navmap_max_x,
+                                                navmap_max_y=navmap_max_y,
+                                                navmap_cell_center=False)
         logger.info(f'{unity_loc_original}, {navmap_loc}, {unity_loc}')
         assert navmap_loc == (255, 0)
         assert (unity_loc[0] > 3283 - resolution_margin and unity_loc[
             0] < 3283 + resolution_margin) and unity_loc[1] == 0
 
         unity_loc_original = (3283, 2665)
-        navmap_loc = self.env.unity_loc_to_navmap_loc(*unity_loc_original,
-                                                      navmap_max_x=navmap_max_x,
-                                                      navmap_max_y=navmap_max_y)
-        unity_loc = self.env.navmap_loc_to_unity_loc(*navmap_loc,
-                                                     navmap_max_x=navmap_max_x,
-                                                     navmap_max_y=navmap_max_y,
-                                                     navmap_cell_center=False)
+        navmap_loc = env.unity_loc_to_navmap_loc(*unity_loc_original,
+                                                 navmap_max_x=navmap_max_x,
+                                                 navmap_max_y=navmap_max_y)
+        unity_loc = env.navmap_loc_to_unity_loc(*navmap_loc,
+                                                navmap_max_x=navmap_max_x,
+                                                navmap_max_y=navmap_max_y,
+                                                navmap_cell_center=False)
         logger.info(f'{unity_loc_original}, {navmap_loc}, {unity_loc}')
         assert navmap_loc == (255, 255)
         assert (unity_loc[0] > 3283 - resolution_margin and unity_loc[
@@ -149,7 +173,7 @@ class NavSimGymEnvTests1(unittest.TestCase):
                        unity_loc[1] < 2665 + resolution_margin)
 
 
-class NavSimGymEnvTests2(unittest.TestCase):
+class TestNavSimGymEnv2:
     """
     env is initialized once per test
     """
@@ -213,28 +237,15 @@ class NavSimGymEnvTests2(unittest.TestCase):
         print(o)
         logger.info("Test Finished")
 
-class NavSimGymEnvTests3(unittest.TestCase):
+class TestNavSimGymEnv3:
     """
     env is initialized multiple times in each test
     """
 
-    @classmethod
-    def setUpClass(cls):
-        pass
+    # Tests whether mnutiple runs produces the same observation values
 
-    @classmethod
-    def tearDownClass(cls):
-        pass
-
-    def setUp(self):
-        pass
-
-    def tearDown(self):
-        pass
-        # Tests whether mnutiple runs produces the same observation values
-
-    def test_reproducibility(self):
-        logger.info("========Test Reproducibility")
+    def test_reproducibility(self, request, env_config):
+        logger.info(f"=========== Running {request.node.name}")
         throttle = 1
         obs_arr = []
         runs = 3
@@ -259,11 +270,12 @@ class NavSimGymEnvTests3(unittest.TestCase):
         for i in range(1, len(obs_arr)):
             assert np.array_equal(obs_arr[i - 1], obs_arr[i])
             # assert np.isclose(obs_arr[i-1], obs_arr[i], atol=1.0)
-        logger.info(f'{runs} env runs produced equal observations for the first episode')
+        logger.info(
+            f'{runs} env runs produced equal observations for the first episode')
 
     # Tests whether the agent rotates left/right give positive and negative steering
-    def test_rotation(self):
-        logger.info("========Test Rotations")
+    def test_rotation(self, request, env_config):
+        logger.info(f"=========== Running {request.node.name}")
         for steering in [-1, 1]:
             throttle = 1
             env = gym.make("navsim-v0", env_config=env_config)
@@ -289,11 +301,12 @@ class NavSimGymEnvTests3(unittest.TestCase):
                     assert rot_diff > 0
                 else:
                     assert rot_diff <= 0
-            logger.info("Steering -1 and 1 rotates the agent in opposite directions") 
+            logger.info(
+                "Steering -1 and 1 rotates the agent in opposite directions")
 
     # Tests whether the agent moves in the correct forward/backward directions given positive and negative throttle
-    def test_throttle(self):
-        logger.info("========Test Throttle")
+    def test_throttle(self, request, env_config):
+        logger.info(f"=========== Running {request.node.name}")
         position_diff_arr = []
         throttles = [0.1, 0.5, 1]
         for throttle in throttles:
@@ -326,9 +339,9 @@ class NavSimGymEnvTests3(unittest.TestCase):
             position_diff_arr.append(avg_position_diff)
 
         logger.info(position_diff_arr)
-        logger.info(f'Each throttle {throttles} produce the above average postion diff')
-        
+        logger.info(
+            f'Each throttle {throttles} produce the above average postion diff')
 
 
 if __name__ == '__main__':
-    unittest.main()
+    pytest.main([__file__])
