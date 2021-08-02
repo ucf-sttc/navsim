@@ -57,6 +57,7 @@ class NavSimGymEnvTests1(unittest.TestCase):
     def tearDown(self):
         pass
 
+
     # Tests whether the navigable map returned has navigable points
     def test_navigable_map(self):
         logger.info("========Test Navigable Map")
@@ -168,6 +169,49 @@ class NavSimGymEnvTests2(unittest.TestCase):
         self.env.close()
         del self.env
 
+    def test_is_navigable_side_channel(self):
+        logger.info("========Test Is Navigable")
+        from mlagents_envs.environment import UnityEnvironment
+        from gym_unity.envs import UnityToGymWrapper
+        from mlagents_envs.side_channel.engine_configuration_channel import EngineConfigurationChannel
+        from mlagents_envs.side_channel.environment_parameters_channel import EnvironmentParametersChannel
+        from .navigable_side_channel import NavigableSideChannel
+        from .map_side_channel import MapSideChannel
+        from .set_agent_position_side_channel import SetAgentPositionSideChannel
+        engine_side_channel = EngineConfigurationChannel()
+        environment_side_channel = EnvironmentParametersChannel()
+        navigable_side_channel = NavigableSideChannel()
+        map_side_channel = MapSideChannel()
+        set_agent_position_side_channel = SetAgentPositionSideChannel()
+                
+        unityEnvironmentStr = env_config["env_path"]
+        logger.info(unityEnvironmentStr)
+        unity_env = UnityEnvironment(
+            file_name = unityEnvironmentStr, seed = 1, timeout_wait=1000, worker_id=1,
+            side_channels =[engine_side_channel, environment_side_channel, map_side_channel, navigable_side_channel, set_agent_position_side_channel],
+            log_folder = "/home/tthomas/exp/binlog",
+            additional_args = ["-observationWidth", "256", "-observationHeight", "256"]
+        )
+        environment_side_channel.set_float_parameter("observationMode", 0)
+        gym_env = UnityToGymWrapper(unity_env, False, False, True)
+        message_output = unity_env._process_immediate_message(map_side_channel.build_immediate_request("binaryMap", [327, 266, 0.5]))
+        print(map_side_channel.map)
+        print(gym_env.reset())
+        navigable_side_channel.send_request("navigable", [])
+        navigable_side_channel.send_request("navigable", [2200, 820]) # should return a valid point
+        navigable_side_channel.send_request("navigable", [0, 0, 0]) # should return empty (invalid point)
+        navigable_side_channel.send_request("navigable", [2200, 35.2, 820]) # should return a valid point
+        unity_env._process_immediate_message(navigable_side_channel.build_immediate_request("navigable", []))
+        unity_env._process_immediate_message(navigable_side_channel.build_immediate_request("navigable", [2200, 820]))
+        unity_env._process_immediate_message(navigable_side_channel.build_immediate_request("navigable", [0, 0, 0]))
+        unity_env._process_immediate_message(navigable_side_channel.build_immediate_request("navigable", [2200, 35.2, 820]))
+        unity_output = unity_env._process_immediate_message(set_agent_position_side_channel.build_immediate_request("agentPosition", [0,1527.907, 35.85348, 1631.347, 0.1184698, 0.1777047, 0.2369396, 0.9477582]))
+        print("YO1")
+        print("Set Output", unity_output)
+        print("YO2")
+        o,r,d,i = gym_env.step([0,0,0])
+        print(o)
+        logger.info("Test Finished")
 
 class NavSimGymEnvTests3(unittest.TestCase):
     """
