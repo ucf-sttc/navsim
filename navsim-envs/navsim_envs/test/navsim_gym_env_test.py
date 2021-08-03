@@ -173,7 +173,7 @@ class TestNavSimGymEnv1:
         navigable_map = env.get_navigable_map()
         env.reset()
         err_margin=1.0
-        samples = 100
+        samples = 1000
         for i in range(0,samples):
             logger.debug(f"===========")
             logger.debug(f"Original Position: {env.agent_position} and {env.agent_rotation} and {env.goal_position}")
