@@ -164,6 +164,7 @@ class TestNavSimGymEnv1:
                        unity_loc[1] < 2665 + resolution_margin)
 
 
+    # Tests sample navigable point and setting the agent's position
     def test_set_agent_position(self, request, env_4_class, env_config):
         logger.info(f"=========== Running {request.node.name}")
         setLoggerLevel(env_config["debug"])
@@ -203,22 +204,12 @@ class TestNavSimGymEnv1:
         env = env_4_class(env_config)
         navigable_map = env.get_navigable_map()
         err_margin=0.1
-        samples = 100
-        env.reset()
+        samples = 1000
         for i in range(0, samples):
+            env.reset()
             for sampled_rotation in VALID_QUATERNIONS:
                 logger.debug(f"===========")
                 logger.debug(f"Original Position: {env.agent_position} and {env.agent_rotation} and {env.goal_position}")
-                #sampled_rotation = R.random().as_quat()
-                #random_y = random.randrange(0,360)
-                #logger.debug(f"Random Y: {random_y}")
-
-                #sampled_rotation_obj= R.from_euler('zyx', [0, random_y, 0], degrees=True)
-                #sampled_rotation_euler = sampled_rotation_obj.as_euler('zyx')
-                #sampled_rotation_euler_deg = sampled_rotation_obj.as_euler('zyx', degrees=True)
-                #sampled_rotation = sampled_rotation_obj.as_quat()
-
-                #sampled_rotation = [ -0.5138025, 0.8094936, 0.2294846, 0.1675231 ]
                 sampled_rotation_euler = env.unity_rotation_in_euler(sampled_rotation)
 
                 success = env.set_agent_rotation(sampled_rotation)
@@ -226,75 +217,22 @@ class TestNavSimGymEnv1:
                 o, r, done, i = env.step([0, 0, 1])
 
                 #TODO Replace with env.agent_position and env.agent_rotation after they are updated
-                #logger.info(f"After Agent Set: {env.agent_position} and {env.agent_rotation} and {env.goal_position}")
                 cur_position = o[0][:3]
                 cur_rotation = o[0][6:10]
                 cur_rotation_euler = env.unity_rotation_in_euler(o[0][6:10])
                 logger.debug(f"Observation: {o}")
                 logger.debug(f"Position {cur_position} and Rotation {cur_rotation}")
 
-                #logger.debug(f"Euler {sampled_rotation_euler} {sampled_rotation_euler_deg} {cur_rotation_euler}")
                 logger.debug(f"Euler {sampled_rotation_euler} {cur_rotation_euler}")
                 
                 logger.debug(f"Set Agent Position Request Returned : {success}")
                 assert success == True
-                #assert cur_rotation_euler[0] < sampled_rotation_euler[0]+err_margin and cur_rotation_euler[0] > sampled_rotation_euler[0]-err_margin
                 assert cur_rotation_euler[1] < sampled_rotation_euler[1]+err_margin and cur_rotation_euler[1] > sampled_rotation_euler[1]-err_margin
-                #assert cur_rotation_euler[2] < sampled_rotation_euler[2]+err_margin and cur_rotation_euler[2] > sampled_rotation_euler[2]-err_margin
 
              
             
-        #logger.info(f'{samples} sampled points are able to set agent state')
+        logger.info(f'{samples} sampled points are able to set agent state')
 
-class TestNavSimGymEnv2:
-    """
-    env is initialized once per test
-    """
-
-    def test_is_navigable_side_channel(self, request, env_config):
-        pass
-        #logger.info("========Test Is Navigable")
-        #from mlagents_envs.environment import UnityEnvironment
-        #from gym_unity.envs import UnityToGymWrapper
-        #from mlagents_envs.side_channel.engine_configuration_channel import EngineConfigurationChannel
-        #from mlagents_envs.side_channel.environment_parameters_channel import EnvironmentParametersChannel
-        #from .navigable_side_channel import NavigableSideChannel
-        #from .map_side_channel import MapSideChannel
-        #from .set_agent_position_side_channel import SetAgentPositionSideChannel
-        #engine_side_channel = EngineConfigurationChannel()
-        #environment_side_channel = EnvironmentParametersChannel()
-        #navigable_side_channel = NavigableSideChannel()
-        #map_side_channel = MapSideChannel()
-        #set_agent_position_side_channel = SetAgentPositionSideChannel()
-                #
-        #unityEnvironmentStr = env_config["env_path"]
-        #logger.info(unityEnvironmentStr)
-        #unity_env = UnityEnvironment(
-            #file_name = unityEnvironmentStr, seed = 1, timeout_wait=1000, worker_id=1,
-            #side_channels =[engine_side_channel, environment_side_channel, map_side_channel, navigable_side_channel, set_agent_position_side_channel],
-            #log_folder = "/home/tthomas/exp/binlog",
-            #additional_args = ["-observationWidth", "256", "-observationHeight", "256"]
-        #)
-        #environment_side_channel.set_float_parameter("observationMode", 0)
-        #gym_env = UnityToGymWrapper(unity_env, False, False, True)
-        #message_output = unity_env._process_immediate_message(map_side_channel.build_immediate_request("binaryMap", [327, 266, 0.5]))
-        #print(map_side_channel.map)
-        #print(gym_env.reset())
-        #navigable_side_channel.send_request("navigable", [])
-        #navigable_side_channel.send_request("navigable", [2200, 820]) # should return a valid point
-        #navigable_side_channel.send_request("navigable", [0, 0, 0]) # should return empty (invalid point)
-        #navigable_side_channel.send_request("navigable", [2200, 35.2, 820]) # should return a valid point
-        #unity_env._process_immediate_message(navigable_side_channel.build_immediate_request("navigable", []))
-        #unity_env._process_immediate_message(navigable_side_channel.build_immediate_request("navigable", [2200, 820]))
-        #unity_env._process_immediate_message(navigable_side_channel.build_immediate_request("navigable", [0, 0, 0]))
-        #unity_env._process_immediate_message(navigable_side_channel.build_immediate_request("navigable", [2200, 35.2, 820]))
-        #unity_output = unity_env._process_immediate_message(set_agent_position_side_channel.build_immediate_request("agentPosition", [0,1527.907, 35.85348, 1631.347, 0.1184698, 0.1777047, 0.2369396, 0.9477582]))
-        #print("YO1")
-        #print("Set Output", unity_output)
-        #print("YO2")
-        #o,r,d,i = gym_env.step([0,0,0])
-        #print(o)
-        #logger.info("Test Finished")
 
 class TestNavSimGymEnv3:
     """
