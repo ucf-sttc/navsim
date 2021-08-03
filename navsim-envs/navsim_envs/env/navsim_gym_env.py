@@ -774,7 +774,7 @@ class NavSimGymEnv(UnityToGymWrapper):
     def goal_position(self):
         """Position of goal in unity map coordinates x,y,z
         """
-        if self._goal_positiomn is None:
+        if self._goal_position is None:
             raise EnvNotInitializedError()
 
         return self._goal_position

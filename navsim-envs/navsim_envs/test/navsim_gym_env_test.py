@@ -1,4 +1,5 @@
 from pathlib import Path
+import random
 
 import gym
 import sys
@@ -73,6 +74,7 @@ def env_4_func():
     yield env_creator
     env_deletor(env)
 
+VALID_QUATERNIONS = [[0, 0.985997, 0, -0.1667631], [0, 0.7649251, 0, -0.6441193], [0, 0.6004248, 0, -0.7996812], [0, 0.2486954, 0, -0.9685818], [0, -0.08019328, 0, -0.9967793], [0, -0.9727746, 0, -0.2317534], [0, -0.08542251, 0, 0.9963449], [0, 0.9488743, 0, 0.3156544], [0, -0.7501073, 0, -0.6613162], [0, 0.463291, 0, 0.8862062], [0, 0.873775, 0, -0.4863304], [0, -0.9812938, 0, 0.1925164], [0, -0.08542265, 0, 0.9963449], [0, 0.3354462, 0, 0.9420595], [0, 0.3518363, 0, 0.9360616], [0, 0.579286, 0, -0.8151245], [0, -0.9989709, 0, 0.0453571], [0, -0.9449509, 0, 0.3272124], [0, -0.006987173, 0, 0.9999756], [0, 0.9887573, 0, -0.1495295], [0, -0.335446, 0, -0.9420595], [0, -0.9916704, 0, -0.1288015], [0, 0.7836898, 0, 0.6211524], [0, -0.6032034, 0, -0.7975875], [0, -0.747802, 0, 0.6639219], [0, 0.7325389, 0, 0.6807252], [0, 0.9905087, 0, 0.1374503], [0, 0.5431793, 0, -0.8396167], [0, 0.5284433, 0, -0.8489686], [0, -0.9342024, 0, -0.3567434], [0, -0.2739648, 0, 0.9617398], [0, 0.3599914, 0, 0.9329557], [0, 0.9033328, 0, 0.4289404], [0, 0.03316105, 0, -0.9994501], [0, -0.9018351, 0, 0.4320805], [0, 0.8151244, 0, 0.579286], [0, 0.9874148, 0, -0.1581522], [0, -0.6238749, 0, -0.7815243], [0, -0.9905087, 0, -0.1374506], [0, -0.7975876, 0, 0.6032031], [0, 0.9568118, 0, 0.2907081], [0, 0.7975877, 0, -0.6032031], [0, 0.3891297, 0, -0.921183], [0, -0.926531, 0, 0.3762185], [0, -0.2402341, 0, 0.970715], [0, -0.006987521, 0, 0.9999756], [0, 0.235136, 0, 0.9719625], [0, 0.9033327, 0, 0.4289409], [0, -0.8796456, 0, -0.4756299], [0, 0.767161, 0, 0.6414545], [0, -0.6959082, 0, -0.7181308], [0, 0.6639213, 0, 0.7478024], [0, 0.9967794, 0, -0.08019239], [0, 0.8231401, 0, -0.5678384], [0, 0.699668, 0, -0.7144681], [0, -0.5962197, 0, -0.8028214], [0, -0.9851083, 0, -0.1719356], [0, -0.9128368, 0, 0.4083244], [0, 0.03663707, 0, 0.9993286], [0, 0.07149082, 0, 0.9974413], [0, 0.5284439, 0, -0.8489683], [0, -0.1667623, 0, -0.9859972], [0, -0.8625103, 0, -0.5060394], [0, 0.695908, 0, 0.7181309], [0, 0.3239239, 0, -0.9460832], [0, -0.9449512, 0, 0.3272114], [0, -0.8424561, 0, 0.538765], [0, 0.8821301, 0, -0.4710059], [0, -0.9685815, 0, -0.2486965], [0, 0.447753, 0, 0.8941573], [0, -0.4162746, 0, -0.9092389], [0, -0.5934244, 0, 0.8048897], [0, -0.03316204, 0, 0.99945], [0, 0.9420598, 0, -0.3354451], [0, -0.7144678, 0, -0.6996683], [0, -0.9515923, 0, -0.3073632], [0, 0.5387649, 0, 0.8424562], [0, 0.5962193, 0, 0.8028217], [0, 0.1719361, 0, -0.9851081], [0, -0.3106697, 0, -0.950518], [0, -0.9996104, 0, 0.02791462], [0, 0.9432203, 0, 0.3321677], [0, -0.8754612, 0, -0.4832885], [0, 0.4320795, 0, 0.9018356], [0, 0.8878122, 0, 0.460206], [0, 0.3485787, 0, -0.9372795], [0, -0.9845045, 0, 0.1753598], [0, 0.1235945, 0, 0.9923328], [0, 0.986571, 0, 0.1633329], [0, 0.9795766, 0, -0.201071], [0, -0.5165273, 0, -0.8562707], [0, -0.8377226, 0, 0.546096], [0, -0.4289416, 0, 0.9033323], [0, 0.5284443, 0, -0.8489679], [0, -0.4863292, 0, -0.8737757], [0, -0.08542409, 0, 0.9963447], [0, 0.7558488, 0, 0.6547463], [0, 0.4679362, 0, -0.8837622], [0, -0.4555385, 0, -0.8902162], [0, -0.5284446, 0, 0.8489679]]
 
 """
 TestNavSimGymEnv1 : env once per class
@@ -95,25 +97,6 @@ class TestNavSimGymEnv1:
         logger.debug(navigable_map)
         logger.info(f'Navigable cells: {navigable_map.sum()}')
         assert navigable_map.sum() > 1
-
-    # Tests whether the return sample points are navigable accouting to the returned navigable map
-    def test_sample_navigable_point(self, request, env_4_class, env_config):
-        env = env_4_class(env_config)
-        logger.info(f"=========== Running {request.node.name}")
-        resolution_x = 256
-        resolution_y = 256
-        navigable_map = env.get_navigable_map(resolution_x=resolution_x,
-                                              resolution_y=resolution_y)
-        samples = 100000
-        logger.info(f'Sampling {samples} point with no args')
-        for i in range(0, samples):
-            sampled_point = env.sample_navigable_point() 
-            logger.info(f'{sampled_point}') 
-            map_point = navigable_map[sampled_point[0]][sampled_point[1]]
-            logger.debug(f'{sampled_point}, {map_point}')
-            assert map_point == 1
-
-        logger.info(f'{samples} sampled points are navigable')
 
     # Tests whether the navmap to unity and back coordinate conversion are correct
     def test_coordinate_conversion(self, request, env_4_class, env_config):
@@ -183,19 +166,20 @@ class TestNavSimGymEnv1:
 
     def test_set_agent_position(self, request, env_4_class, env_config):
         logger.info(f"=========== Running {request.node.name}")
+        setLoggerLevel(env_config["debug"])
         
         env = env_4_class(env_config)
         navigable_map = env.get_navigable_map()
         env.reset()
         err_margin=1.0
-        samples = 100
+        samples = 10000
         for i in range(0,samples):
             logger.debug(f"===========")
             logger.debug(f"Original Position: {env.agent_position} and {env.agent_rotation} and {env.goal_position}")
             sampled_position = env.sample_navigable_point() 
             success = env.set_agent_position(sampled_position)
             logger.debug(f"Sampled Position: {sampled_position}")
-            o, r, done, i = env.step([-1, -1, -1])
+            o, r, done, i = env.step([0, 0, 1])
 
             #TODO Replace with env.agent_position and env.agent_rotation after they are updated
             #logger.info(f"After Agent Set: {env.agent_position} and {env.agent_rotation} and {env.goal_position}")
@@ -218,32 +202,49 @@ class TestNavSimGymEnv1:
         
         env = env_4_class(env_config)
         navigable_map = env.get_navigable_map()
-        env.reset()
         err_margin=0.1
         samples = 100
-        for i in range(0,samples):
-            logger.debug(f"===========")
-            logger.debug(f"Original Position: {env.agent_position} and {env.agent_rotation} and {env.goal_position}")
-            sampled_rotation = R.random().as_quat()
-            success = env.set_agent_rotation(sampled_rotation)
-            logger.debug(f"Sampled Rotation: {sampled_rotation}")
-            o, r, done, i = env.step([0, 0, 1])
+        env.reset()
+        for i in range(0, samples):
+            for sampled_rotation in VALID_QUATERNIONS:
+                logger.debug(f"===========")
+                logger.debug(f"Original Position: {env.agent_position} and {env.agent_rotation} and {env.goal_position}")
+                #sampled_rotation = R.random().as_quat()
+                #random_y = random.randrange(0,360)
+                #logger.debug(f"Random Y: {random_y}")
 
-            #TODO Replace with env.agent_position and env.agent_rotation after they are updated
-            #logger.info(f"After Agent Set: {env.agent_position} and {env.agent_rotation} and {env.goal_position}")
-            cur_position = o[0][:3]
-            cur_rotation = o[0][6:10]
-            logger.debug(f"Observation: {o}")
-            logger.debug(f"Position {cur_position} and Rotation {cur_rotation}")
+                #sampled_rotation_obj= R.from_euler('zyx', [0, random_y, 0], degrees=True)
+                #sampled_rotation_euler = sampled_rotation_obj.as_euler('zyx')
+                #sampled_rotation_euler_deg = sampled_rotation_obj.as_euler('zyx', degrees=True)
+                #sampled_rotation = sampled_rotation_obj.as_quat()
+
+                #sampled_rotation = [ -0.5138025, 0.8094936, 0.2294846, 0.1675231 ]
+                sampled_rotation_euler = env.unity_rotation_in_euler(sampled_rotation)
+
+                success = env.set_agent_rotation(sampled_rotation)
+                logger.debug(f"Sampled Rotation: {sampled_rotation}")
+                o, r, done, i = env.step([0, 0, 1])
+
+                #TODO Replace with env.agent_position and env.agent_rotation after they are updated
+                #logger.info(f"After Agent Set: {env.agent_position} and {env.agent_rotation} and {env.goal_position}")
+                cur_position = o[0][:3]
+                cur_rotation = o[0][6:10]
+                cur_rotation_euler = env.unity_rotation_in_euler(o[0][6:10])
+                logger.debug(f"Observation: {o}")
+                logger.debug(f"Position {cur_position} and Rotation {cur_rotation}")
+
+                #logger.debug(f"Euler {sampled_rotation_euler} {sampled_rotation_euler_deg} {cur_rotation_euler}")
+                logger.debug(f"Euler {sampled_rotation_euler} {cur_rotation_euler}")
+                
+                logger.debug(f"Set Agent Position Request Returned : {success}")
+                assert success == True
+                #assert cur_rotation_euler[0] < sampled_rotation_euler[0]+err_margin and cur_rotation_euler[0] > sampled_rotation_euler[0]-err_margin
+                assert cur_rotation_euler[1] < sampled_rotation_euler[1]+err_margin and cur_rotation_euler[1] > sampled_rotation_euler[1]-err_margin
+                #assert cur_rotation_euler[2] < sampled_rotation_euler[2]+err_margin and cur_rotation_euler[2] > sampled_rotation_euler[2]-err_margin
+
+             
             
-            logger.debug(f"Set Agent Position Request Returned : {success}")
-            assert success == True
-            assert cur_rotation[0] < sampled_rotation[0]+err_margin and cur_rotation[0] > sampled_rotation[0]-err_margin
-            assert cur_rotation[1] < sampled_rotation[1]+err_margin and cur_rotation[1] > sampled_rotation[1]-err_margin
-            assert cur_rotation[2] < sampled_rotation[2]+err_margin and cur_rotation[2] > sampled_rotation[2]-err_margin
-            assert cur_rotation[3] < sampled_rotation[3]+err_margin and cur_rotation[3] > sampled_rotation[3]-err_margin
-            
-        logger.info(f'{samples} sampled points are able to set agent state')
+        #logger.info(f'{samples} sampled points are able to set agent state')
 
 class TestNavSimGymEnv2:
     """
