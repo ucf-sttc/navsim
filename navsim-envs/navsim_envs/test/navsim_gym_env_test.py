@@ -285,8 +285,8 @@ class TestNavSimGymEnv3:
             for x in range(0, 10):
                 o, r, done, i = env.step([throttle, steering, -1])
                 rot = o[0][7]
-                logger.debug(f'{env.agent_rotation_in_euler[2]}, {rot}')
-                rot_arr.append((env.agent_rotation_in_euler[1], rot))
+                logger.debug(f'{env.unity_rotation_in_euler()[2]}, {rot}')
+                rot_arr.append((env.unity_rotation_in_euler()[2], rot))
 
             env.close()
             del env
