@@ -368,7 +368,7 @@ class NavSimGymEnv(UnityToGymWrapper):
     def set_agent_state(self, position: Optional[List[float]] = None,
                         rotation: Optional[List[float]] = None):
 
-        print("Agent Position", position)
+        #print("Agent Position", position)
         agent_id = 0
         #current_pos = self.agent_position if position is None else position
         #current_rot = self.agent_rotation if rotation is None else rotation
@@ -378,7 +378,7 @@ class NavSimGymEnv(UnityToGymWrapper):
         state += self.agent_position if position is None else position
         state += self.agent_rotation if rotation is None else rotation
 
-        print("State", state)
+        #print("State", state)
 
         self.uenv._process_immediate_message(
             self.sapsc.build_immediate_request("agentPosition",

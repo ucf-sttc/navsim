@@ -11,8 +11,15 @@ from navsim_envs.env import NavSimGymEnv
 from navsim_envs.util.configs import config_banner, load_config
 from navsim_envs.util.configs import env_config as env_conf
 
+from scipy.spatial.transform import Rotation as R
+
 logger = NavSimGymEnv.logger
 
+def setLoggerLevel(debug):
+    if debug:
+        logger.setLevel(10)
+    else:
+        logger.setLevel(20)
 
 # This runs first before any class in this module runs
 @pytest.fixture(scope="module")
@@ -102,9 +109,9 @@ class TestNavSimGymEnv1:
         for i in range(0, samples):
             sampled_point = env.sample_navigable_point() 
             logger.info(f'{sampled_point}') 
-            #map_point = navigable_map[sampled_point[0]][sampled_point[1]]
-            #logger.debug(f'{sampled_point}, {map_point}')
-            #assert map_point == 1
+            map_point = navigable_map[sampled_point[0]][sampled_point[1]]
+            logger.debug(f'{sampled_point}, {map_point}')
+            assert map_point == 1
 
         logger.info(f'{samples} sampled points are navigable')
 
@@ -119,10 +126,10 @@ class TestNavSimGymEnv1:
 
         unity_loc_original = (0, 0)
 
-        navmap_loc = env.unity_loc_to_navmap_loc(*unity_loc_original,
+        navmap_loc = env.unity_to_navmap_location(*unity_loc_original,
                                                  navmap_max_x=navmap_max_x,
                                                  navmap_max_y=navmap_max_y)
-        unity_loc = env.navmap_loc_to_unity_loc(*navmap_loc,
+        unity_loc = env.navmap_to_unity_location(*navmap_loc,
                                                 navmap_max_x=navmap_max_x,
                                                 navmap_max_y=navmap_max_y,
                                                 navmap_cell_center=False)
@@ -132,10 +139,10 @@ class TestNavSimGymEnv1:
         assert unity_loc == (0, 0)
 
         unity_loc_original = (0, 2665)
-        navmap_loc = env.unity_loc_to_navmap_loc(*unity_loc_original,
+        navmap_loc = env.unity_to_navmap_location(*unity_loc_original,
                                                  navmap_max_x=navmap_max_x,
                                                  navmap_max_y=navmap_max_y)
-        unity_loc = env.navmap_loc_to_unity_loc(*navmap_loc,
+        unity_loc = env.navmap_to_unity_location(*navmap_loc,
                                                 navmap_max_x=navmap_max_x,
                                                 navmap_max_y=navmap_max_y,
                                                 navmap_cell_center=False)
@@ -146,10 +153,10 @@ class TestNavSimGymEnv1:
             1] < 2665 + resolution_margin)
 
         unity_loc_original = (3283, 0)
-        navmap_loc = env.unity_loc_to_navmap_loc(*unity_loc_original,
+        navmap_loc = env.unity_to_navmap_location(*unity_loc_original,
                                                  navmap_max_x=navmap_max_x,
                                                  navmap_max_y=navmap_max_y)
-        unity_loc = env.navmap_loc_to_unity_loc(*navmap_loc,
+        unity_loc = env.navmap_to_unity_location(*navmap_loc,
                                                 navmap_max_x=navmap_max_x,
                                                 navmap_max_y=navmap_max_y,
                                                 navmap_cell_center=False)
@@ -159,10 +166,10 @@ class TestNavSimGymEnv1:
             0] < 3283 + resolution_margin) and unity_loc[1] == 0
 
         unity_loc_original = (3283, 2665)
-        navmap_loc = env.unity_loc_to_navmap_loc(*unity_loc_original,
+        navmap_loc = env.unity_to_navmap_location(*unity_loc_original,
                                                  navmap_max_x=navmap_max_x,
                                                  navmap_max_y=navmap_max_y)
-        unity_loc = env.navmap_loc_to_unity_loc(*navmap_loc,
+        unity_loc = env.navmap_to_unity_location(*navmap_loc,
                                                 navmap_max_x=navmap_max_x,
                                                 navmap_max_y=navmap_max_y,
                                                 navmap_cell_center=False)
@@ -173,25 +180,70 @@ class TestNavSimGymEnv1:
                        unity_loc[1] > 2665 - resolution_margin and
                        unity_loc[1] < 2665 + resolution_margin)
 
+
     def test_set_agent_position(self, request, env_4_class, env_config):
         logger.info(f"=========== Running {request.node.name}")
         
         env = env_4_class(env_config)
         navigable_map = env.get_navigable_map()
         env.reset()
-        for cy in range(0,1000):
-            logger.info(f"========================")
-            logger.info(f"Original Position: {env.agent_position} and {env.agent_rotation} and {env.goal_position}")
+        err_margin=1.0
+        samples = 100
+        for i in range(0,samples):
+            logger.debug(f"===========")
+            logger.debug(f"Original Position: {env.agent_position} and {env.agent_rotation} and {env.goal_position}")
             sampled_position = env.sample_navigable_point() 
-            logger.info(f"Sampled Position: {sampled_position}")
-            new_position = env.agent_position
-            new_position[0] += 2.0
             success = env.set_agent_position(sampled_position)
+            logger.debug(f"Sampled Position: {sampled_position}")
             o, r, done, i = env.step([-1, -1, -1])
-            logger.info(f"After Agent Set: {env.agent_position} and {env.agent_rotation} and {env.goal_position}")
-            print(success)
-            if(success): break
+
+            #TODO Replace with env.agent_position and env.agent_rotation after they are updated
+            #logger.info(f"After Agent Set: {env.agent_position} and {env.agent_rotation} and {env.goal_position}")
+            cur_position = o[0][:3]
+            cur_rotation = o[0][6:10]
+            logger.debug(f"Observation: {o}")
+            logger.debug(f"Position {cur_position} and Rotation {cur_rotation}")
+            
+            logger.debug(f"Set Agent Position Request Returned : {success}")
+            assert success == True
+            assert cur_position[0] < sampled_position[0]+err_margin and cur_position[0] > sampled_position[0]-err_margin
+            assert cur_position[1] < sampled_position[1]+err_margin and cur_position[1] > sampled_position[1]-err_margin
+            assert cur_position[2] < sampled_position[2]+err_margin and cur_position[2] > sampled_position[2]-err_margin
+            
+        logger.info(f'{samples} sampled points are able to set agent state')
         
+    def test_set_agent_rotation(self, request, env_4_class, env_config):
+        logger.info(f"=========== Running {request.node.name}")
+        setLoggerLevel(env_config["debug"])
+        
+        env = env_4_class(env_config)
+        navigable_map = env.get_navigable_map()
+        env.reset()
+        err_margin=0.1
+        samples = 100
+        for i in range(0,samples):
+            logger.debug(f"===========")
+            logger.debug(f"Original Position: {env.agent_position} and {env.agent_rotation} and {env.goal_position}")
+            sampled_rotation = R.random().as_quat()
+            success = env.set_agent_rotation(sampled_rotation)
+            logger.debug(f"Sampled Rotation: {sampled_rotation}")
+            o, r, done, i = env.step([0, 0, 1])
+
+            #TODO Replace with env.agent_position and env.agent_rotation after they are updated
+            #logger.info(f"After Agent Set: {env.agent_position} and {env.agent_rotation} and {env.goal_position}")
+            cur_position = o[0][:3]
+            cur_rotation = o[0][6:10]
+            logger.debug(f"Observation: {o}")
+            logger.debug(f"Position {cur_position} and Rotation {cur_rotation}")
+            
+            logger.debug(f"Set Agent Position Request Returned : {success}")
+            assert success == True
+            assert cur_rotation[0] < sampled_rotation[0]+err_margin and cur_rotation[0] > sampled_rotation[0]-err_margin
+            assert cur_rotation[1] < sampled_rotation[1]+err_margin and cur_rotation[1] > sampled_rotation[1]-err_margin
+            assert cur_rotation[2] < sampled_rotation[2]+err_margin and cur_rotation[2] > sampled_rotation[2]-err_margin
+            assert cur_rotation[3] < sampled_rotation[3]+err_margin and cur_rotation[3] > sampled_rotation[3]-err_margin
+            
+        logger.info(f'{samples} sampled points are able to set agent state')
 
 class TestNavSimGymEnv2:
     """
@@ -199,6 +251,7 @@ class TestNavSimGymEnv2:
     """
 
     def test_is_navigable_side_channel(self, request, env_config):
+        pass
         #logger.info("========Test Is Navigable")
         #from mlagents_envs.environment import UnityEnvironment
         #from gym_unity.envs import UnityToGymWrapper
