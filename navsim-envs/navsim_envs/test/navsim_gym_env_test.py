@@ -173,7 +173,7 @@ class TestNavSimGymEnv1:
         navigable_map = env.get_navigable_map()
         env.reset()
         err_margin=1.0
-        samples = 10000
+        samples = 100
         for i in range(0,samples):
             logger.debug(f"===========")
             logger.debug(f"Original Position: {env.agent_position} and {env.agent_rotation} and {env.goal_position}")
@@ -205,7 +205,7 @@ class TestNavSimGymEnv1:
         navigable_map = env.get_navigable_map()
         err_margin=0.1
         samples = 1000
-        for i in range(0, samples):
+        for sample in range(0, samples):
             env.reset()
             for sampled_rotation in VALID_QUATERNIONS:
                 logger.debug(f"===========")
@@ -229,6 +229,7 @@ class TestNavSimGymEnv1:
                 assert success == True
                 assert cur_rotation_euler[1] < sampled_rotation_euler[1]+err_margin and cur_rotation_euler[1] > sampled_rotation_euler[1]-err_margin
 
+            logger.debug(f'reset {sample} completed successfully')
              
             
         logger.info(f'{samples} sampled points are able to set agent state')
