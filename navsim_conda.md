@@ -26,7 +26,7 @@ first follow the instructions to setup the host.
 1. Download and extract the unity binary zip file
 2. The following environment variables need to be set in both cases:
    ```shell
-   envdir=$(realpath "/data/work/unity-envs/Build2.10.2");
+   envdir=$(realpath "/data/work/unity-envs/Build2.10.5");
    envbin="Berlin_Walk_V2.x86_64"; 
    expdir=$(realpath "$HOME/exp"); 
    run_id="demo"; 
@@ -55,7 +55,7 @@ as container will dump the files there.
    -v $envdir:$envdir \
    -v $expdir:$expdir \
    -w $expdir \
-   $repo/navsim:2.10.4-dev0 DISPLAY=:0.0 <navsim command>
+   $repo/navsim:2.10.7 DISPLAY=:0.0 <navsim command>
    ```
 
 #### The Variable `DISPLAY=:0.0`
