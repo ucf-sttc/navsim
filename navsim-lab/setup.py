@@ -36,12 +36,7 @@ setuptools.setup(
     python_requires='>=3.7',
     install_requires=[
         'navsim_envs',
-        'numpy',
         # 'opencv-python',
-        'gym>=0.18.0',
-        'mlagents==0.27.0',
-        'mlagents_envs==0.27.0',
-        'gym_unity==0.27.0'
     ],
     entry_points={
         "console_scripts": [
