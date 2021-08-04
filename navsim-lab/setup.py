@@ -41,8 +41,7 @@ setuptools.setup(
     entry_points={
         "console_scripts": [
             "navsim=navsim.main:main",
-            "navsim-benchmark=navsim.benchmarks.benchmark:main",
-            "navsim-saturate-gpu=navsim.benchmarks.saturate_gpu:main",
+
         ]
     },
 )
