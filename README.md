@@ -10,8 +10,8 @@ There are three components: arora binary, navsim python api, navsim container
 You can use any version of each of them as long as first two digits match.
 These are the latest releases of each of them:
 * arora binary 2.10.5
-* navsim python api 2.10.7
-* navsim container 2.10.7
+* navsim python api 2.10.8
+* navsim container 2.10.8
 
 
 

@@ -5,7 +5,7 @@ with open('navsim_envs/version.txt', 'r') as vf:
 # from navsim.version import __version__
 
 # TODO: Replace the long description comments once cleared
-#with open("../README.md", "r", encoding="utf-8") as fh:
+# with open("../README.md", "r", encoding="utf-8") as fh:
 #    long_description = fh.read()
 long_description = " "
 
@@ -37,6 +37,8 @@ setuptools.setup(
     install_requires=[
         'numpy',
         # 'opencv-python',
+        'pytest',
+        'click',
         'gym>=0.18.0',
         'navsim_mlagents_envs==0.27.0',
         'gym_unity==0.27.0'

@@ -56,7 +56,7 @@ def main():
 
     run_conf = ObjDict({
         "run_id": args["run_id"],
-        "env": 'navsim-v0',
+        "env": 'arora-v0',
         "agent_gpu_id": int(args["agent_gpu_id"]),
         "num_workers": 1,
         "episode_max_steps": int(args["episode_max_steps"]),
