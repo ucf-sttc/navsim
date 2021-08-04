@@ -1,7 +1,7 @@
 # AAR Module Instructions
 
 Instruction on how to use the ARORA AAR mode
-The AAR mode uses the vector observation files created by the navsim environment. Insure that you execute navsim with the –save_vector_obs, this will store a file called vec_obs.csv
+The AAR mode uses the vector observation files created by the navsim environment. Ensure that you execute navsim with the –save_vector_obs, this will store a file called vec_obs.csv
 1. Execute the berlin executable, currently with the release name AAR in the release. Use the -playback switch
    ![](aar_images/f8f1a427.png)
    

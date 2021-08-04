@@ -15,14 +15,7 @@ Following should be pre-installed on the host machine:
 * [nvidia driver](https://github.com/NVIDIA/nvidia-docker/wiki/Frequently-Asked-Questions#how-do-i-install-the-nvidia-driver)
 * X-window system
 
-## Versions
 
-There are three components: navsim binary, navsim python api, navsim container
-You can use any version of each of them as long as first two digits match.
-These are the latest releases of each of them:
-* binary 2.10.x
-* python api 2.10.x
-* container 2.10.x
 
 ## How to run the navsim training
 
