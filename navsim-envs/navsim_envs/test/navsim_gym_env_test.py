@@ -16,11 +16,11 @@ from scipy.spatial.transform import Rotation as R
 
 logger = AroraGymEnv.logger
 
-def setLoggerLevel(debug):
-    if debug:
-        logger.setLevel(10)
-    else:
-        logger.setLevel(20)
+#def setLoggerLevel(debug):
+#    if debug:
+#        logger.setLevel(10)
+#    else:
+#        logger.setLevel(20)
 
 # This runs first before any class in this module runs
 @pytest.fixture(scope="module")
@@ -167,7 +167,7 @@ class TestAroraGymEnv1:
     # Tests sample navigable point and setting the agent's position
     def test_set_agent_position(self, request, env_4_class, env_config):
         logger.info(f"=========== Running {request.node.name}")
-        setLoggerLevel(env_config["debug"])
+        #setLoggerLevel(env_config["debug"])
         
         env = env_4_class(env_config)
         navigable_map = env.get_navigable_map()
@@ -199,7 +199,7 @@ class TestAroraGymEnv1:
         
     def test_set_agent_rotation(self, request, env_4_class, env_config):
         logger.info(f"=========== Running {request.node.name}")
-        setLoggerLevel(env_config["debug"])
+        #setLoggerLevel(env_config["debug"])
         
         env = env_4_class(env_config)
         navigable_map = env.get_navigable_map()
