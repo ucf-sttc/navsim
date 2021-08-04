@@ -10,7 +10,7 @@ from gym_unity.envs import UnityToGymWrapper
 from mlagents_envs.side_channel.engine_configuration_channel import EngineConfigurationChannel
 from mlagents_envs.side_channel.environment_parameters_channel import EnvironmentParametersChannel
 from mlagents_envs.side_channel.float_properties_channel import FloatPropertiesChannel
-from ..env import MapSideChannel
+from ..env.map_side_channel import MapSideChannel
 
 timerEntries = []
 

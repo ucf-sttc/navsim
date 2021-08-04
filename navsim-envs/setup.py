@@ -14,7 +14,7 @@ setuptools.setup(
     version=__version__,
     author="STTC, IST, UCF",
     author_email="armando@ucf.edu",
-    description="Navigation Simulator Environments Support",
+    description="Navigation Simulator Environments",
     long_description=long_description,
     long_description_content_type="text/markdown",
     packages=setuptools.find_packages(),
@@ -47,6 +47,8 @@ setuptools.setup(
         "console_scripts": [
             "navsim_env_test=navsim_envs.env_tst:main",
             "navsim_env_kill=navsim_envs.env_kill:main",
+#            "navsim_env_benchmark=navsim_envs.benchmarks.benchmark:main",
+#            "navsim_env_saturate_gpu=navsim_envs.benchmarks.saturate_gpu:main",
         ]
     },
 )
