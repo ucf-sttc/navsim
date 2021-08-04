@@ -30,3 +30,7 @@ __pycache__
 /navsim-envs/dist/
 /navsim-envs/navsim_envs.egg-info/
 /.hypothesis/
+/docs/source/navsim/
+/docs/source/navsim-envs/
+/docs/source/_static/
+/docs/source/_templates/

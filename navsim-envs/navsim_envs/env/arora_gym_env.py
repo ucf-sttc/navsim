@@ -73,11 +73,11 @@ except ImportError as error:
 
 
 def navsimgymenv_creator(env_config):
-    return NavSimGymEnv(env_config)  # return an env instance
+    return AroraGymEnv(env_config)  # return an env instance
 
 
-class NavSimGymEnv(UnityToGymWrapper):
-    """NavSimGymEnv Class is a wrapper to Unity2Gym that inherits from the Gym interface
+class AroraGymEnv(UnityToGymWrapper):
+    """AroraGymEnv inherits from Unity2Gym that inherits from the Gym interface.
 
     Read the **NavSim Environment Tutorial** on how to use this class.
     """
@@ -98,6 +98,11 @@ class NavSimGymEnv(UnityToGymWrapper):
         self.start_from_episode = int(
             self.env_config.get('start_from_episode', 1))
         self.debug = env_config.get("debug", False)
+        if self.debug:
+            self.logger.setLevel(10)
+        else:
+            self.logger.setLevel(20)
+
         self.obs = None
 
         if self.obs_mode == 0:
@@ -209,7 +214,7 @@ class NavSimGymEnv(UnityToGymWrapper):
                 time.sleep(2)
                 self._navsim_base_port += 1
             else:
-                NavSimGymEnv.logger.info(f"Created UnityEnvironment at port "
+                AroraGymEnv.logger.info(f"Created UnityEnvironment at port "
                                          f"{self._navsim_base_port + self._navsim_worker_id}"
                                          f" to start from episode {self.start_from_episode}")
                 break
@@ -279,6 +284,14 @@ class NavSimGymEnv(UnityToGymWrapper):
             self.save_vector_obs = False
 
     def _save_obs(self, obs):
+        """Private method to save the observations in file
+
+        Args:
+            obs: observations object as returned by step() or reset()
+
+        Returns:
+
+        """
         if self.save_vector_obs:
             self.vec_writer.writerow(
                 [self.e_num, self.s_num, self.spl_current, time.time()] +
@@ -342,7 +355,7 @@ class NavSimGymEnv(UnityToGymWrapper):
     #        """
     #        return [type(obs) for obs in self.observation_space.spaces]
 
-    def render(self, mode='rgb_array') -> None:
+    def render(self, mode='rgb_array'):
         """Returns the image array based on the render mode
 
         Args:
@@ -369,8 +382,22 @@ class NavSimGymEnv(UnityToGymWrapper):
 
     def set_agent_state(self, position: Optional[List[float]] = None,
                         rotation: Optional[List[float]] = None):
+        """Set the agent position or rotation
+
+        Args:
+            position: a list of x,y,z in Unity's coordinate system
+            rotation: a list of x,y,z,w in Unity's coordinate system
+
+        If the position or rotation is not provided as argument,
+        then it takes them from the current state.
+
+        Returns: True if the state is set, else False
+
+        """
 
         #print("Agent Position", position)
+        current_state = self.agent_state
+
         agent_id = 0
         #current_pos = self.agent_position if position is None else position
         #current_rot = self.agent_rotation if rotation is None else rotation
@@ -385,13 +412,41 @@ class NavSimGymEnv(UnityToGymWrapper):
         self.uenv._process_immediate_message(
             self.sapsc.build_immediate_request("agentPosition",
                                                state))
+
+        if self.sapsc.success:
+            if position is not None:
+                self._agent_position = position
+            if rotation is not None:
+                self._agent_rotation = rotation
         return self.sapsc.success
 
     def set_agent_position(self, position: Optional[List[float]]):
+        """Set the agent position
+
+        Args:
+            position: a list of x,y,z in Unity's coordinate system
+
+        If the position is not provided as argument,
+        then it takes them from the current state.
+
+        Returns: True if the state is set, else False
+
+        """
 
         return self.set_agent_state(position=position)
 
     def set_agent_rotation(self, rotation: Optional[List[float]]):
+        """Set the agent  rotation
+
+        Args:
+            rotation: a list of x,y,z,w in Unity's coordinate system
+
+        If the rotation is not provided as argument,
+        then it takes them from the current state.
+
+        Returns: True if the state is set, else False
+
+        """
 
         return self.set_agent_state(rotation=rotation)
 
@@ -476,13 +531,13 @@ class NavSimGymEnv(UnityToGymWrapper):
 
     def unity_to_navmap_location(self, unity_x, unity_z, navmap_max_x=256,
                                  navmap_max_y=256):
-        """
+        """Convert a location from Unity's 3D coordinate system to navigable map's 2D coordinate system
 
         Args:
-            unity_x:
-            unity_z:
-            navmap_max_x:
-            navmap_max_y:
+            unity_x: x coordinate in unity
+            unity_z: z coordinate in unity
+            navmap_max_x: maximum x of navmap
+            navmap_max_y: maximum y of navmap
 
         Returns:
             navmap_x, navmap_y
@@ -497,14 +552,12 @@ class NavSimGymEnv(UnityToGymWrapper):
 
     def navmap_to_unity_location(self, navmap_x, navmap_y, navmap_max_x=256,
                                  navmap_max_y=256, navmap_cell_center=True):
-        """
+        """Convert a location from navigable map's 2D coordinate system to Unity's 3D coordinate system
 
         Args:
-            navmap_x:
-            navmap_y:
-            navmap_max_x:
-            navmap_max_y:
-            navmap_cell_center:
+            navmap_x, navmap_y: x, y location on navmap
+            navmap_max_x, navmap_max_y: maximum x,y on navmap
+            navmap_cell_center: Whether to return the point in cell center, default True.
 
         Returns:
             unity_x, unity_z
@@ -521,11 +574,25 @@ class NavSimGymEnv(UnityToGymWrapper):
         return unity_x, unity_z
 
     def unity_to_navmap_rotation(self, unity_rotation: List[float]):
+        """Convert a rotation from Unity's quarternion to navigable map's 2D coordinate system
+
+        Args:
+            unity_rotation: [x,y,z,w] in unity quaternion system
+
+        Returns:
+            [x,y] vector components of rotation
+        """
         x, _, z = self._qv_mult(unity_rotation, [0, 0, 1])
         return self._normalize([x, z])
 
     def unity_rotation_in_euler(self, unity_rotation: List[float] = None):
         """Position of agent in Euler coordinates roll_x, pitch_y, yaw_z
+
+        Args:
+            unity_rotation: [x,y,z,w] in unity quaternion system
+
+        Returns:
+            pitch_y, yaw_z, roll_x
         """
         if unity_rotation is None:
             unity_rotation = self.agent_rotation
@@ -552,6 +619,14 @@ class NavSimGymEnv(UnityToGymWrapper):
         return pitch_y, yaw_z, roll_x  # in radians
         
     def navmap_to_unity_rotation(self, navmap_rotation: List[float]):
+        """Convert a rotation from navigable map's 2D coordinate system to Unity's quarternion
+
+        Args:
+            navmap_rotation: x,y vector components of rotation
+
+        Returns:
+            [x,y,z,w] Unity's quarternion
+        """
         x, y = navmap_rotation
 
         v1 = self._normalize([x, 0, y])
@@ -621,6 +696,9 @@ class NavSimGymEnv(UnityToGymWrapper):
                                z: float = None):
         """Provides a random sample of navigable point
 
+        Args:
+            x,y,z: x,y,z in unity's coordinate system
+
         Returns:
             [] x,y,z all are None: returns a navigable point
             [x,z] only y is none: returns if x,z is navigable at some ht y
@@ -663,7 +741,7 @@ class NavSimGymEnv(UnityToGymWrapper):
         """Registers the environment with gym registry with the name navsim
 
         """
-        env_id = 'navsim-v0'
+        env_id = 'arora-v0'
         from gym.envs.registration import register, registry
 
         env_dict = registry.env_specs.copy()
@@ -673,7 +751,7 @@ class NavSimGymEnv(UnityToGymWrapper):
                 del registry.env_specs[env]
 
         print(f"navsim_envs: Adding {env_id} to Gym registry")
-        register(id=env_id, entry_point='navsim_envs.env:NavSimGymEnv')
+        register(id=env_id, entry_point='navsim_envs.env:AroraGymEnv')
 
     @staticmethod
     def register_with_ray():
@@ -681,9 +759,14 @@ class NavSimGymEnv(UnityToGymWrapper):
 
         """
         from ray.tune.registry import register_env
-        register_env("navsim-v0", navsimgymenv_creator)
+        register_env("arora-v0", navsimgymenv_creator)
 
     def get_dummy_obs(self):
+        """returns dummy observations
+
+        Returns:
+
+        """
         # prepare input data
         obs_names = []
         obs_data = []
@@ -702,6 +785,11 @@ class NavSimGymEnv(UnityToGymWrapper):
         return obs_data, obs_names
 
     def get_dummy_actions(self):
+        """returns dummy actions
+
+        Returns:
+
+        """
         action_dim = self.action_space.shape[0]
         actions_data = np.zeros([1, action_dim], dtype=np.float)
         actions_names = f'action_{action_dim}'
@@ -739,7 +827,7 @@ class NavSimGymEnv(UnityToGymWrapper):
 
     @property
     def agent_position(self):
-        """Position of agent in unity map coordinates x,y,z
+        """Position of agent in unity coordinates x,y,z
         """
         if self._agent_position is None:
             raise EnvNotInitializedError()
@@ -748,7 +836,7 @@ class NavSimGymEnv(UnityToGymWrapper):
 
     @property
     def agent_rotation(self):
-        """Rotation of agent in unity map coordinates x,y,z,w (Quaternions)
+        """Rotation of agent in unity quaternions x,y,z,w
         """
         if self._agent_rotation is None:
             raise EnvNotInitializedError()
@@ -757,7 +845,7 @@ class NavSimGymEnv(UnityToGymWrapper):
 
     @property
     def agent_velocity(self):
-        """Velocity of agent in unity map coordinates x,y,z
+        """Velocity of agent in unity coordinates x,y,z
         """
         if self._agent_velocity is None:
             raise EnvNotInitializedError()
@@ -772,7 +860,7 @@ class NavSimGymEnv(UnityToGymWrapper):
 
     @property
     def goal_position(self):
-        """Position of goal in unity map coordinates x,y,z
+        """Position of goal in unity coordinates x,y,z
         """
         if self._goal_position is None:
             raise EnvNotInitializedError()
@@ -795,8 +883,6 @@ class NavSimGymEnv(UnityToGymWrapper):
     def shortest_path_length(self):
         """the shortest navigable path length from current location to
         goal position
-
-        Returns: Shortest Path Length
         """
         return self.fpc.get_property("ShortestPath")
 

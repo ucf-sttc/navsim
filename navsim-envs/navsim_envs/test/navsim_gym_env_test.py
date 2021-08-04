@@ -8,13 +8,13 @@ import pytest
 from copy import deepcopy
 
 import navsim_envs
-from navsim_envs.env import NavSimGymEnv
+from navsim_envs.env import AroraGymEnv
 from navsim_envs.util.configs import config_banner, load_config
 from navsim_envs.util.configs import env_config as env_conf
 
 from scipy.spatial.transform import Rotation as R
 
-logger = NavSimGymEnv.logger
+logger = AroraGymEnv.logger
 
 def setLoggerLevel(debug):
     if debug:
@@ -54,7 +54,7 @@ def env_4_class():
     def env_creator(env_config):
         nonlocal env
         if env is None:
-            env = gym.make("navsim-v0", env_config=env_config)
+            env = gym.make("arora-v0", env_config=env_config)
         return env
 
     yield env_creator
@@ -68,7 +68,7 @@ def env_4_func():
     def env_creator(env_config):
         nonlocal env
         if env is None:
-            env = gym.make("navsim-v0", env_config=env_config)
+            env = gym.make("arora-v0", env_config=env_config)
         return env
 
     yield env_creator
@@ -83,7 +83,7 @@ TestNavSimGymEnv3 : env more than once within a test
 """
 
 
-class TestNavSimGymEnv1:
+class TestAroraGymEnv1:
     """
     env is initialized once per class
     """
@@ -235,7 +235,7 @@ class TestNavSimGymEnv1:
         logger.info(f'{samples} sampled points are able to set agent state')
 
 
-class TestNavSimGymEnv3:
+class TestAroraGymEnv3:
     """
     env is initialized multiple times in each test
     """
@@ -248,7 +248,7 @@ class TestNavSimGymEnv3:
         obs_arr = []
         runs = 3
         for outer in range(0, runs):
-            env = gym.make("navsim-v0", env_config=env_config)
+            env = gym.make("arora-v0", env_config=env_config)
             steering = 0
             obs_inner_arr = []
 
@@ -276,7 +276,7 @@ class TestNavSimGymEnv3:
         logger.info(f"=========== Running {request.node.name}")
         for steering in [-1, 1]:
             throttle = 1
-            env = gym.make("navsim-v0", env_config=env_config)
+            env = gym.make("arora-v0", env_config=env_config)
 
             logger.info(f'Steering is: {steering}')
             rot_arr = []
@@ -308,7 +308,7 @@ class TestNavSimGymEnv3:
         position_diff_arr = []
         throttles = [0.1, 0.5, 1]
         for throttle in throttles:
-            env = gym.make("navsim-v0", env_config=env_config)
+            env = gym.make("arora-v0", env_config=env_config)
             steering = 0
 
             logger.debug(f'Throttle is: {throttle}')

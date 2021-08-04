@@ -1,2 +1,2 @@
-from .navsim_gym_env import NavSimGymEnv
-NavSimGymEnv.register_with_gym()
+from .arora_gym_env import AroraGymEnv
+AroraGymEnv.register_with_gym()

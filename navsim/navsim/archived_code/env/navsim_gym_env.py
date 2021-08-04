@@ -71,7 +71,7 @@ def navsimgymenv_creator(env_config):
 
 
 class NavSimGymEnv(UnityToGymWrapper):
-    """NavSimGymEnv Class is a wrapper to Unity2Gym that inherits from the Gym interface
+    """AroraGymEnv Class is a wrapper to Unity2Gym that inherits from the Gym interface
 
     Read the **NavSim Environment Tutorial** on how to use this class.
     """
@@ -496,7 +496,7 @@ class NavSimGymEnv(UnityToGymWrapper):
                 del registry.env_specs[env]
 
         print(f"Navsim: Adding {env_id} to Gym registry")
-        register(id=env_id, entry_point='navsim.env:NavSimGymEnv')
+        register(id=env_id, entry_point='navsim.env:AroraGymEnv')
 
     @staticmethod
     def register_with_ray():

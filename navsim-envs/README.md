@@ -1,16 +1,28 @@
-# Navsim Environment Tutorial
+# `navsim_envs` Package Tutorial
 
-NavSimGymEnv Class is a wrapper to Unity2Gym that inherits from the Gym interface
-The configuration provided is as follows:
+`navsim_envs` is a package that wraps the environments for Reinforcement 
+Learning. Current implementation has the following sims encapsulated:
+* Arora from UCF
 
 ## Installation
 
-`pip install --upgrade navsim_envs navsim_mlagents_envs`
+`pip install --upgrade navsim_envs`
 
-## How to use the navsim env
+### Test the installation
 
-If you only want to use `NavSimGymEnv`, then all you need to do is install
-`navsim` from pip and then either subclass it or use it as follows:
+In order to test the install:
+* create an experiment folder, we use folder `~/exp` and change into this folder.
+* create a minimal yaml file with the following contents:
+  ```yaml
+  env_path: /path/to/Berlin_Walk_V2.x86_64
+  ```
+  Let us say you named this file `min_env_config.yml`. 
+* Run the tests: `navsim_env_test min_env_config.yml`. If you are using `navsim`
+  container then follow the instructions on the container page.
+
+## How to use the Arora env
+
+If you only want to use `AroraGymEnv`, then either subclass it or use it as follows:
 
 ```python
 import navsim_envs
@@ -21,7 +33,7 @@ env_config = {
   "debug": False,
   "episode_max_steps": 1000,
   "env_gpu_id": 0,
-  "env_path": "/data/work/unity-envs/Build2.10.2/Berlin_Walk_V2.x86_64",
+  "env_path": "/path/to/Berlin_Walk_V2.x86_64",
   "goal": 0,
   "goal_distance": 50,
   "log_folder": "./env_log",
@@ -43,10 +55,11 @@ env_config = {
   "timeout": 600,
   "traffic_vehicles": 0,
 }
-    
-env = gym.make("navsim-v0", env_config=env_config) 
-# or use the following method to create an env
-env = navsim_envs.env.NavSimGymEnv(env_config)
+
+# Either use gym.make to create an env
+env = gym.make("arora-v0", env_config=env_config)
+# or use the AroraGymEnv constructor to create an env
+env = navsim_envs.env.AroraGymEnv(env_config)
 ```
 
 If you want to use our `navsim` conda environment or `navsim` container then
@@ -96,7 +109,7 @@ Reaching any of the sedans results in a success.
 
 ### Rewards
 #### Reward Values
-* `reward_for_goal` : For pointnav goal is the target position to complete the 
+* `reward_for_goal` : For pointnav, the goal is the target position to complete the 
 task.  
 * `reward_for_ep` : Exploration points are randomly placed in the environment to 
 reward exploration.  

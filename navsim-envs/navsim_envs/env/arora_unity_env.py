@@ -2,7 +2,7 @@ from mlagents_envs.environment import UnityEnvironment
 
 
 class NavSimUnityEnv(UnityEnvironment):
-    """NavSimGymEnv Class is a wrapper to Unity2Gym that inherits from the Gym interface
+    """AroraGymEnv Class is a wrapper to Unity2Gym that inherits from the Gym interface
 
     Read the **NavSim Environment Tutorial** on how to use this class.
     """
