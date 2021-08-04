@@ -15,8 +15,6 @@ Following should be pre-installed on the host machine:
 * [nvidia driver](https://github.com/NVIDIA/nvidia-docker/wiki/Frequently-Asked-Questions#how-do-i-install-the-nvidia-driver)
 * X-window system
 
-
-
 ## How to run the navsim training
 
 You can either run directly on a host machine or in a container.
