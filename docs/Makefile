@@ -23,6 +23,6 @@ help:
 	cp ../navsim-envs/*.md "$(SOURCEDIR)"/navsim-envs
 	cp ../navsim-envs/aar_images/*.png "$(SOURCEDIR)"/navsim-envs/aar_images
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
-	rm "$(SOURCEDIR)"/navsim/*.md "$(SOURCEDIR)"/navsim-envs/*.md
+	rm -rf "$(SOURCEDIR)/navsim" "$(SOURCEDIR)/navsim-envs"
 	cp build/latex/navsim.pdf .
 	zip -r navsim_html_docs.zip build/html/*
