@@ -37,6 +37,8 @@ from .map_side_channel import MapSideChannel
 from .navigable_side_channel import NavigableSideChannel
 from .set_agent_position_side_channel import SetAgentPositionSideChannel
 
+from mlagents_envs.rpc_utils import behavior_spec_from_proto, steps_from_proto
+
 try:
     from cv2 import imwrite as imwrite
 
@@ -103,7 +105,7 @@ class AroraGymEnv(UnityToGymWrapper):
         else:
             self.logger.setLevel(20)
 
-        self.obs = None
+        self._obs = None
 
         if self.obs_mode == 0:
             env_config["save_visual_obs"] = False
@@ -303,33 +305,31 @@ class AroraGymEnv(UnityToGymWrapper):
             imwrite(str(self.dep_folder / filename), obs[1] * 255)
             imwrite(str(self.seg_folder / filename), obs[2] * 255)
 
-    def reset(self) -> Union[List[np.ndarray], np.ndarray]:
-        s0 = super().reset()
-        self.obs = s0
+    def _set_obs(self):
         if self.obs_mode in [0, 2]:
-            vec_obs = list(self.obs[-1])
+            vec_obs = list(self._obs[-1])
             self._agent_position = vec_obs[0:3]
             self._agent_velocity = vec_obs[3:6]
             self._agent_rotation = vec_obs[6:10]
             self._goal_position = vec_obs[10:13]
+
+    def reset(self) -> Union[List[np.ndarray], np.ndarray]:
+        s0 = super().reset()
+        self._obs = s0
+        self._set_obs()
         self.s_num = 0
         self.e_num += 1 if self.e_num else self.start_from_episode
         self.spl_start = self.spl_current = self.shortest_path_length
-        self._save_obs(self.obs)
+        self._save_obs(self._obs)
         return s0
 
     def step(self, action: List[Any]) -> GymStepResult:
         s_, r, episode_done, info = super().step(action)
-        self.obs = s_
-        if self.obs_mode in [0, 2]:
-            vec_obs = list(self.obs[-1])
-            self._agent_position = vec_obs[0:3]
-            self._agent_velocity = vec_obs[3:6]
-            self._agent_rotation = vec_obs[6:10]
-            self._goal_position = vec_obs[10:13]
+        self._obs = s_
+        self._set_obs()
         self.s_num += 1
         self.spl_current = self.shortest_path_length
-        self._save_obs(self.obs)
+        self._save_obs(self._obs)
         if self.save_actions:
             self.actions_writer.writerow(
                 [self.e_num, self.s_num] + list(action))
@@ -362,23 +362,68 @@ class AroraGymEnv(UnityToGymWrapper):
             mode: 'rgb_array' or 'depth' or 'segmentation' or 'vector'
 
         Returns:
-            For Observation Mode 1 and 2: each render mode returns a numpy array of the image
-            For Observation Mode 0 and 2: render mode vector returns vector observations
+            For Observation Mode 1 and 2 - each render mode returns a numpy array of the image
+            For Observation Mode 0 and 2 - render mode vector returns vector observations
         """
         if mode == 'rgb_array' and self.obs_mode in [1, 2]:
-            obs = self.obs[0]
+            obs = self._obs[0]
         elif mode == 'depth' and self.obs_mode in [1, 2]:
-            obs = self.obs[1]
+            obs = self._obs[1]
         elif mode == 'segmentation' and self.obs_mode in [1, 2]:
-            obs = self.obs[2]
+            obs = self._obs[2]
         elif mode == 'vector' and self.obs_mode in [0, 2]:
-            obs = self.obs[-1]
+            obs = self._obs[-1]
         else:
             raise ValueError("Bad render mode was specified or the "
                              "observation mode of the environment doesnt "
                              "support this render mode. render mode = "
                              "{mode}, observation mode = {self.obs_mode}")
         return obs
+
+    def get_agent_obs_at(self, position: Optional[List[float]] = None,
+                        rotation: Optional[List[float]] = None):
+        """Get the agent observations at position or rotation
+
+        Args:
+            position: a list of x,y,z in Unity's coordinate system
+            rotation: a list of x,y,z,w in Unity's coordinate system
+
+        If the position or rotation is not provided as argument,
+        then it takes them from the current state.
+
+        Returns:
+            True if the state is set, else False
+
+        """
+
+        # Just added to cause exception
+        pos, rot = self.agent_position, self.agent_rotation
+
+        agent_id = 0
+        state = [agent_id]
+        state += pos if position is None else position
+        state += rot if rotation is None else rotation
+
+        unity_output = self.uenv._process_immediate_message(
+            self.sapsc.build_immediate_request("getObservation",
+                                               state))
+
+        if self.sapsc.success:
+            s_, _, _, _ = self._single_step(
+                steps_from_proto(
+                    unity_output.rl_output.agentInfos["immediate"].value,
+                    self.uenv._env_specs[self.name]
+                )[1]
+            )
+            #self.obs = s_
+            #self._set_obs()
+            #if position is not None:
+            #    self._agent_position = position
+            #if rotation is not None:
+            #    self._agent_rotation = rotation
+
+        return s_ if self.sapsc.success else None
+
 
     def set_agent_state(self, position: Optional[List[float]] = None,
                         rotation: Optional[List[float]] = None):
@@ -391,33 +436,37 @@ class AroraGymEnv(UnityToGymWrapper):
         If the position or rotation is not provided as argument,
         then it takes them from the current state.
 
-        Returns: True if the state is set, else False
+        Returns:
+            True if the state is set, else False
 
         """
 
-        #print("Agent Position", position)
-        current_state = self.agent_state
+        # Just added to cause exception
+        pos, rot = self.agent_position, self.agent_rotation
 
         agent_id = 0
-        #current_pos = self.agent_position if position is None else position
-        #current_rot = self.agent_rotation if rotation is None else rotation
-        #
-        #state = np.concatenate(([agent_id], current_pos, current_rot))
         state = [agent_id]
-        state += self.agent_position if position is None else position
-        state += self.agent_rotation if rotation is None else rotation
+        state += pos if position is None else position
+        state += rot if rotation is None else rotation
 
-        #print("State", state)
-
-        self.uenv._process_immediate_message(
+        unity_output = self.uenv._process_immediate_message(
             self.sapsc.build_immediate_request("agentPosition",
                                                state))
 
         if self.sapsc.success:
-            if position is not None:
-                self._agent_position = position
-            if rotation is not None:
-                self._agent_rotation = rotation
+            s_, _, _, _ = self._single_step(
+                steps_from_proto(
+                    unity_output.rl_output.agentInfos["immediate"].value,
+                    self.uenv._env_specs[self.name]
+                )[1]
+            )
+            self._obs = s_
+            self._set_obs()
+            #if position is not None:
+            #    self._agent_position = position
+            #if rotation is not None:
+            #    self._agent_rotation = rotation
+
         return self.sapsc.success
 
     def set_agent_position(self, position: Optional[List[float]]):
@@ -429,7 +478,8 @@ class AroraGymEnv(UnityToGymWrapper):
         If the position is not provided as argument,
         then it takes them from the current state.
 
-        Returns: True if the state is set, else False
+        Returns:
+            True if the state is set, else False
 
         """
 
@@ -444,7 +494,8 @@ class AroraGymEnv(UnityToGymWrapper):
         If the rotation is not provided as argument,
         then it takes them from the current state.
 
-        Returns: True if the state is set, else False
+        Returns:
+            True if the state is set, else False
 
         """
 
@@ -697,12 +748,16 @@ class AroraGymEnv(UnityToGymWrapper):
         """Provides a random sample of navigable point
 
         Args:
-            x,y,z: x,y,z in unity's coordinate system
+            x: x in unity's coordinate system
+            y: y in unity's coordinate system
+            z: z in unity's coordinate system
 
         Returns:
-            [] x,y,z all are None: returns a navigable point
-            [x,z] only y is none: returns if x,z is navigable at some ht y
-            [x,y,z] None of them are none: returns if x,y,z is navigable or not
+            If x,y,z are None, returns a randomly sampled navigable point [x,y,z].
+
+            If x,z is given and y is None, returns True if x,z is navigable at some ht y else returns False.
+
+            If x,y,z are given, returns True if x,y,z is navigable else returns False.
         """
 
         # if self.map_side_channel.requested_map is None:
@@ -732,7 +787,7 @@ class AroraGymEnv(UnityToGymWrapper):
             x,y,z: the unity coordinates of the point to check
 
         Returns:
-            if the point represented by x,y,z is navigable or not
+            True if the point represented by x,y,z is navigable else False
         """
         return self.sample_navigable_point(x, y, z)
 
@@ -799,11 +854,6 @@ class AroraGymEnv(UnityToGymWrapper):
     @property
     def sim(self):
         """Returns an instance of the sim
-
-        Added for compatibility with habitat API.
-
-        Returns: link to self
-
         """
         return self
 
@@ -813,17 +863,16 @@ class AroraGymEnv(UnityToGymWrapper):
 
         Note: While converting to 2-D map, the Z-axis max of 3-D Unity Map
         corresponds to Y-axis max of 2-D map
-
-        Returns: maximum x, y, z from unity map
-
         """
         return 3284.0, 52.9, 2666.3
 
     @property
-    def agent_state(self):
-        """Agent state is position (x,y,z), rotation (x,y,,z,w)
+    def agent_obs(self):
+        """Agent observations
         """
-        return self.agent_position, self.agent_rotation
+        if self._obs is None:
+            raise EnvNotInitializedError()
+        return self._obs
 
     @property
     def agent_position(self):

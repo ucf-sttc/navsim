@@ -1,15 +1,13 @@
-from mlagents_envs.environment import UnityEnvironment
+import struct
+import uuid
+from typing import List
+
 from mlagents_envs.side_channel.side_channel import (
     SideChannel,
     IncomingMessage,
     OutgoingMessage,
 )
-from typing import List
-from PIL import Image
-import numpy as np
-import struct
 
-import uuid
 
 class SetAgentPositionSideChannel(SideChannel):
     """
