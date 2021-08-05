@@ -34,3 +34,6 @@ __pycache__
 /docs/source/navsim-envs/
 /docs/source/_static/
 /docs/source/_templates/
+/navsim-lab/build/
+/navsim-lab/dist/
+/navsim-lab/navsim.egg-info/

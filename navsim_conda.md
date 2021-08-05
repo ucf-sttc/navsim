@@ -1,4 +1,4 @@
-# How to use the navsim conda env or container
+# navsim conda env or container
 
 ## Pre-requisites
 
