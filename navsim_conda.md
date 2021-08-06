@@ -1,4 +1,4 @@
-# How to use the navsim conda env or container
+# navsim conda env or container
 
 ## Pre-requisites
 
@@ -15,15 +15,6 @@ Following should be pre-installed on the host machine:
 * [nvidia driver](https://github.com/NVIDIA/nvidia-docker/wiki/Frequently-Asked-Questions#how-do-i-install-the-nvidia-driver)
 * X-window system
 
-## Versions
-
-There are three components: navsim binary, navsim python api, navsim container
-You can use any version of each of them as long as first two digits match.
-These are the latest releases of each of them:
-* binary 2.10.x
-* python api 2.10.x
-* container 2.10.x
-
 ## How to run the navsim training
 
 You can either run directly on a host machine or in a container.
@@ -33,7 +24,7 @@ first follow the instructions to setup the host.
 1. Download and extract the unity binary zip file
 2. The following environment variables need to be set in both cases:
    ```shell
-   envdir=$(realpath "/data/work/unity-envs/Build2.10.2");
+   envdir=$(realpath "/data/work/unity-envs/Build2.10.5");
    envbin="Berlin_Walk_V2.x86_64"; 
    expdir=$(realpath "$HOME/exp"); 
    run_id="demo"; 
@@ -62,7 +53,7 @@ as container will dump the files there.
    -v $envdir:$envdir \
    -v $expdir:$expdir \
    -w $expdir \
-   $repo/navsim:2.10.4-dev0 DISPLAY=:0.0 <navsim command>
+   $repo/navsim:2.10.7 DISPLAY=:0.0 <navsim command>
    ```
 
 #### The Variable `DISPLAY=:0.0`

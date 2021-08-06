@@ -18,11 +18,11 @@ help:
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
 %: Makefile
 	mkdir -p "$(SOURCEDIR)"/navsim
-	mkdir -p "$(SOURCEDIR)"/navsim_envs/aar_images
+	mkdir -p "$(SOURCEDIR)"/navsim-envs/aar_images
 	cp ../*.md "$(SOURCEDIR)"/navsim
-	cp ../navsim_envs/*.md "$(SOURCEDIR)"/navsim_envs
-	cp ../navsim_envs/aar_images/*.png "$(SOURCEDIR)"/navsim_envs/aar_images
+	cp ../navsim-envs/*.md "$(SOURCEDIR)"/navsim-envs
+	cp ../navsim-envs/aar_images/*.png "$(SOURCEDIR)"/navsim-envs/aar_images
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
-	rm "$(SOURCEDIR)"/navsim/*.md "$(SOURCEDIR)"/navsim_envs/*.md
+	rm -rf "$(SOURCEDIR)/navsim" "$(SOURCEDIR)/navsim-envs"
 	cp build/latex/navsim.pdf .
 	zip -r navsim_html_docs.zip build/html/*
