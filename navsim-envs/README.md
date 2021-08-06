@@ -77,14 +77,11 @@ follow the instructions <TODO: insert_link_here>.
 TODO: Explain all the above parameters here from config dictionary
 
 ### Observation Mode
-* `0` - Vector - Returns \[Agent Position (3-x,y,z) ,Agent Velocity (3-x,y,z), 
-  Agent Rotation(4-x,y,z,w), Goal Position (3-x,y,z,w)]  
-* `1` - Visual- Returns \[\[Raw Agent Camera]\(84,84,3), 
-  \[Depth Agent Camera]\(84,84,1), \[Segmentation Agent Camera]\(84,84,3)]]  
-* `2` - VectorVisual - Returns \[\[Raw Agent Camera]\(84,84,3), 
-  \[Depth Agent Camera]\(84,84,1), \[Segmentation Agent Camera]\(84,84,3), 
-  \[Agent Position (3-x,y,z), Agent Velocity (3-x,y,z), 
-  Agent Rotation (4-x,y,z,w), Goal Position (3-x,y,z,w)]]  
+Sets the return mode of observations to one of the following. The observations themselves are described in the 
+Observation Space heading in next subsection.
+* `0` - Vector only  
+* `1` - Visual only  
+* `2` - VectorVisual - Vector and Visual  
 
 ### Segmentation Mode
 * `0` - Object Seg: Each 'class' of gameobject in the scene is a unique color  
