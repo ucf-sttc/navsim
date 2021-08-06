@@ -173,7 +173,7 @@ class TestAroraGymEnv1:
         navigable_map = env.get_navigable_map()
         env.reset()
         err_margin=1.0
-        samples = 1000
+        samples = 10
         for i in range(0,samples):
             logger.debug(f"===========")
             logger.debug(f"Original Position: {env.agent_position} and {env.agent_rotation} and {env.goal_position}")
@@ -199,12 +199,11 @@ class TestAroraGymEnv1:
         
     def test_set_agent_rotation(self, request, env_4_class, env_config):
         logger.info(f"=========== Running {request.node.name}")
-        #setLoggerLevel(env_config["debug"])
         
         env = env_4_class(env_config)
         navigable_map = env.get_navigable_map()
         err_margin=0.1
-        samples = 1000
+        samples = 10
         for sample in range(0, samples):
             env.reset()
             for sampled_rotation in VALID_QUATERNIONS:

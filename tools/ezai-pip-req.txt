@@ -29,10 +29,11 @@ gym==0.18.0
 
 # unity begin
 # release 18, c# 1.5.0, py 0.27
-mlagents==0.27.0
+#mlagents==0.27.0
 #mlagents_envs==0.27.0
 navsim_mlagents_envs==0.27.0
 gym_unity==0.27.0
+
 # unity end
 
 stable-baselines3[extra]

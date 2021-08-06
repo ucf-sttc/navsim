@@ -10,6 +10,7 @@ cattrs
 bidict
 tqdm
 pyyaml
+click
 twine  # for pypi
 ifcfg
 sphinx # for docs

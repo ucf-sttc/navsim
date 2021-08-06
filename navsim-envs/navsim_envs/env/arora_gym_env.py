@@ -216,9 +216,10 @@ class AroraGymEnv(UnityToGymWrapper):
                 time.sleep(2)
                 self._navsim_base_port += 1
             else:
-                AroraGymEnv.logger.info(f"Created UnityEnvironment at port "
-                                         f"{self._navsim_base_port + self._navsim_worker_id}"
-                                         f" to start from episode {self.start_from_episode}")
+                from_str = "" if env_path is None else f"from {env_path}"
+                AroraGymEnv.logger.info(f"Created UnityEnvironment {from_str} "
+                                        f"at port {self._navsim_base_port + self._navsim_worker_id} "
+                                        f"to start from episode {self.start_from_episode}")
                 break
 
         super().__init__(unity_env=self.uenv,
@@ -392,7 +393,7 @@ class AroraGymEnv(UnityToGymWrapper):
         then it takes them from the current state.
 
         Returns:
-            True if the state is set, else False
+            Observations if possible, else None
 
         """
 
