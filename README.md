@@ -1,15 +1,14 @@
 # Introduction 
-A navigation simulator API built on top of Python, Pytorch.
+A navigation simulator (navsim) API built on top of Python, Pytorch.
 
-Can use many simulator backends, for now uses the Arora Simulator, that is a 
-Unity3D GameEngine based Berlin city environment.
+In the future, navsim may be compatible with a variety of simulators, but for now it uses A Realistc Open environment for Rapid Agent training(ARORA) Simulator, that is a highly attributed Unity3D GameEngine based Berlin city environment.
 
 ## Versions
 
-There are three components: arora binary, navsim python api, navsim container
+There are three components: The ARORA binary, the navsim python api, and the navsim container
 You can use any version of each of them as long as first two digits match.
 These are the latest releases of each of them:
-* arora binary 2.10.5
+* ARORA binary 2.10.5
 * navsim python api 2.10.8
 * navsim container 2.10.8
 

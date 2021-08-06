@@ -2,13 +2,13 @@
 
 `navsim_envs` is a package that wraps the environments for Reinforcement 
 Learning. Current implementation has the following sims encapsulated:
-* Arora from UCF
+* ARORA from UCF
 
 ## Installation
 
 `pip install --upgrade navsim_envs`
 
-Note: We assume you have a virtual env activated. 
+Note: We assume that you have a virtual env activated. 
 If not, please create a conda env with `conda create -n navtest python=3.8` 
 and then activate it with `conda activate navtest`.
 
@@ -18,8 +18,8 @@ the navsim conda and container page.
 ### Test the installation
 
 In order to test the install:
-* create an experiment folder, we use folder `~/exp` and change into this folder.
-* create a minimal yaml file with the following contents:
+* Create an experiment folder, we use folder `~/exp` and change into this folder.
+* Create a minimal yaml file with the following contents:
   ```yaml
   env_path: /path/to/Berlin_Walk_V2.x86_64
   ```
@@ -27,7 +27,7 @@ In order to test the install:
 * Run the tests: `navsim_env_test min_env_config.yml`. If you are using `navsim`
   container then follow the instructions on the container page.
 
-## How to use the Arora env
+## How to use the ARORA env
 
 If you only want to use `AroraGymEnv`, then either subclass it or use it as follows:
 
@@ -70,7 +70,7 @@ env = navsim_envs.env.AroraGymEnv(env_config)
 ```
 
 If you want to use our `navsim` conda environment or `navsim` container then
-follow the instructions <insert_link_here>.
+follow the instructions <TODO: insert_link_here>.
 
 ## Config Parameters
 
@@ -80,14 +80,14 @@ TODO: Explain all the above parameters here from config dictionary
 * `0` - Vector - Returns \[Agent Position (3-x,y,z) ,Agent Velocity (3-x,y,z), 
   Agent Rotation(4-x,y,z,w), Goal Position (3-x,y,z,w)]  
 * `1` - Visual- Returns \[\[Raw Agent Camera]\(84,84,3), 
-  \[Depth Agent Camera]\(84,84,1), \[Segmentation Agent Camera]\(84,84,3)]  
+  \[Depth Agent Camera]\(84,84,1), \[Segmentation Agent Camera]\(84,84,3)]]  
 * `2` - VectorVisual - Returns \[\[Raw Agent Camera]\(84,84,3), 
   \[Depth Agent Camera]\(84,84,1), \[Segmentation Agent Camera]\(84,84,3), 
   \[Agent Position (3-x,y,z), Agent Velocity (3-x,y,z), 
   Agent Rotation (4-x,y,z,w), Goal Position (3-x,y,z,w)]]  
 
 ### Segmentation Mode
-* `0` - Object Seg: Each gameobject in the scene is a unique color  
+* `0` - Object Seg: Each 'class' of gameobject in the scene is a unique color  
 * `1` - Tag Seg:  Gameobject colors are based on the tag assigned such that all 
 objects with the same tag share a color. (E.g. Car, Tree, Buildings)  
 * `2` - Layer Seg: Similar to tag segmentation but with the physics layers. 
@@ -95,13 +95,13 @@ Current layers (Default, Trees, Tree Colliders, Agent Vehicle,
 Autonomous Vehicle, Parked Vehicle)  
 
 ### Task
-* `0` - PointNav - Agent is randomly placed along with a randomly place goal 
+* `0` - PointNav - The agent is randomly placed along with a randomly place goal 
 position. The agent must navigate to the goal position.  
 * `1` - SimpleObjectNav1 - The Agent is place at a specified starting location 
 (manually identified traffic intersection). Goal is a sedan 40m forward in a 
 straight line of the agent. The goal is to reach that sedan.  
 * `2` - ObjectNav - The Agent is randomly place and goal object is defined by 
-the goal parameter. The agent must reach one instance of the goal object. 
+the goal parameter. The Agent must reach one instance of the goal object. 
 E.g. The goal object is a sedan and there any multiple sedans in the scene. 
 Reaching any of the sedans results in a success.  
 
