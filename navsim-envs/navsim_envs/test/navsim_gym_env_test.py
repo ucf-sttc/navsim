@@ -23,7 +23,11 @@ logger = AroraGymEnv.logger
 #        logger.setLevel(20)
 
 # This runs first before any class in this module runs
-@pytest.fixture(scope="module")
+TESTABLE_CONFIG_PARAMETERS= {
+    'seed' : [0, 1, 2, 123, 1000]
+}
+
+@pytest.fixture(scope="session")
 def env_config():
     config = deepcopy(env_conf)
     run_base_folder = Path('.').resolve() / 'tst_logs'
@@ -41,6 +45,12 @@ def env_config():
                 )
     return config
 
+def env_config_generator(env_config):
+    for key, value in enumerate(TESTABLE_CONFIG_PARAMETERS):
+        for v in value:
+            gen = env_config().copy()
+            gen[key] = v 
+            yield gen
 
 def env_deletor(env):
     env.close()
@@ -88,6 +98,9 @@ class TestAroraGymEnv1:
     env is initialized once per class
     """
 
+          
+
+    #@pytest.mark.parametrize("env_config", env_config_generator(env_config))
     # Tests whether the navigable map returned has navigable points
     def test_navigable_map(self, request, env_4_class, env_config):
         env = env_4_class(env_config)
@@ -233,6 +246,31 @@ class TestAroraGymEnv1:
             
         logger.info(f'{samples} sampled points are able to set agent state')
 
+    def test_get_obs(self, request, env_4_class, env_config):
+        logger.info(f"=========== Running {request.node.name}")
+        
+        env = env_4_class(env_config)
+        env.reset()
+        err_margin=1.0
+        samples = 10
+        for i in range(0,samples):
+            logger.debug(f"===========")
+            logger.debug(f"Original Position: {env.agent_position} and {env.agent_rotation} and {env.goal_position}")
+            sampled_position = env.sample_navigable_point() 
+            logger.debug(f"Sampled Position: {sampled_position}")
+            o = env.get_agent_obs_at(sampled_position)
+            logger.debug(f"{o}")
+            
+            assert o != None
+            cur_position = o[0][:3]
+            cur_rotation = o[0][6:10]
+            assert cur_position[0] < sampled_position[0]+err_margin and cur_position[0] > sampled_position[0]-err_margin
+            assert cur_position[1] < sampled_position[1]+err_margin and cur_position[1] > sampled_position[1]-err_margin
+            assert cur_position[2] < sampled_position[2]+err_margin and cur_position[2] > sampled_position[2]-err_margin
+            
+        
+        
+
 
 class TestAroraGymEnv3:
     """
@@ -265,6 +303,9 @@ class TestAroraGymEnv3:
             del env
 
         for i in range(1, len(obs_arr)):
+            logger.debug(f"==========={i}")
+            logger.debug(f"i-1  {obs_arr[i-1]}")
+            logger.debug(f"i  {obs_arr[i]}")
             assert np.array_equal(obs_arr[i - 1], obs_arr[i])
             # assert np.isclose(obs_arr[i-1], obs_arr[i], atol=1.0)
         logger.info(
