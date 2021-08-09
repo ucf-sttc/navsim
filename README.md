@@ -7,10 +7,9 @@ In the future, navsim may be compatible with a variety of simulators, but for no
 
 There are three components: The ARORA binary, the navsim python api, and the navsim container
 You can use any version of each of them as long as first two digits match.
-These are the latest releases of each of them:
-* ARORA binary 2.10.5
-* navsim python api 2.10.8
-* navsim container 2.10.8
+
+This version of navsim has been tested with latest release of ARORA binary is 2.10.7.
+
 
 
 
