@@ -27,8 +27,11 @@ TESTABLE_CONFIG_PARAMETERS= {
     'seed' : [0, 1, 2, 123, 1000]
 }
 
-@pytest.fixture(scope="session")
-def env_config():
+@pytest.fixture(scope="session", params=[
+    {'seed' : 0},
+    {'seed' : 1}
+])
+def env_config(request):
     config = deepcopy(env_conf)
     run_base_folder = Path('.').resolve() / 'tst_logs'
     run_base_folder.mkdir(parents=True, exist_ok=True)
@@ -39,6 +42,10 @@ def env_config():
         if env_config_from_file is not None:
             logger.info(f'Updating env_config from {env_config_file}')
             config.update(env_config_from_file)
+
+
+    for key, value in request.param.items():
+        config[key]=value
 
     logger.info(f'\n'
                 f'{config_banner(config, "env_config")}'
