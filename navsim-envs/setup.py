@@ -47,7 +47,7 @@ setuptools.setup(
         "console_scripts": [
             "navsim_env_test=navsim_envs.env_tst:main",
             "navsim_env_kill=navsim_envs.env_kill:main",
-#            "navsim_env_benchmark=navsim_envs.benchmarks.benchmark:main",
+            "navsim_env_benchmark=navsim_envs.benchmarks.benchmark:main",
 #            "navsim_env_saturate_gpu=navsim_envs.benchmarks.saturate_gpu:main",
         ]
     },
