@@ -41,8 +41,7 @@ def config_banner(config, config_name):
 
 def save_config(config, config_filename):
     with open(config_filename, 'w') as f:
-        val = yaml.dump(config, f, default_flow_style=False)
-    return val
+        return yaml.dump(config, f, default_flow_style=False)
 
 
 def load_config(config_filename):
