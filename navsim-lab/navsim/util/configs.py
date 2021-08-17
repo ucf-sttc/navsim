@@ -1,0 +1,23 @@
+run_config = {
+    "run_id": 'demo',
+    "env": 'arora-v0',
+    "agent_gpu_id": 0,
+    "num_workers": 1,
+    "episode_max_steps": 50,
+    "total_episodes": 2,
+    "seed": None,
+    "discount": 0.99,
+    "tau": 5e-3,
+    "expl_noise": 0.1,
+    "memory_capacity": 100,
+    "batch_size": 32,
+    "checkpoint_interval": 1,
+    "train_interval": 1,
+    "mem_backend": "cupy",
+    "clear_memory": False,
+    "debug": False,
+    "log_level": "INFO",
+    "framework": "torch",
+    "resume": False,
+    "continue_arg": False
+}

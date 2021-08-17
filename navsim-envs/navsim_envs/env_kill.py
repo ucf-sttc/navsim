@@ -12,7 +12,6 @@ def env_kill(env_filename):
         if env_filename in proc.name():
             proc.kill()
 
-
 # For python debugger to directly run this script
 if __name__ == "__main__":
     main()

@@ -7,4 +7,4 @@ from .util import (
 
 from .resources import ResourceCounter
 # from .conf import BaseConfig
-from .env_utils import env_info
+from .configs import run_config

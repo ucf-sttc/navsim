@@ -12,6 +12,7 @@ from gym_unity.envs import (
     UnityToGymWrapper,
     GymStepResult
 )
+from ..util.configs import env_config as default_env_config
 
 # @attr.s(auto_attribs=True)
 # class AgentState:
@@ -19,7 +20,7 @@ from gym_unity.envs import (
 #    rotation: Optional["np.ndarray"] = None
 
 from ..util.exceptions import EnvNotInitializedError
-
+from .arora_unity_env import AroraUnityEnv
 from mlagents_envs.logging_util import get_logger
 
 from mlagents_envs.exception import UnityWorkerInUseException
@@ -95,26 +96,24 @@ class AroraGymEnv(UnityToGymWrapper):
         # TODO: convert env_config to self.env_config so we can add missing values
         #   and use self.env_config to print in the info section
         # filename: Optional[str] = None, obs_mode: int = 0, max_steps:int = 5):
-        self.env_config = env_config
-        self.obs_mode = int(self.env_config.get('obs_mode', 2))
-        self.start_from_episode = int(
-            self.env_config.get('start_from_episode', 1))
-        self.debug = env_config.get("debug", False)
-        if self.debug:
+
+        for key in default_env_config:
+            if key not in env_config:
+                env_config[key] = env_config
+
+        log_folder = Path(env_config['log_folder']).resolve()
+        # self.obs_mode = int(self.env_config.get('obs_mode', 2))
+        if env_config['debug']:
             self.logger.setLevel(10)
         else:
             self.logger.setLevel(20)
 
         self._obs = None
 
-        if self.obs_mode == 0:
+        if env_config['obs_mode'] == 0:
             env_config["save_visual_obs"] = False
-        elif self.obs_mode == 1:
+        elif env_config['obs_mode'] == 1:
             env_config["save_vector_obs"] = False
-
-        self.save_actions = env_config.get("save_actions", False)
-        self.save_visual_obs = env_config.get("save_visual_obs", False)
-        self.save_vector_obs = env_config.get("save_vector_obs", False)
 
         self.e_num = 0
         self.s_num = 0
@@ -125,123 +124,119 @@ class AroraGymEnv(UnityToGymWrapper):
         self._goal_position = None
 
         self.spl_start = self.spl_current = None
-        self.reward_spl_delta_mul = float(
-            self.env_config.get('reward_spl_delta_mul', 1))
+        # self.reward_spl_delta_mul = env_config['reward_spl_delta_mul']
 
         # self.run_base_folder_str = env_config.get("run_base_folder_str", '.')
         # self.run_base_folder = Path(self.run_base_folder_str)
-        seed = int(self.env_config.get('seed') or 0)
+        # seed = int(self.env_config.get('seed') or 0)
 
         # if self._env:
         #    raise ValueError('Environment already open')
         # else:
 
-        self.map_side_channel = MapSideChannel()
-        self.fpc = FloatPropertiesChannel()
-        self.nsc = NavigableSideChannel()
-        self.sapsc = SetAgentPositionSideChannel()
+        # self.map_side_channel = MapSideChannel()
+        # self.fpc = FloatPropertiesChannel()
+        # self.nsc = NavigableSideChannel()
+        # self.sapsc = SetAgentPositionSideChannel()
         # print(self.map_side_channel
         # )
 
-        eng_sc = EngineConfigurationChannel()
-        eng_sc.set_configuration_parameters(time_scale=10, quality_level=0)
+        # eng_sc = EngineConfigurationChannel()
+        # eng_sc.set_configuration_parameters(time_scale=10, quality_level=0)
 
-        env_pc = EnvironmentParametersChannel()
-        env_sfp = env_pc.set_float_parameter
+        # env_pc = EnvironmentParametersChannel()
+        # env_sfp = env_pc.set_float_parameter
 
-        env_sfp("rewardForGoal",
-                float(self.env_config.get('reward_for_goal', 50)))
-        env_sfp("rewardForNoViablePath",
-                float(self.env_config.get('reward_for_no_viable_path', -50)))
-        env_sfp("rewardStepMul",
-                float(self.env_config.get('reward_step_mul', 0.1)))
-        env_sfp("rewardCollisionMul",
-                float(self.env_config.get('reward_collision_mul', 4)))
-        env_sfp("rewardSplDeltaMul",
-                float(self.env_config.get('reward_spl_delta_mul', 1)))
-        env_sfp("segmentationMode",
-                float(self.env_config.get('segmentation_mode', 1)))
-        env_sfp("observationMode",
-                float(self.env_config.get('obs_mode', 2)))
-        env_sfp("episodeLength",
-                float(self.env_config.get('episode_max_steps', 100)))
-        env_sfp("selectedTaskIndex", float(self.env_config.get('task', 0)))
-        env_sfp("goalSelectionIndex", float(self.env_config.get('goal', 0)))
-        env_sfp("agentCarPhysics",
-                float(self.env_config.get('agent_car_physics', 0)))
-        env_sfp("goalDistance", float(self.env_config.get('goal_distance', 10)))
-        env_sfp("numberOfTrafficVehicles",
-                float(self.env_config.get('traffic_vehicles', 0)))
-
-        env_path = self.env_config.get('env_path')
-        env_path = None if env_path is None else str(Path(env_path).resolve())
-
-        self._navsim_base_port = self.env_config.get('base_port', None)
+        # env_sfp("rewardForGoal",
+        #        float(self.env_config.get('reward_for_goal', 50)))
+        # env_sfp("rewardForNoViablePath",
+        #        float(self.env_config.get('reward_for_no_viable_path', -50)))
+        # env_sfp("rewardStepMul",
+        #        float(self.env_config.get('reward_step_mul', 0.1)))
+        # env_sfp("rewardCollisionMul",
+        #        float(self.env_config.get('reward_collision_mul', 4)))
+        # env_sfp("rewardSplDeltaMul",
+        #        float(self.env_config.get('reward_spl_delta_mul', 1)))
+        # env_sfp("segmentationMode",
+        #        float(self.env_config.get('segmentation_mode', 1)))
+        # env_sfp("observationMode",
+        #        float(self.env_config.get('obs_mode', 2)))
+        # env_sfp("episodeLength",
+        #        float(self.env_config.get('episode_max_steps', 100)))
+        # env_sfp("selectedTaskIndex", float(self.env_config.get('task', 0)))
+        # env_sfp("goalSelectionIndex", float(self.env_config.get('goal', 0)))
+        # env_sfp("agentCarPhysics",
+        #        float(self.env_config.get('agent_car_physics', 0)))
+        # env_sfp("goalDistance", float(self.env_config.get('goal_distance', 10)))
+        # env_sfp("numberOfTrafficVehicles",
+        #        float(self.env_config.get('traffic_vehicles', 0)))
+        #
+        # env_path = self.env_config.get('env_path')
+        # env_path = None if env_path is None else str(Path(env_path).resolve())
+        #
+        self._navsim_base_port = env_config['base_port']
         if self._navsim_base_port is None:
-            self._navsim_base_port = UnityEnvironment.BASE_ENVIRONMENT_PORT if env_path else UnityEnvironment.DEFAULT_EDITOR_PORT
-        self._navsim_worker_id = self.env_config.get('worker_id', 0)
+            self._navsim_base_port = UnityEnvironment.BASE_ENVIRONMENT_PORT if env_config['env_path'] else UnityEnvironment.DEFAULT_EDITOR_PORT
+        self._navsim_worker_id = env_config['worker_id']
 
         while True:
             try:
-                log_folder = Path(
-                    self.env_config.get('log_folder', './env_log')).resolve()
-                log_folder.mkdir(parents=True, exist_ok=True)
-                ad_args = [
-                    "-force-device-index",
-                    f"{self.env_config.get('env_gpu_id', 0)}",
-                    "-observationWidth",
-                    f"{self.env_config.get('obs_width', 256)}",
-                    "-observationHeight",
-                    f"{self.env_config.get('obs_height', 256)}",
-                    "-fastForward", f"{self.start_from_episode - 1}",
-                    "-showVisualObservations" if self.env_config.get(
-                        'show_visual', False) else "",
-                    "-saveStepLog" if self.debug else ""
-                ]
-                self.uenv = UnityEnvironment(file_name=env_path,
-                                             log_folder=str(log_folder),
-                                             seed=seed,
-                                             timeout_wait=self.env_config.get(
-                                                 'timeout', 600) + (0.5 * (
-                                                     self.start_from_episode - 1)),
-                                             worker_id=self._navsim_worker_id,
-                                             base_port=self._navsim_base_port,
-                                             no_graphics=False,
-                                             side_channels=[eng_sc, env_pc,
-                                                            self.map_side_channel,
-                                                            self.fpc, self.nsc,
-                                                            self.sapsc],
-                                             additional_args=ad_args)
+                #        log_folder = Path(
+                #            self.env_config.get('log_folder', './env_log')).resolve()
+                #        log_folder.mkdir(parents=True, exist_ok=True)
+                #        ad_args = [
+                #            #"-force-device-index",
+                #            "-gpu",
+                #            f"{self.env_config.get('env_gpu_id', 0)}",
+                #            "-observationWidth",
+                #            f"{self.env_config.get('obs_width', 256)}",
+                #            "-observationHeight",
+                #            f"{self.env_config.get('obs_height', 256)}",
+                #            "-fastForward", f"{self.start_from_episode - 1}",
+                #            "-showVisualObservations" if self.env_config.get(
+                #                'show_visual', False) else "",
+                #            "-saveStepLog" if self.debug else ""
+                #        ]
+                #        self.uenv = UnityEnvironment(file_name=env_path,
+                #                                     log_folder=str(log_folder),
+                #                                     seed=seed,
+                #                                     timeout_wait=self.env_config.get(
+                #                                         'timeout', 600) + (0.5 * (
+                #                                             self.start_from_episode - 1)),
+                #                                     worker_id=self._navsim_worker_id,
+                #                                     base_port=self._navsim_base_port,
+                #                                     no_graphics=False,
+                #                                     side_channels=[eng_sc, env_pc,
+                #                                                    self.map_side_channel,
+                #                                                    self.fpc, self.nsc,
+                #                                                    self.sapsc],
+                #                                     additional_args=ad_args)
+                env_config["worker_id"] = self._navsim_worker_id
+                env_config["base_port"] = self._navsim_base_port
+                self.uenv = AroraUnityEnv(env_config=env_config)
             except UnityWorkerInUseException:
                 time.sleep(2)
                 self._navsim_base_port += 1
             else:
-                from_str = "" if env_path is None else f"from {env_path}"
+                from_str = "" if env_config['env_path'] is None else f"from {env_config['env_path']}"
                 AroraGymEnv.logger.info(f"Created UnityEnvironment {from_str} "
                                         f"at port {self._navsim_base_port + self._navsim_worker_id} "
-                                        f"to start from episode {self.start_from_episode}")
+                                        f"to start from episode {env_config['start_from_episode']}")
                 break
 
         super().__init__(unity_env=self.uenv,
                          uint8_visual=False,
                          flatten_branched=False,
                          allow_multiple_obs=True,
-                         action_space_seed=seed
+                         action_space_seed=env_config['seed']
                          )
-
-        # TODO: Once the environment has capability to start from an episode, then remove this
-        # if self.start_from_episode > 1:
-        #    logger.info(f'jumping to episode {self.start_from_episode}')
-        # for i in range(1, self.start_from_episode):
-        #    self.reset()
-        #    logger.info(f'skipping episode {self.e_num}')
 
         # TODO: the filenames should be prefixed with specific id of this instance of env
 
         # TODO: Read the file upto start_episode and purge the records
         self.actions_file = log_folder / 'actions.csv'
-        if self.save_actions:
-            if (self.start_from_episode == 1) or (
+        if env_config['save_actions']:
+            if (env_config["start_from_episode"] == 1) or (
                     self.actions_file.exists() == False):
                 self.actions_file = self.actions_file.open(mode='w')
             else:
@@ -251,19 +246,19 @@ class AroraGymEnv(UnityToGymWrapper):
                                              quotechar='"',
                                              quoting=csv.QUOTE_MINIMAL)
 
-        if self.save_visual_obs and (self.obs_mode in [1, 2]):
-            self.rgb_folder = log_folder / 'rgb_obs'
+        if env_config['save_visual_obs'] and (env_config["obs_mode"] in [1, 2]):
+            self.rgb_folder = env_config['log_folder'] / 'rgb_obs'
             self.rgb_folder.mkdir(parents=True, exist_ok=True)
-            self.dep_folder = log_folder / 'dep_obs'
+            self.dep_folder = env_config['log_folder'] / 'dep_obs'
             self.dep_folder.mkdir(parents=True, exist_ok=True)
-            self.seg_folder = log_folder / 'seg_obs'
+            self.seg_folder = env_config['log_folder'] / 'seg_obs'
             self.seg_folder.mkdir(parents=True, exist_ok=True)
         else:
-            self.save_visual_obs = False
+            env_config['save_visual_obs'] = False
 
-        if self.save_vector_obs and (self.obs_mode in [0, 2]):
+        if env_config['save_vector_obs'] and (env_config["obs_mode"] in [0, 2]):
             self.vec_file = log_folder / 'vec_obs.csv'
-            if (self.start_from_episode == 1) or (
+            if (env_config['start_from_episode'] == 1) or (
                     self.vec_file.exists() == False):
                 self.vec_file = self.vec_file.open(mode='w')
                 self.vec_writer = csv.writer(self.vec_file,
@@ -284,7 +279,9 @@ class AroraGymEnv(UnityToGymWrapper):
                                              quoting=csv.QUOTE_MINIMAL)
             self.vec_file.flush()
         else:
-            self.save_vector_obs = False
+            env_config['save_vector_obs'] = False
+
+        self.env_config = env_config
 
     def _save_obs(self, obs):
         """Private method to save the observations in file
@@ -295,19 +292,19 @@ class AroraGymEnv(UnityToGymWrapper):
         Returns:
 
         """
-        if self.save_vector_obs:
+        if self.env_config['save_vector_obs']:
             self.vec_writer.writerow(
                 [self.e_num, self.s_num, self.spl_current, time.time()] +
                 list(obs[-1]))
             self.vec_file.flush()
-        if self.save_visual_obs:
+        if self.env_config['save_visual_obs']:
             filename = f'{self.e_num}_{self.s_num}.jpg'
             imwrite(str(self.rgb_folder / filename), obs[0] * 255)
             imwrite(str(self.dep_folder / filename), obs[1] * 255)
             imwrite(str(self.seg_folder / filename), obs[2] * 255)
 
     def _set_obs(self):
-        if self.obs_mode in [0, 2]:
+        if self.env_config['obs_mode'] in [0, 2]:
             vec_obs = list(self._obs[-1])
             self._agent_position = vec_obs[0:3]
             self._agent_velocity = vec_obs[3:6]
@@ -319,7 +316,7 @@ class AroraGymEnv(UnityToGymWrapper):
         self._obs = s0
         self._set_obs()
         self.s_num = 0
-        self.e_num += 1 if self.e_num else self.start_from_episode
+        self.e_num += 1 if self.e_num else self.env_config['start_from_episode']
         self.spl_start = self.spl_current = self.shortest_path_length
         self._save_obs(self._obs)
         return s0
@@ -331,7 +328,7 @@ class AroraGymEnv(UnityToGymWrapper):
         self.s_num += 1
         self.spl_current = self.shortest_path_length
         self._save_obs(self._obs)
-        if self.save_actions:
+        if self.env_config['save_actions']:
             self.actions_writer.writerow(
                 [self.e_num, self.s_num] + list(action))
             self.actions_file.flush()
@@ -366,13 +363,13 @@ class AroraGymEnv(UnityToGymWrapper):
             For Observation Mode 1 and 2 - each render mode returns a numpy array of the image
             For Observation Mode 0 and 2 - render mode vector returns vector observations
         """
-        if mode == 'rgb_array' and self.obs_mode in [1, 2]:
+        if mode == 'rgb_array' and self.env_config["obs_mode"] in [1, 2]:
             obs = self._obs[0]
-        elif mode == 'depth' and self.obs_mode in [1, 2]:
+        elif mode == 'depth' and self.env_config["obs_mode"] in [1, 2]:
             obs = self._obs[1]
-        elif mode == 'segmentation' and self.obs_mode in [1, 2]:
+        elif mode == 'segmentation' and self.env_config["obs_mode"] in [1, 2]:
             obs = self._obs[2]
-        elif mode == 'vector' and self.obs_mode in [0, 2]:
+        elif mode == 'vector' and self.env_config["obs_mode"] in [0, 2]:
             obs = self._obs[-1]
         else:
             raise ValueError("Bad render mode was specified or the "
@@ -382,7 +379,7 @@ class AroraGymEnv(UnityToGymWrapper):
         return obs
 
     def get_agent_obs_at(self, position: Optional[List[float]] = None,
-                        rotation: Optional[List[float]] = None):
+                         rotation: Optional[List[float]] = None):
         """Get the agent observations at position or rotation
 
         Args:
@@ -406,25 +403,24 @@ class AroraGymEnv(UnityToGymWrapper):
         state += rot if rotation is None else rotation
 
         unity_output = self.uenv._process_immediate_message(
-            self.sapsc.build_immediate_request("getObservation",
-                                               state))
+            self.uenv.sapsc.build_immediate_request("getObservation",
+                                                    state))
 
-        if self.sapsc.success:
+        if self.uenv.sapsc.success:
             s_, _, _, _ = self._single_step(
                 steps_from_proto(
                     unity_output.rl_output.agentInfos["immediate"].value,
                     self.uenv._env_specs[self.name]
                 )[1]
             )
-            #self.obs = s_
-            #self._set_obs()
-            #if position is not None:
+            # self.obs = s_
+            # self._set_obs()
+            # if position is not None:
             #    self._agent_position = position
-            #if rotation is not None:
+            # if rotation is not None:
             #    self._agent_rotation = rotation
 
-        return s_ if self.sapsc.success else None
-
+        return s_ if self.uenv.sapsc.success else None
 
     def set_agent_state(self, position: Optional[List[float]] = None,
                         rotation: Optional[List[float]] = None):
@@ -451,10 +447,10 @@ class AroraGymEnv(UnityToGymWrapper):
         state += rot if rotation is None else rotation
 
         unity_output = self.uenv._process_immediate_message(
-            self.sapsc.build_immediate_request("agentPosition",
-                                               state))
+            self.uenv.sapsc.build_immediate_request("agentPosition",
+                                                    state))
 
-        if self.sapsc.success:
+        if self.uenv.sapsc.success:
             s_, _, _, _ = self._single_step(
                 steps_from_proto(
                     unity_output.rl_output.agentInfos["immediate"].value,
@@ -463,12 +459,12 @@ class AroraGymEnv(UnityToGymWrapper):
             )
             self._obs = s_
             self._set_obs()
-            #if position is not None:
+            # if position is not None:
             #    self._agent_position = position
-            #if rotation is not None:
+            # if rotation is not None:
             #    self._agent_rotation = rotation
 
-        return self.sapsc.success
+        return self.uenv.sapsc.success
 
     def set_agent_position(self, position: Optional[List[float]]):
         """Set the agent position
@@ -538,11 +534,11 @@ class AroraGymEnv(UnityToGymWrapper):
             raise ValueError("maximum map size is 3284 agent_x 2666")
 
         self.uenv._process_immediate_message(
-            self.map_side_channel.build_immediate_request("binaryMap",
-                                                          [resolution_x,
-                                                           resolution_y,
-                                                           cell_occupancy_threshold]))
-        return self.map_side_channel.requested_map
+            self.uenv.map_side_channel.build_immediate_request("binaryMap",
+                                                               [resolution_x,
+                                                                resolution_y,
+                                                                cell_occupancy_threshold]))
+        return self.uenv.map_side_channel.requested_map
 
         # def start_navigable_map(self, resolution_x=256, resolution_y=256,
         #                        cell_occupancy_threshold=0.5):
@@ -669,7 +665,7 @@ class AroraGymEnv(UnityToGymWrapper):
         yaw_z = math.atan2(t3, t4)
 
         return pitch_y, yaw_z, roll_x  # in radians
-        
+
     def navmap_to_unity_rotation(self, navmap_rotation: List[float]):
         """Convert a rotation from navigable map's 2D coordinate system to Unity's quarternion
 
@@ -777,9 +773,9 @@ class AroraGymEnv(UnityToGymWrapper):
                 point = [x, y, z]
 
         self.uenv._process_immediate_message(
-            self.nsc.build_immediate_request("navigable", point))
+            self.uenv.nsc.build_immediate_request("navigable", point))
 
-        return self.nsc.point
+        return self.uenv.nsc.point
 
     def is_navigable(self, x: float, y: float, z: float) -> bool:
         """Returns if the point is navigable or not
@@ -901,8 +897,6 @@ class AroraGymEnv(UnityToGymWrapper):
             raise EnvNotInitializedError()
         return self._agent_velocity
 
-
-
     # sim.get_agent_state() -> agent_x, y, orientation
     # sim.set_agent_state(position, orientation)
     # sim.get_observations_at(position, orientation) -> observation when agent is at position with specified orientation
@@ -934,10 +928,4 @@ class AroraGymEnv(UnityToGymWrapper):
         """the shortest navigable path length from current location to
         goal position
         """
-        return self.fpc.get_property("ShortestPath")
-
-### Position Scan - Not Available
-# Given a position and this returns the attribution data of the first object
-# found at the given position. Objects are searched for within a 1 meter radius
-# of the given position. If the position is not loaded in the environment then
-# None will be returned.
+        return self.uenv.fpc.get_property("ShortestPath")

@@ -32,13 +32,65 @@ def load_dict_from_json_file(filename):
     dict_obj = json.load(open(filename, 'r'))
     return dict_obj
 
+
 def load_dict_from_yaml_file(filename):
     dict_obj = yaml.safe_load(open(filename, 'r'))
     return dict_obj
 
+
 def load_dict_from_json_str(string):
     dict_obj = json.loads(string)
     return dict_obj
+
+
+def to_nested_objdict(obj):
+    """ Converts to Nested DictObj
+
+    Args:
+        obj: a Dict kind of Object
+
+    Returns:
+        Converts dict into nested ObjDict
+
+    """
+    if not isinstance(obj, ObjDict):
+        if isinstance(obj, dict):
+            obj = ObjDict(obj)
+        else:
+            raise ValueError(f"You passed {type(obj)}, which is not a Dict or ObjDict")
+
+    for key in obj:
+        if isinstance(obj[key], dict):
+            obj[key] = to_nested_objdict(obj[key])
+    return obj
+
+def to_nested_dict(obj):
+    """ Converts to Nested Dict
+
+    Args:
+        obj: a Dict kind of Object
+
+    Returns:
+        Converts ObjDict into nested dict
+
+    """
+    if not isinstance(obj, dict):
+        if isinstance(obj, ObjDict):
+            obj = obj.__dict__
+        else:
+            raise ValueError(f"You passed {type(obj)}, which is not a Dict or ObjDict")
+
+    for key in obj:
+        if isinstance(obj[key], ObjDict):
+            obj[key] = to_nested_dict(obj[key])
+    return obj
+
+
+def to_yaml(obj):
+    #if not isinstance(obj, dict):
+    #    obj = obj.__dict__
+    #return yaml.dump(obj, default_flow_style=False)
+    return yaml.dump(json.loads(json.dumps(obj)))
 
 
 class NPJSONEncoder(json.JSONEncoder):
@@ -62,8 +114,8 @@ def save_to_json_file(obj, filename, sort_keys=False, indent=4):
 def save_to_yaml_file(obj, filename):
     if not isinstance(obj, dict):
         obj = obj.__dict__
-    yaml.safe_dump(obj, open(filename, 'w'))
-
+    #yaml.dump(obj, open(filename, 'w'), default_flow_style=False)
+    yaml.dump(json.loads(json.dumps(obj)), open(filename, 'w') )
 
 class ObjDict(dict):
     """A data structure that inherits from dict and adds object style member access
@@ -71,7 +123,12 @@ class ObjDict(dict):
     TODO:
         * Create an init method that converts nested dicts in this object.
     """
-    #__getattr__ = dict.__getitem__
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        to_nested_objdict(self)
+
+    # __getattr__ = dict.__getitem__
     __setattr__ = dict.__setitem__
     __delattr__ = dict.__delitem__
 
@@ -81,7 +138,7 @@ class ObjDict(dict):
         except KeyError:
             raise AttributeError(name)
 
-    #def __str__(self):
+    # def __str__(self):
     #    return self.json_dumps()
 
     def to_json(self, sort_keys=False, indent=2):
@@ -106,12 +163,12 @@ class ObjDict(dict):
         return cattr.unstructure(self)
 
     def to_yaml(self):
-        """convery to yaml representation
+        """convert to yaml representation
 
         Returns:
             yaml string
         """
-        return yaml.dump(json.loads(json.dumps(self)))
+        return to_yaml(self)
 
     def save_to_json_file(self, filename, sort_keys=False, indent=2):
         """Save to json file

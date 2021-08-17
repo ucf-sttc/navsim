@@ -1,5 +1,4 @@
 import csv
-import cv2
 from pathlib import Path
 import json
 
@@ -14,6 +13,7 @@ from navsim.util import sizeof_fmt, image_layout, s_hwc_to_chw
 from navsim.util.dict import ObjDict
 from navsim_envs.util import env_info
 from navsim.util import ResourceCounter
+import navsim
 
 import traceback
 from torch.utils.tensorboard import SummaryWriter
@@ -51,46 +51,24 @@ class Executor:
         TODO
     """
 
-    def __init__(self, resume=False, conf=None):
+    def __init__(self, config):
         """
-        :param conf: A ObjDict containing dictionary and object interface
-        :param env: Any gym compatible environment
-        :param resume: True: means continue if run exists, else start new
-                           False: means overwrite if exists, else start new
+        :param config: A ObjDict containing dictionary and object interface
         """
-        self.run_id = conf["run_config"]["run_id"]
+        self.run_id = config.run_id
+        self.run_config = config
+        for key in navsim.util.run_config:
+            if key not in config:
+                config[key]=navsim.util.run_config[key]
 
-        # self.conf = conf
-        self.resume = resume
+        self.env_config = config.get("env_config",None)
+
 
         self.run_base_folder = Path(self.run_id).resolve()
-        self.run_base_folder_str = str(self.run_base_folder)
-        #        if run_base_folder.is_dir():
-        #            raise ValueError(f"{run_base_folder_str} exists as a non-directory. "
-        #                             f"Please remove the file or use a different run_id")
-        if resume and self.run_base_folder.is_dir():
-            # self.conf = ObjDict().load_from_json_file(f"{self.run_base_folder_str}/conf.json")
+        if self.run_config.resume or self.run_config.continue_arg:
             self.file_mode = 'a+'
-
-        # else just start fresh
         else:
-
-            self.run_base_folder.mkdir(parents=True, exist_ok=True)
-            conf.save_to_json_file(str(self.run_base_folder / "conf.json"))
             self.file_mode = 'w+'
-
-        self.run_config = ObjDict(conf.run_config)
-        self.env_config = conf.get("env_config", None)
-        if self.env_config is not None:
-            self.env_config = ObjDict(self.env_config)
-            env_log_folder = self.run_base_folder / 'env_log'
-            self.env_config["log_folder"] = str(
-                self.run_base_folder / 'env_log')
-            if not resume:
-                import shutil
-                if env_log_folder.exists():
-                    shutil.rmtree(env_log_folder)
-                env_log_folder.mkdir(parents=True, exist_ok=True)
 
         pylog_filename = self.run_base_folder / 'py.log'  # TODO: use logger
         self.pylog_filename = str(pylog_filename)
@@ -107,7 +85,7 @@ class Executor:
 
         tb_folder = self.run_base_folder / 'tb'
         agent_folder = self.run_base_folder / 'agent'
-        if not resume:
+        if not self.run_config.resume:
             import shutil
             for folder in [tb_folder, agent_folder]:
                 if folder.exists():
@@ -122,7 +100,7 @@ class Executor:
         self.files_open()
 
         try:
-            if resume and self.run_base_folder.is_dir():
+            if self.run_config.resume and self.run_base_folder.is_dir():
                 with open(self.episode_num_filename,
                           mode='r') as episode_num_file:
                     episode_num = int(episode_num_file.read())
@@ -169,7 +147,7 @@ class Executor:
 
             obs_shapes = [obs.shape for obs in self.env.observation_space.spaces] if hasattr(self.env.observation_space,'spaces') else [self.env.observation_space.shape]
 
-            if resume and self.run_base_folder.is_dir() and (
+            if self.run_config.resume and self.run_base_folder.is_dir() and (
                     not self.run_config["clear_memory"]):
                 memory_filename = str(
                     self.agent_folder / f"{episode_num}_memory.pkl")
@@ -199,7 +177,7 @@ class Executor:
                 device=self.device,
                 discount=self.run_config['discount'], tau=self.run_config['tau']
             )
-            if resume and self.run_base_folder.is_dir():
+            if self.run_config.resume and self.run_base_folder.is_dir():
                 model_filename = str(
                     self.agent_folder / f"{episode_num}_model_state.pt")
                 self.agent.load_checkpoint(model_filename)
@@ -213,8 +191,9 @@ class Executor:
             self.summary_writer.add_graph(dummy_nn,[dummy_obs, dummy_act])
             del dummy_nn, dummy_obs, dummy_act
 
-            torch.manual_seed(self.run_config['seed'])
-            np.random.seed(self.run_config['seed'])
+            if self.run_config.seed is not None:
+                torch.manual_seed(self.run_config.seed)
+                np.random.seed(self.run_config.seed)
 
         except Exception as e:
             self.env_close()
@@ -244,7 +223,7 @@ class Executor:
                                                  delimiter=',',
                                                  quotechar='"',
                                                  quoting=csv.QUOTE_MINIMAL)
-        if not self.resume:
+        if not self.run_config.resume:
             self.step_results_writer.writerow(
                 ['episode_num', 't', 'r', 'step_time', 'env_step_time',
                  'memory_append_time', 'memory_sample_time',
@@ -326,7 +305,7 @@ class Executor:
         step_res = np.full((checkpoint_interval, t_max, 10, 3), 0.0)
         # [[[[0] * 3] * 10] * t_max] * checkpoint_interval
         step_rew = np.full((checkpoint_interval, t_max), 0.0)
-        step_spl = np.full((checkpoint_interval, t_max), 0.0)
+        #step_spl = np.full((checkpoint_interval, t_max), 0.0)
         step_loss = np.full((checkpoint_interval, t_max, 2), 0.0)
 
         for i in range(0, num_episode_blocks):
@@ -440,7 +419,7 @@ class Executor:
                     step_res[ckpt_e, t - 1, 8] = self.rc.snapshot()  # s8
 
                     step_rew[ckpt_e, t - 1] = r
-                    step_spl[ckpt_e, t - 1] = self.env.spl_current
+                    #step_spl[ckpt_e, t - 1] = self.env.spl_current
                     step_loss[ckpt_e, t - 1] = [
                         0 if self.agent.actor_loss is None else self.agent.actor_loss.data.cpu().numpy(),
                         0 if self.agent.critic_loss is None else self.agent.critic_loss.data.cpu().numpy()]
@@ -502,10 +481,10 @@ class Executor:
                                'time': episode_time,
                                'peak_memory': episode_resources[e_num, 1, 2],
                                'total_steps': episode_steps[e_num],
-                               'max_spl': step_spl[e_num].max(),
-                               'min_spl': step_spl[e_num].min(),
-                               'spl_span': step_spl[e_num].max() - step_spl[
-                                   e_num].min()
+                               #'max_spl': step_spl[e_num].max(),
+                               #'min_spl': step_spl[e_num].min(),
+                               #'spl_span': step_spl[e_num].max() - step_spl[
+                               #    e_num].min()
                                },
                               start_episode + e_num)  # episode_num
                 self.episode_results_writer.writerow(
@@ -538,7 +517,7 @@ class Executor:
                     r = step_rew[e_num, t]
                     self.write_tb('step',
                                   {'step_reward': r,
-                                   'step_spl': step_spl[e_num, t]
+                                  # 'step_spl': step_spl[e_num, t]
                                    },
                                   t_global)
                     self.write_tb('time',
@@ -569,11 +548,11 @@ class Executor:
             self.step_results_file.flush()
             ckpt_e = 0
         # save the state json at end of run
-        model_filename = f"{self.run_base_folder_str}/" \
+        model_filename = f"{str(self.run_base_folder)}/" \
                          f"{start_from_episode}_" \
                          f"{total_episodes}_stop_agent_state.json"
         json.dump(self.agent.get_state_dict(), open(model_filename, 'w'),
                   indent=2, sort_keys=True, cls=TorchJSONEncoder)
 
-        self.agent.save_to_onnx(folder=self.run_base_folder_str, critic=False)
+        self.agent.save_to_onnx(folder=str(self.run_base_folder), critic=False)
         return

@@ -43,3 +43,4 @@ sphinx-rtd-theme
 
 navsim>=2.10,<2.11
 navsim_envs>=2.10,<2.11
+ray[all]
