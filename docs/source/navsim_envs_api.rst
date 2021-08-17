@@ -9,6 +9,11 @@ env classes
    :undoc-members:
    :member-order: bysource
 
+.. autoclass:: navsim_envs.env.AroraUnityEnv
+   :members:
+   :undoc-members:
+   :member-order: bysource
+
 env utils
 -----------
 

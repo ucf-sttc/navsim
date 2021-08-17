@@ -2,7 +2,8 @@ import argparse
 from typing import Optional, List, Set
 
 non_default_args: Set[str] = set()
-
+from navsim_envs.util import env_config as default_env_config
+from .util import run_config as default_run_config
 
 class ArgAction(argparse.Action):
     """
@@ -82,28 +83,28 @@ def _create_argparser() -> argparse.ArgumentParser:
 
     run_conf.add_argument(
         "--train_interval",
-        default=16,
+        default=default_run_config['train_interval'],
         help="Train the model after these many global steps. If set to 0 then model wont train",
         action=ArgAction,
     )
 
     run_conf.add_argument(
         "--checkpoint_interval",
-        default=1,
+        default=default_run_config['checkpoint_interval'],
         action=ArgAction,
         help="Execute the episodes in blocks of checkpoint intervals",
     )
 
     run_conf.add_argument(
         "--agent_gpu_id",
-        default=0,
+        default=default_run_config['agent_gpu_id'],
         action=ArgAction,
         help="Which GPU to run models in agent on",
     )
 
     run_conf.add_argument(
         "--episode_max_steps",
-        default=100,
+        default=default_run_config['episode_max_steps'],
         action=ArgAction,
         help="Maximum number of steps in an Episode, aka Episode Length",
     )
@@ -117,14 +118,14 @@ def _create_argparser() -> argparse.ArgumentParser:
 
     run_conf.add_argument(
         "--discount",
-        default=0.99,
+        default=default_run_config['discount'],
         action=ArgAction,
         help="discount",
     )
 
     run_conf.add_argument(
         "--tau",
-        default=5e-3,
+        default=default_run_config['tau'],
         action=ArgAction,
         help="tau",
     )
@@ -186,138 +187,138 @@ def _create_argparser() -> argparse.ArgumentParser:
 
     env_conf.add_argument(
         "--env_gpu_id",
-        default=0,
+        default=default_env_config['env_gpu_id'],
         action=ArgAction,
         help="Which GPU to run env on",
     )
     env_conf.add_argument(
         "--timeout",
-        default=600,
+        default=default_env_config['timeout'],
         help="TimeOut for the Env",
         action=ArgAction,
     )
     env_conf.add_argument(
         "--obs_mode",
-        default=0,
+        default=default_env_config['obs_mode'],
         help="Observation Mode : 0,1,2",
         action=ArgAction,
     )
 
     env_conf.add_argument(
         "--obs_height",
-        default=256,
+        default=default_env_config['obs_height'],
         help="Observation height",
         action=ArgAction,
     )
 
     env_conf.add_argument(
         "--obs_width",
-        default=256,
+        default=default_env_config['obs_width'],
         help="Observation width",
         action=ArgAction,
     )
 
     env_conf.add_argument(
         "--segmentation_mode",
-        default=1,
-        help="Segmentation Mode : 1",
+        default=default_env_config['segmentation_mode'],
+        help="Segmentation Mode",
         action=ArgAction,
     )
 
     env_conf.add_argument(
         "--task",
-        default=0,
+        default=default_env_config['task'],
         help="Task",
         action=ArgAction,
     )
 
     env_conf.add_argument(
         "--goal",
-        default=0,
+        default=default_env_config['goal'],
         help="Goal",
         action=ArgAction,
     )
 
     env_conf.add_argument(
         "--goal_distance",
-        default=10,
+        default=default_env_config['goal_distance'],
         help="Distance to goal from current location",
         action=ArgAction,
     )
 
     env_conf.add_argument(
         "--traffic_vehicles",
-        default=0,
+        default=default_env_config['traffic_vehicles'],
         help="Number of traffic vehicles",
         action=ArgAction,
     )
 
     env_conf.add_argument(
         "--agent_car_physics",
-        default=0,
+        default=default_env_config['agent_car_physics'],
         help="Agent Car Physics Levels : 0,1,2,10",
         action=ArgAction,
     )
 
     env_conf.add_argument(
         "--reward_for_goal",
-        default=50,
+        default=default_env_config['reward_for_goal'],
         help="Reward for reaching the goal",
         action=ArgAction,
     )
 
     env_conf.add_argument(
         "--reward_for_no_viable_path",
-        default=-50,
+        default=default_env_config['reward_for_no_viable_path'],
         help="Reward for no more viable paths remaining to reach the goal",
         action=ArgAction,
     )
 
     env_conf.add_argument(
         "--reward_step_mul",
-        default=0.1,
+        default=default_env_config['reward_step_mul'],
         help="Multiply step reward [which is -(goal_reward / spl_start) with this number",
         action=ArgAction,
     )
 
     env_conf.add_argument(
         "--reward_collision_mul",
-        default=4,
+        default=default_env_config['reward_collision_mul'],
         help="Multiply step reward with this number when there is a collision and add to reward",
         action=ArgAction,
     )
 
     env_conf.add_argument(
         "--reward_spl_delta_mul",
-        default=1,
+        default=default_env_config['reward_spl_delta_mul'],
         help="Shortest path length delta multiplier",
         action=ArgAction,
     )
 
     env_conf.add_argument(
         "--save_actions",
-        default=False,
+        default=default_env_config['save_actions'],
         action=ArgActionStoreTrue,
         help="Save the actions vector at every step",
     )
 
     env_conf.add_argument(
         "--save_visual_obs",
-        default=False,
+        default=default_env_config['save_visual_obs'],
         action=ArgActionStoreTrue,
         help="Save the visual observations at every step",
     )
 
     env_conf.add_argument(
         "--save_vector_obs",
-        default=False,
+        default=default_env_config['save_vector_obs'],
         action=ArgActionStoreTrue,
         help="Save the vector observations at every step",
     )
 
     env_conf.add_argument(
         "--show_visual",
-        default=False,
+        default=default_env_config['show_visual'],
         action=ArgActionStoreTrue,
         help="Show visual obs window",
     )

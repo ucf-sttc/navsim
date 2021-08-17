@@ -6,6 +6,7 @@ import os
 with open(os.path.join(os.path.dirname(__file__), 'version.txt'), 'r') as vf:
     __version__ = vf.read().strip()
 
+# str(Path(__file__).parent.resolve() / 'version.txt')
 __version_banner__ = f'=========================================\n' \
                      f'navsim_env version {__version__}\n' \
                      f'=========================================\n'

@@ -247,11 +247,11 @@ class AroraGymEnv(UnityToGymWrapper):
                                              quoting=csv.QUOTE_MINIMAL)
 
         if env_config['save_visual_obs'] and (env_config["obs_mode"] in [1, 2]):
-            self.rgb_folder = env_config['log_folder'] / 'rgb_obs'
+            self.rgb_folder = log_folder / 'rgb_obs'
             self.rgb_folder.mkdir(parents=True, exist_ok=True)
-            self.dep_folder = env_config['log_folder'] / 'dep_obs'
+            self.dep_folder = log_folder / 'dep_obs'
             self.dep_folder.mkdir(parents=True, exist_ok=True)
-            self.seg_folder = env_config['log_folder'] / 'seg_obs'
+            self.seg_folder = log_folder / 'seg_obs'
             self.seg_folder.mkdir(parents=True, exist_ok=True)
         else:
             env_config['save_visual_obs'] = False
