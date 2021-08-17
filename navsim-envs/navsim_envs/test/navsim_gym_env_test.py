@@ -1,5 +1,7 @@
 from pathlib import Path
 import random
+import time
+import math
 
 import gym
 import sys
@@ -22,35 +24,38 @@ logger = AroraGymEnv.logger
 #    else:
 #        logger.setLevel(20)
 
-# This runs first before any class in this module runs
-TESTABLE_CONFIG_PARAMETERS= {
-    'seed' : [0, 1, 2, 123, 1000]
-}
 
-@pytest.fixture(scope="session")
-def env_config():
+@pytest.fixture(scope="session", params=[
+    {'seed' : 0},
+    {'seed' : 123},
+    {'seed' : 1000},
+])
+def env_config(request):
     config = deepcopy(env_conf)
+    logger.debug(f'config after deepcopy {config}')
     run_base_folder = Path('.').resolve() / 'tst_logs'
     run_base_folder.mkdir(parents=True, exist_ok=True)
     config["log_folder"] = str(run_base_folder / "env_log")
+    logger.debug(f'config after log_folder {config}')
     if len(sys.argv) > 1:
-        env_config_file = sys.argv.pop()
+        logger.debug(f'args passed {sys.argv}')
+        env_config_file = sys.argv[1]
         env_config_from_file = load_config(env_config_file)
         if env_config_from_file is not None:
             logger.info(f'Updating env_config from {env_config_file}')
             config.update(env_config_from_file)
+            logger.debug(f'config after env config from file {config}')
+
+
+    logger.info("Config Key Values Changed")
+    for key, value in request.param.items():
+        logger.info(f'{key}, {value}')
+        config[key]=value
 
     logger.info(f'\n'
                 f'{config_banner(config, "env_config")}'
                 )
     return config
-
-def env_config_generator(env_config):
-    for key, value in enumerate(TESTABLE_CONFIG_PARAMETERS):
-        for v in value:
-            gen = env_config().copy()
-            gen[key] = v 
-            yield gen
 
 def env_deletor(env):
     env.close()
@@ -100,7 +105,6 @@ class TestAroraGymEnv1:
 
           
 
-    #@pytest.mark.parametrize("env_config", env_config_generator(env_config))
     # Tests whether the navigable map returned has navigable points
     def test_navigable_map(self, request, env_4_class, env_config):
         env = env_4_class(env_config)
@@ -277,6 +281,47 @@ class TestAroraGymEnv3:
     env is initialized multiple times in each test
     """
 
+    # Tests the time to connect to the binary
+    def test_binary_connection_time (self, request, env_config):
+        logger.info(f"=========== Running {request.node.name}")
+       
+        connection_times=[]
+        samples=3
+        for i in range(0,samples):
+            start_time = time.time() 
+            env = gym.make("arora-v0", env_config=env_config)
+            end_time = time.time()
+            connection_times.append(end_time - start_time)
+            env.close()
+            del env
+
+        logger.info(f'{connection_times}')
+        assert sum(connection_times)/len(connection_times) < 30
+
+    # Tests the step time
+    # This is an informational test as different configs can affect step times
+    def test_step_time (self, request, env_config):
+        logger.info(f"=========== Running {request.node.name}")
+       
+        env = gym.make("arora-v0", env_config=env_config)
+        episode_avg_step_times=[]
+        samples=3
+        for i in range(0,samples):
+            step_deltas=[]
+            done = False
+            env.reset()
+            while not done:
+                start_time = time.time() 
+                o, r, done, i = env.step([1, 0, -1])
+                end_time = time.time()
+
+                step_deltas.append(end_time - start_time)
+            episode_avg_step_times.append(sum(step_deltas)/len(step_deltas))
+
+        env.close()
+        del env
+        logger.info(f'{episode_avg_step_times}')
+
     # Tests whether mnutiple runs produces the same observation values
 
     def test_reproducibility(self, request, env_config):
@@ -306,7 +351,8 @@ class TestAroraGymEnv3:
             logger.debug(f"==========={i}")
             logger.debug(f"i-1  {obs_arr[i-1]}")
             logger.debug(f"i  {obs_arr[i]}")
-            assert np.array_equal(obs_arr[i - 1], obs_arr[i])
+            #assert np.array_equal(obs_arr[i - 1], obs_arr[i])
+            assert np.allclose(obs_arr[i - 1], obs_arr[i], atol=1e-04)
             # assert np.isclose(obs_arr[i-1], obs_arr[i], atol=1.0)
         logger.info(
             f'{runs} env runs produced equal observations for the first episode')
