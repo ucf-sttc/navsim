@@ -1,6 +1,0 @@
-#!/usr/bin/env bash
-
-rsync -avzhP --exclude={__pycache__,.idea} ~/projects/ai_coop_py/ $1:~/projects/ai_coop_py --delete
-#rsync -avzhP ~/projects/AI_COOP_Executables/ $1:~/projects/AI_COOP_Executables --delete
-#rsync -avzhP ~/projects/AI_COOPV2/ $1:~/projects/AI_COOPV2 --delete
-

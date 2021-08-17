@@ -52,7 +52,7 @@ def _create_argparser() -> argparse.ArgumentParser:
 
     run_conf.add_argument(
         "--rl_backend",
-        default=None,
+        default="navsim",
         help="The backend library for RL.",
         action=ArgAction,
     )
@@ -79,6 +79,7 @@ def _create_argparser() -> argparse.ArgumentParser:
         action=ArgAction,
         help="Total number of episodes to run. If resume is used, then it will try to read the previously run episodes and continue from there.",
     )
+
     run_conf.add_argument(
         "--train_interval",
         default=16,
@@ -109,7 +110,7 @@ def _create_argparser() -> argparse.ArgumentParser:
 
     run_conf.add_argument(
         "--seed",
-        default=0,
+        default=None,
         action=ArgAction,
         help="Seed",
     )
@@ -120,18 +121,21 @@ def _create_argparser() -> argparse.ArgumentParser:
         action=ArgAction,
         help="discount",
     )
+
     run_conf.add_argument(
         "--tau",
         default=5e-3,
         action=ArgAction,
         help="tau",
     )
+
     run_conf.add_argument(
         "--exploration_noise",
         default=0.1,
         action=ArgAction,
         help="exploration_noise",
     )
+
     run_conf.add_argument(
         "--batch_size",
         default=32,
@@ -150,7 +154,15 @@ def _create_argparser() -> argparse.ArgumentParser:
         "--resume",
         default=False,
         action=ArgActionStoreTrue,
-        help="resumes the training from last saved checkpoint"
+        help="resumes the interrupted training from last saved checkpoint"
+    )
+
+    run_conf.add_argument(
+        "--continue",
+        dest="continue_arg",
+        default=False,
+        action=ArgActionStoreTrue,
+        help="continue the training forward from last saved checkpoint"
     )
 
     run_conf.add_argument(
@@ -165,7 +177,7 @@ def _create_argparser() -> argparse.ArgumentParser:
     env_conf = argparser.add_argument_group(title="Environment Configuration",
                                             description=env_desc)
     env_conf.add_argument(
-        "--env",
+        "--env_path",
         default=None,
         dest="env_path",
         help="Path to the Unity executable to train",
@@ -204,24 +216,28 @@ def _create_argparser() -> argparse.ArgumentParser:
         help="Observation width",
         action=ArgAction,
     )
+
     env_conf.add_argument(
         "--segmentation_mode",
         default=1,
         help="Segmentation Mode : 1",
         action=ArgAction,
     )
+
     env_conf.add_argument(
         "--task",
         default=0,
         help="Task",
         action=ArgAction,
     )
+
     env_conf.add_argument(
         "--goal",
         default=0,
         help="Goal",
         action=ArgAction,
     )
+
     env_conf.add_argument(
         "--goal_distance",
         default=10,
@@ -242,24 +258,28 @@ def _create_argparser() -> argparse.ArgumentParser:
         help="Agent Car Physics Levels : 0,1,2,10",
         action=ArgAction,
     )
+
     env_conf.add_argument(
         "--reward_for_goal",
         default=50,
         help="Reward for reaching the goal",
         action=ArgAction,
     )
+
     env_conf.add_argument(
         "--reward_for_no_viable_path",
         default=-50,
         help="Reward for no more viable paths remaining to reach the goal",
         action=ArgAction,
     )
+
     env_conf.add_argument(
         "--reward_step_mul",
         default=0.1,
         help="Multiply step reward [which is -(goal_reward / spl_start) with this number",
         action=ArgAction,
     )
+
     env_conf.add_argument(
         "--reward_collision_mul",
         default=4,
@@ -273,31 +293,34 @@ def _create_argparser() -> argparse.ArgumentParser:
         help="Shortest path length delta multiplier",
         action=ArgAction,
     )
+
     env_conf.add_argument(
         "--save_actions",
         default=False,
         action=ArgActionStoreTrue,
         help="Save the actions vector at every step",
     )
+
     env_conf.add_argument(
         "--save_visual_obs",
         default=False,
         action=ArgActionStoreTrue,
         help="Save the visual observations at every step",
     )
+
     env_conf.add_argument(
         "--save_vector_obs",
         default=False,
         action=ArgActionStoreTrue,
         help="Save the vector observations at every step",
     )
+
     env_conf.add_argument(
         "--show_visual",
         default=False,
         action=ArgActionStoreTrue,
         help="Show visual obs window",
     )
-
 
     dev_desc = "The arguments are used by developers to benchmark and debug navsim API"
     dev_conf = argparser.add_argument_group(title="Developer Configuration",
@@ -306,7 +329,7 @@ def _create_argparser() -> argparse.ArgumentParser:
     dev_conf.add_argument(
         "--mem_backend",
         default="cupy",
-        help="The backend library for Rollback Memory.",
+        help="The backend library for Rollback Memory. Options cupy, numpy.",
         action=ArgAction,
     )
 

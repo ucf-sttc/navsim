@@ -90,7 +90,11 @@ zero to the index number of GPU for environment binary.
     ```
     source ezai-conda.sh && ezai_conda_create --venv "$(conda info --base)/envs/navsim"
     ```
-   
+4. Optional: Install jupyter in `navsim`
+    ```
+    conda activate navsim && source ezai-conda.sh && install_jupyter
+    ```
+      
 #### Run the navsim on host
 
 First activate the `navsim` virtual environment - only once, with following 
