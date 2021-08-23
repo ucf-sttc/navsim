@@ -15,10 +15,3 @@ Rollback Memory
    :inherited-members:
    :show-inheritance:
 
-Utilities
---------------------
-.. autoclass:: navsim.util.dict.ObjDict
-   :members:
-   :inherited-members:
-   :undoc-members:
-   :show-inheritance:

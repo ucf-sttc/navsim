@@ -4,17 +4,14 @@ navsim_envs API
 env classes
 -----------
 
-.. autoclass:: navsim_envs.env.AroraGymEnv
+.. autoclass:: navsim_envs.arora.AroraGymEnv
    :members:
    :undoc-members:
    :member-order: bysource
 
-.. autoclass:: navsim_envs.env.AroraUnityEnv
+.. autoclass:: navsim_envs.arora.AroraUnityEnv
    :members:
    :undoc-members:
    :member-order: bysource
 
-env utils
------------
 
-.. autofunction:: navsim_envs.util.env_info
