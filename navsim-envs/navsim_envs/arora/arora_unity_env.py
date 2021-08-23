@@ -6,9 +6,9 @@ from mlagents_envs.logging_util import get_logger
 from mlagents_envs.side_channel.engine_configuration_channel import EngineConfigurationChannel
 from mlagents_envs.side_channel.environment_parameters_channel import EnvironmentParametersChannel
 from mlagents_envs.side_channel.float_properties_channel import FloatPropertiesChannel
-from navsim_envs.env.arora.map_side_channel import MapSideChannel
-from navsim_envs.env.arora.navigable_side_channel import NavigableSideChannel
-from navsim_envs.env.arora.set_agent_position_side_channel import SetAgentPositionSideChannel
+from navsim_envs.arora.map_side_channel import MapSideChannel
+from navsim_envs.arora.navigable_side_channel import NavigableSideChannel
+from navsim_envs.arora.set_agent_position_side_channel import SetAgentPositionSideChannel
 
 from .configs import default_env_config
 
@@ -48,6 +48,7 @@ class AroraUnityEnv(UnityEnvironment):
         env_sfp("rewardStepMul", env_config['reward_step_mul'])
         env_sfp("rewardCollisionMul", env_config['reward_collision_mul'])
         env_sfp("rewardSplDeltaMul", env_config['reward_spl_delta_mul'])
+        env_sfp("relativeSteering", env_config['relative_steering'])
         env_sfp("segmentationMode", env_config['segmentation_mode'])
         env_sfp("observationMode", env_config['obs_mode'])
         env_sfp("episodeLength", env_config['episode_max_steps'])

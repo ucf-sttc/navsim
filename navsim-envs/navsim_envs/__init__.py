@@ -1,16 +1,17 @@
 # navsim_envs
 
-import os
+from pathlib import Path
 
-# Path(__file__).parent.joinpath('version.txt')
-with open(os.path.join(os.path.dirname(__file__), 'version.txt'), 'r') as vf:
+version_file = Path(__file__).parent.joinpath('version.txt')
+if not version_file.exists():
+    version_file = Path(__file__).parent.joinpath('../../version.txt')
+with open(version_file, 'r') as vf:
     __version__ = vf.read().strip()
 
-# str(Path(__file__).parent.resolve() / 'version.txt')
 __version_banner__ = f'=========================================\n' \
                      f'navsim_env version {__version__}\n' \
                      f'=========================================\n'
 
-from . import env, util
+from . import arora
 
-__all__ = ['env', 'util']
+__all__ = ['arora']

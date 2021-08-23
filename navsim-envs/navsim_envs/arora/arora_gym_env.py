@@ -18,8 +18,9 @@ from .configs import default_env_config
 #    position: Optional["np.ndarray"]
 #    rotation: Optional["np.ndarray"] = None
 
-from navsim_envs.util.exceptions import EnvNotInitializedError
+from navsim_envs.exceptions import EnvNotInitializedError
 from .arora_unity_env import AroraUnityEnv
+
 from mlagents_envs.logging_util import get_logger
 
 from mlagents_envs.exception import UnityWorkerInUseException
@@ -781,6 +782,7 @@ class AroraGymEnv(UnityToGymWrapper):
         """Registers the environment with gym registry with the name navsim
 
         """
+
         env_id = 'arora-v0'
         from gym.envs.registration import register, registry
 
@@ -791,7 +793,7 @@ class AroraGymEnv(UnityToGymWrapper):
                 del registry.env_specs[env]
 
         print(f"navsim_envs: Adding {env_id} to Gym registry")
-        register(id=env_id, entry_point='navsim_envs.env.arora:AroraGymEnv')
+        register(id=env_id, entry_point='navsim_envs.arora:AroraGymEnv')
 
     @staticmethod
     def register_with_ray():
