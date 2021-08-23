@@ -1,10 +1,9 @@
 from pathlib import Path
-from typing import Optional, List, Set
 
 import navsim
-import navsim_envs.util
+import navsim_envs
 
-from .util.dict import ObjDict
+from ezai_util.dict import ObjDict
 from .cli_utils import argparser, non_default_args
 from navsim.executor.navsim_executor import Executor
 
@@ -81,15 +80,15 @@ def main():
         import shutil
         if run_base_folder.exists():
             shutil.rmtree(run_base_folder)
-        #run_config = ObjDict()
+        # run_config = ObjDict()
         # TODO: run_config = navsim.default_conf
         run_config = ObjDict(navsim.util.run_config.copy())
-        env_config = ObjDict(navsim_envs.util.env_config.copy())
+        env_config = ObjDict(navsim_envs.arora.default_env_config.copy())
         env_log_folder = run_base_folder / 'env_log'
         env_log_folder.mkdir(parents=True, exist_ok=True)
         env_config["log_folder"] = str(env_log_folder)
 
-    #TODO: can we also implement it for non-navsim backends ?
+    # TODO: can we also implement it for non-navsim backends ?
     if args.rl_backend == "navsim":
         # in case of continue, lets check if memory needs to be invalidated
         if args.continue_arg:
@@ -119,8 +118,9 @@ def main():
     # now lets sanitize the conf and set appropriate ints and floats
     int_args = ["agent_gpu_id", "batch_size", "checkpoint_interval", "episode_max_steps", "memory_capacity", "seed",
                 "total_episodes", "train_interval"] + [
-        "agent_car_physics", "base_port", "episode_max_steps", "env_gpu_id", "goal", "goal_distance", "obs_mode",
-        "obs_height", "obs_width", "segmentation_mode", "task", "timeout", "traffic_vehicles"]
+                   "agent_car_physics", "base_port", "episode_max_steps", "env_gpu_id", "goal", "goal_distance",
+                   "obs_mode",
+                   "obs_height", "obs_width", "segmentation_mode", "task", "timeout", "traffic_vehicles"]
     float_args = ["discount", "tau", "expl_noise"] + ["reward_for_goal", "reward_for_no_viable_path", "reward_step_mul",
                                                       "reward_collision_mul", "reward_spl_delta_mul"]
     for arg in int_args:
@@ -175,14 +175,14 @@ def main():
     })
     """
 
-
     if args["rl_backend"] == "rllib":
         import ray.rllib.agents.ppo as ppo
         config = ObjDict(ppo.DEFAULT_CONFIG.copy())
         for arg in run_config:
             if arg in config:
                 config[arg] = run_config[arg]
-        config["env_config"]=env_config
+        config["env_config"] = env_config
+        config["ignore_worker_failures"] = True
         # TODO: Override ray's conf with some defaults from navsim
         import ray
         ray.shutdown()
@@ -213,7 +213,7 @@ def main():
         print(model)
     else:
         config = run_config
-        config["env_config"]=env_config
+        config["env_config"] = env_config
 
         executor = Executor(config=config)
         executor.execute()

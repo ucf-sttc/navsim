@@ -9,10 +9,11 @@ import math
 
 import gym
 from navsim.agent.ddpg import DDPGAgent
-from navsim.util import sizeof_fmt, image_layout, s_hwc_to_chw
-from navsim.util.dict import ObjDict
-from navsim_envs.util import env_info
-from navsim.util import ResourceCounter
+from ezai_util.fmt import sizeof_fmt
+from ezai_util.image import image_layout, s_hwc_to_chw
+from ezai_util.dict import ObjDict
+from ezai_util.env import env_info
+from ezai_util.res import ResourceCounter
 import navsim
 
 import traceback

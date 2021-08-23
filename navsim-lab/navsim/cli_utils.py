@@ -2,7 +2,7 @@ import argparse
 from typing import Optional, List, Set
 
 non_default_args: Set[str] = set()
-from navsim_envs.util import env_config as default_env_config
+from navsim_envs.arora import default_env_config
 from .util import run_config as default_run_config
 
 class ArgAction(argparse.Action):

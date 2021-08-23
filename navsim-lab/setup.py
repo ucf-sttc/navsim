@@ -1,6 +1,6 @@
 import setuptools
 
-with open('navsim/version.txt', 'r') as vf:
+with open('../version.txt', 'r') as vf:
     __version__ = vf.read().strip()
 # from navsim.version import __version__
 

@@ -1,7 +1,9 @@
-import os
+from pathlib import Path
 
-# Path(__file__).parent.joinpath('version.txt')
-with open(os.path.join(os.path.dirname(__file__), 'version.txt'), 'r') as vf:
+version_file = Path(__file__).parent.joinpath('version.txt')
+if not version_file.exists():
+    version_file = Path(__file__).parent.joinpath('../../version.txt')
+with open(version_file, 'r') as vf:
     __version__ = vf.read().strip()
 
 
