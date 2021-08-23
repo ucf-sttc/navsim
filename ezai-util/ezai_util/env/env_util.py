@@ -20,3 +20,19 @@ def env_info(env):
     print('Reward Range:', env.reward_range)
     print('Metadata:', env.metadata)
     print('--------------------------------------')
+
+
+def register_with_gym(env_id: str, entry_point: str):
+    """Registers the environment with gym registry
+
+    """
+    from gym.envs.registration import register, registry
+
+    env_dict = registry.env_specs.copy()
+    for env in env_dict:
+        if env_id in env:
+            print(f"Removing {env} from Gym registry")
+            del registry.env_specs[env]
+
+    print(f"navsim_envs: Adding {env_id} to Gym registry")
+    return register(id=env_id, entry_point=entry_point)

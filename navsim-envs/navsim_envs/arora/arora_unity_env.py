@@ -6,11 +6,11 @@ from mlagents_envs.logging_util import get_logger
 from mlagents_envs.side_channel.engine_configuration_channel import EngineConfigurationChannel
 from mlagents_envs.side_channel.environment_parameters_channel import EnvironmentParametersChannel
 from mlagents_envs.side_channel.float_properties_channel import FloatPropertiesChannel
-from navsim_envs.env.map_side_channel import MapSideChannel
-from navsim_envs.env.navigable_side_channel import NavigableSideChannel
-from navsim_envs.env.set_agent_position_side_channel import SetAgentPositionSideChannel
+from navsim_envs.env.arora.map_side_channel import MapSideChannel
+from navsim_envs.env.arora.navigable_side_channel import NavigableSideChannel
+from navsim_envs.env.arora.set_agent_position_side_channel import SetAgentPositionSideChannel
 
-from ..util.configs import env_config as default_env_config
+from .configs import default_env_config
 
 
 class AroraUnityEnv(UnityEnvironment):

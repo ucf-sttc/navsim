@@ -1,5 +1,4 @@
 import csv
-import struct
 from pathlib import Path
 import numpy as np
 
@@ -12,33 +11,21 @@ from gym_unity.envs import (
     UnityToGymWrapper,
     GymStepResult
 )
-from ..util.configs import env_config as default_env_config
+from .configs import default_env_config
 
 # @attr.s(auto_attribs=True)
 # class AgentState:
 #    position: Optional["np.ndarray"]
 #    rotation: Optional["np.ndarray"] = None
 
-from ..util.exceptions import EnvNotInitializedError
+from navsim_envs.util.exceptions import EnvNotInitializedError
 from .arora_unity_env import AroraUnityEnv
 from mlagents_envs.logging_util import get_logger
 
 from mlagents_envs.exception import UnityWorkerInUseException
 from mlagents_envs.environment import UnityEnvironment
 
-from mlagents_envs.side_channel.engine_configuration_channel import \
-    EngineConfigurationChannel
-from mlagents_envs.side_channel.environment_parameters_channel import \
-    EnvironmentParametersChannel
-
-from mlagents_envs.side_channel.float_properties_channel import \
-    FloatPropertiesChannel
-
-from .map_side_channel import MapSideChannel
-from .navigable_side_channel import NavigableSideChannel
-from .set_agent_position_side_channel import SetAgentPositionSideChannel
-
-from mlagents_envs.rpc_utils import behavior_spec_from_proto, steps_from_proto
+from mlagents_envs.rpc_utils import steps_from_proto
 
 try:
     from cv2 import imwrite as imwrite
@@ -176,7 +163,8 @@ class AroraGymEnv(UnityToGymWrapper):
         #
         self._navsim_base_port = env_config['base_port']
         if self._navsim_base_port is None:
-            self._navsim_base_port = UnityEnvironment.BASE_ENVIRONMENT_PORT if env_config['env_path'] else UnityEnvironment.DEFAULT_EDITOR_PORT
+            self._navsim_base_port = UnityEnvironment.BASE_ENVIRONMENT_PORT if env_config[
+                'env_path'] else UnityEnvironment.DEFAULT_EDITOR_PORT
         self._navsim_worker_id = env_config['worker_id']
 
         while True:
@@ -803,7 +791,7 @@ class AroraGymEnv(UnityToGymWrapper):
                 del registry.env_specs[env]
 
         print(f"navsim_envs: Adding {env_id} to Gym registry")
-        register(id=env_id, entry_point='navsim_envs.env:AroraGymEnv')
+        register(id=env_id, entry_point='navsim_envs.env.arora:AroraGymEnv')
 
     @staticmethod
     def register_with_ray():
