@@ -1,0 +1,3 @@
+[submodule "navsim-mlagents"]
+	path = navsim-mlagents
+	url = git@ssh.dev.azure.com:v3/emb-ist-edu/AI%20COOP/navsim_mlagents
