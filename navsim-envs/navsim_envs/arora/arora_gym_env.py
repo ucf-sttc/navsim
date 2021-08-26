@@ -288,11 +288,12 @@ class AroraGymEnv(UnityToGymWrapper):
             self.vec_file.flush()
         if self.env_config['save_visual_obs']:
             filename = f'{self.e_num}_{self.s_num}.jpg'
-            imwrite(str(self.rgb_folder / filename), obs[0] * 255)
-            imwrite(str(self.dep_folder / filename), obs[1] * 255)
-            imwrite(str(self.seg_folder / filename), obs[2] * 255)
+            imwrite(str(self.rgb_folder / filename), obs[0] * 255.0)
+            imwrite(str(self.dep_folder / filename), obs[1] * 255.0)
+            imwrite(str(self.seg_folder / filename), obs[2] * 255.0)
 
-    def _set_obs(self):
+    def _set_obs(self, s_):
+        self._obs = s_
         if self.env_config['obs_mode'] in [0, 2]:
             vec_obs = list(self._obs[-1])
             self._agent_position = vec_obs[0:3]
@@ -302,20 +303,18 @@ class AroraGymEnv(UnityToGymWrapper):
 
     def reset(self) -> Union[List[np.ndarray], np.ndarray]:
         s0 = super().reset()
-        self._obs = s0
-        self._set_obs()
         self.s_num = 0
         self.e_num += 1 if self.e_num else self.env_config['start_from_episode']
         self.spl_start = self.spl_current = self.shortest_path_length
+        self._set_obs(s0)
         self._save_obs(self._obs)
         return s0
 
     def step(self, action: List[Any]) -> GymStepResult:
         s_, r, episode_done, info = super().step(action)
-        self._obs = s_
-        self._set_obs()
         self.s_num += 1
         self.spl_current = self.shortest_path_length
+        self._set_obs(s_)
         self._save_obs(self._obs)
         if self.env_config['save_actions']:
             self.actions_writer.writerow(
@@ -435,6 +434,7 @@ class AroraGymEnv(UnityToGymWrapper):
         state += pos if position is None else position
         state += rot if rotation is None else rotation
 
+        print(f'state:{state}')
         unity_output = self.uenv._process_immediate_message(
             self.uenv.sapsc.build_immediate_request("agentPosition",
                                                     state))
@@ -446,8 +446,7 @@ class AroraGymEnv(UnityToGymWrapper):
                     self.uenv._env_specs[self.name]
                 )[1]
             )
-            self._obs = s_
-            self._set_obs()
+            self._set_obs(s_)
             # if position is not None:
             #    self._agent_position = position
             # if rotation is not None:
@@ -527,8 +526,17 @@ class AroraGymEnv(UnityToGymWrapper):
                                                                [resolution_x,
                                                                 resolution_y,
                                                                 cell_occupancy_threshold]))
+
         return self.uenv.map_side_channel.requested_map
 
+        #self.uenv._process_immediate_message(
+        #    self.uenv.map_side_channel.build_immediate_request("binaryMap",
+        #                                                       [cell_occupancy_threshold]))
+        #
+        #self.uenv._process_immediate_message(
+        #    self.uenv.map_side_channel.build_immediate_request("binaryMapZoom",
+        #                                                       [row,col,
+        #                                                        cell_occupancy_threshold]))
         # def start_navigable_map(self, resolution_x=256, resolution_y=256,
         #                        cell_occupancy_threshold=0.5):
         # """Start the Navigable Areas map

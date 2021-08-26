@@ -1,6 +1,6 @@
 import setuptools
 
-with open('navsim_envs/version.txt', 'r') as vf:
+with open('../version.txt', 'r') as vf:
     __version__ = vf.read().strip()
 # from navsim.version import __version__
 
@@ -35,13 +35,14 @@ setuptools.setup(
     # data_files=[('navsim',['navsim/version.txt'])],
     python_requires='>=3.8',
     install_requires=[
+        'ezai_util',
         'numpy',
-        # 'opencv-python',
+        'opencv-python',
         'pytest',
         'click',
         'gym>=0.18.0',
-        'navsim_mlagents_envs==0.27.0',
-        'gym_unity==0.27.0'
+        #'navsim_mlagents_envs==0.27.0',
+        #'gym_unity==0.27.0'
     ],
     entry_points={
         "console_scripts": [

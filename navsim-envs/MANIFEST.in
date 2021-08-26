@@ -1,2 +1,2 @@
 include MANIFEST.in
-include navsim_envs/version.txt
+include ../version.txt

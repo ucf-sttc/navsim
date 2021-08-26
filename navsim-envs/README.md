@@ -21,7 +21,7 @@ In order to test the install:
 * Create an experiment folder, we use folder `~/exp` and change into this folder.
 * Create a minimal yaml file with the following contents:
   ```yaml
-  env_path: /path/to/Berlin_Walk_V2.x86_64
+  env_path: /path/to/Berlin_Walk_V2
   ```
   Let us say you named this file `min_env_config.yml`. 
 * Run the tests: `navsim_env_test min_env_config.yml`. If you are using `navsim`
@@ -33,7 +33,12 @@ If you only want to use `AroraGymEnv`, then either subclass it or use it as foll
 
 ```python
 import navsim_envs
+from navsim_envs.env.arora import AroraGymEnv, default_env_config
 import gym
+
+env_config = default_env_config.copy()
+
+# or
 
 env_config = {
   "agent_car_physics": 0,
@@ -66,7 +71,7 @@ env_config = {
 # Either use gym.make to create an env
 env = gym.make("arora-v0", env_config=env_config)
 # or use the AroraGymEnv constructor to create an env
-env = navsim_envs.env.AroraGymEnv(env_config)
+env = AroraGymEnv(env_config)
 ```
 
 If you want to use our `navsim` conda environment or `navsim` container then
@@ -170,27 +175,31 @@ wheels. This means that the car will have a turning radius, but there is no
 momentum or acceleration that is experienced from torque being applied to 
 wheels as in a real car.    
 
-* `[0, 0, 0]` - No throttle, steering, or braking is applied. No agent travel.  
-* `[1, 0, 0]` - Full forward throttle is applied. The agent travels forward at 
-  max velocity for the duration of the step.    
-* `[0, -1, 0]` - No throttle or braking is applied. Steering is applied as a 
-  full left-turn, but because the forward/backward speed is zero, 
-there is no travel.    
-* `[1, -1, 0]` - Full forward throttle and full left-turn steering are applied. 
-  The agent travels forward at a leftward angle that is equal to a fraction of 
-  the max steering angle (25 degrees for the default car). This fraction is 
-  dependent on the length of the step in real time.    
-* `[-1, -1, 0]` - Full backward throttle and full left-turn steering are 
-  applied. Similar to previous example, but with backward travel.  
-* `[0.5, 0.5, 0]` - Half forward throttle and half right-turn steering are 
-  applied. The agent travels forward at half its max velocity and at a lesser 
-  rightward angle.  
-* `[1, 0, 1]` - Full forward throttle and full braking are applied. These 
-  cancel each other out and result in no agent travel.    
-* `[1, 0, 0.5]` - Full forward throttle and half braking are applied. The agent 
-  travels forward at half throttle.    
-* `[0, 0, 1]` - Full braking is applied, with no throttle or steering. No agent 
-  travel.   
+* `[0, 0, 0]` - No throttle, steering, or braking is applied. No agent travel.
+* Individual Actions:
+  * `[1 to -1, 0, 0]` - Throttle is applied - forward for +ve, and backward for -ve values.
+    The agent travels at (max_velocity/throttle_value) for the duration of the step.
+    Throttle is only valid for current step and is not remembered in next step.
+  * `[0, -1 to 1, 0]` - Steering is applied - left-turn for -ve, and right-turn for +ve values.
+    No throttle or braking is applied, speed is zero, there is no travel. 
+    * For relative steering mode, the steering turn is remembered in next step.
+    * For absolute steering mode, this is a useless operation.  
+  * `[0, 0, 1]` - Full braking is applied, with no throttle or steering. No agent
+      travel. The breaking is not remembered in next step, thus this is a useless operation.
+* Combining Actions 
+  * `[1, -1, 0]` - Full forward throttle and full left-turn steering are applied. 
+    The agent travels forward at a leftward angle that is equal to a fraction of 
+    the max steering angle (25 degrees for the default car). This fraction is 
+    dependent on the length of the step in real time.    
+  * `[-1, -1, 0]` - Full backward throttle and full left-turn steering are 
+    applied. Similar to previous example, but with backward travel.  
+  * `[0.5, 0.5, 0]` - Half forward throttle and half right-turn steering are 
+    applied. The agent travels forward at half its max velocity and at a lesser 
+    rightward angle.  
+  * `[1, 0, 1]` - Full forward throttle and full braking are applied. These 
+    cancel each other out and result in no agent travel. Thus, this is a useless operation.    
+  * `[1, 0, 0.5]` - Full forward throttle and half braking are applied. The agent 
+    travels forward at half throttle.    
     
 #### Torque-Driven Car Physics (Agent car physics `>0`)  
 The agent car is driven forward by applying torque to each drive wheel. The 
