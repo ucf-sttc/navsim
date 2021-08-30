@@ -3,8 +3,9 @@
 import argparse
 import subprocess
 from subprocess import run, DEVNULL
+import shutil, os
 
-with open('../navsim-lab/navsim/version.txt', 'r') as vf:
+with open('../version.txt', 'r') as vf:
     __version__ = vf.read().strip()
 
 def image_exists(iname):
@@ -31,8 +32,18 @@ def main():
         print(f"creating image {iname}")
 
     bopt = "--no-cache"
+    if os.path.exists('repo.zip'):
+        os.remove('repo.zip')
+    cp = subprocess.run(['zip','-r','tools/repo.zip','navsim-lab','navsim-envs','navsim-mlagents/ml-agents-envs',
+                         'navsim-mlagents/gym-unity','version.txt',
+                         '-x','"*/\build"',
+                         '-x','"*/\dist"',
+                         '-x','"*/\*pycache*"',
+                         '-x','"*/\*.egg-info"'
+                         ], cwd='..')
     cp = subprocess.run(['docker', 'build', bopt, '-t', iname, '.'])
-
+    if os.path.exists('repo.zip'):
+        os.remove('repo.zip')
     if cp.returncode==0:
         subprocess.run(['docker', 'tag', iname, lname])
         subprocess.run(['docker', 'tag', iname, rname])

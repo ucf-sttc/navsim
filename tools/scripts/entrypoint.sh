@@ -11,9 +11,15 @@ if [ ! -e $CONTAINER_ALREADY_STARTED ]; then
     # YOUR_JUST_ONCE_LOGIC_HERE
     echo "Installing nvidia drivers for NVIDIA_VERSION=${NVIDIA_VERSION}...."
     NVIDIA_VERSION=$NVIDIA_VERSION /root/install_nvidia.sh
-    echo "Upgrading navsim*......."
+    #echo "Upgrading navsim*......."
     #pip install --no-cache-dir --pre --upgrade "navsim>=2.10,<2.11"
-    pip install --no-cache-dir --upgrade  "navsim>=2.10,<2.11" "navsim_envs>=2.10,<2.11"
+    #pip install --no-cache-dir --upgrade  "navsim>=2.10,<2.11" "navsim_envs>=2.10,<2.11"
+    source /root/ezai-conda.sh && \
+        activate base && \
+        pip install -e /opt/conda/navsim-repo/navsim-mlagents/ml-agents-envs && \
+        pip install -e /opt/conda/navsim-repo/navsim-mlagents/gym-unity && \
+        pip install -e /opt/conda/navsim-repo/navsim-envs && \
+        pip install -e /opt/conda/navsim-repo/navsim-lab
 else
     echo "-- Second or later container startup --"
 fi

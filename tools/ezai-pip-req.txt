@@ -31,8 +31,8 @@ gym==0.18.0
 # release 18, c# 1.5.0, py 0.27
 #mlagents==0.27.0
 #mlagents_envs==0.27.0
-navsim_mlagents_envs==0.27.0
-gym_unity==0.27.0
+#navsim_mlagents_envs==0.27.0
+#gym_unity==0.27.0
 
 # unity end
 
@@ -41,6 +41,6 @@ https://s3-us-west-2.amazonaws.com/ray-wheels/latest/ray-2.0.0.dev0-cp38-cp38-ma
 
 sphinx-rtd-theme
 
-navsim>=2.10,<2.11
-navsim_envs>=2.10,<2.11
+#navsim>=2.10,<2.11
+#navsim_envs>=2.10,<2.11
 ray[all]

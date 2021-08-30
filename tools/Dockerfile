@@ -85,23 +85,34 @@ WORKDIR /root/
 SHELL ["/bin/bash", "-c"]
 
 #install phoronix
-RUN wget http://phoronix-test-suite.com/releases/repo/pts.debian/files/phoronix-test-suite_10.4.0_all.deb
-RUN gdebi phoronix-test-suite_10.4.0_all.deb
+RUN wget http://phoronix-test-suite.com/releases/repo/pts.debian/files/phoronix-test-suite_10.4.0_all.deb && \
+    gdebi phoronix-test-suite_10.4.0_all.deb && \
+    rm phoronix-test-suite_10.4.0_all.deb
 #RUN dpkg -i phoronix-test-suite_10.4.0_all.deb
 COPY test-profiles/local /var/lib/phoronix-test-suite/test-profiles/
 
 #Install MINICONDA and navsim_env in base
-COPY scripts/* ezai-conda* ezai-pip-* /root/
+COPY scripts/* ezai-conda* ezai-pip-* repo.zip /root/
+
+#COPY repo.zip /root/
+#RUN ls -l /root/navsim-repo/navsim-mlagents/
+#RUN read -p "Press any key to resume ..."
 #COPY mlagents_patch /root/mlagents_patch
 RUN chmod +x /root/*.sh && \
     source ezai-conda.sh && \
     install_miniconda --conda_dir ${CONDA_DIR}
 ENV PATH=${CONDA_DIR}/bin:$PATH
 #ENV BASH_ENV="/root/.bashrc"
-RUN source /root/.bashrc && source ezai-conda.sh && \
+RUN unzip -d ${CONDA_DIR}/navsim-repo repo.zip && \
+    source /root/.bashrc && source /root/ezai-conda.sh && \
     ezai_conda_create --venv "base" && \
+    activate base && \
+    pip install -e ${CONDA_DIR}/navsim-repo/navsim-mlagents/ml-agents-envs && \
+    pip install -e ${CONDA_DIR}/navsim-repo/navsim-mlagents/gym-unity && \
+    pip install -e ${CONDA_DIR}/navsim-repo/navsim-envs && \
+    pip install -e ${CONDA_DIR}/navsim-repo/navsim-lab && \
     chmod -R 777 ${CONDA_DIR} && \
-    rm ezai-conda* ezai-pip-*
+    rm ezai-conda-* ezai-pip-* repo.zip
 #ENTRYPOINT ["bash", "-c", "(/root/chuser.sh && python /root/x_server.py) && bash"]
 ENTRYPOINT ["/root/entrypoint.sh"]
 CMD ["bash"]
