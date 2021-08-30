@@ -67,6 +67,34 @@ def navsimgymenv_creator(env_config):
     return AroraGymEnv(env_config)  # return an env instance
 
 
+def _normalize(vec: np.ndarray):
+    magnitude = 0.0
+    for i in vec:
+        magnitude += (i * i)
+    magnitude = math.sqrt(magnitude)
+    return vec / magnitude
+
+
+def _q_mult(q1, q2):
+    x1, y1, z1, w1 = q1
+    x2, y2, z2, w2 = q1
+
+    x = w1 * x2 + x1 * w2 + y1 * z2 - z1 * y2
+    y = w1 * y2 + y1 * w2 + z1 * x2 - x1 * z2
+    z = w1 * z2 + z1 * w2 + x1 * y2 - y1 * x2
+    w = w1 * w2 - x1 * x2 - y1 * y2 - z1 * z2
+    return [x, y, z, w]
+
+
+def _qv_mult(q: List[float], v: List[float]):
+    qx, qy, qz, qw = q
+    vx, vy, vz = v
+    qc = [-q.x, -qy, -qz, qw]
+    d = [vx, vy, vz, 0]
+    result = _q_mult(_q_mult(q, d), qc)
+    return result[0:3]
+
+
 class AroraGymEnv(UnityToGymWrapper):
     """AroraGymEnv inherits from Unity2Gym that inherits from the Gym interface.
 
@@ -390,7 +418,7 @@ class AroraGymEnv(UnityToGymWrapper):
         state += pos if position is None else position
         state += rot if rotation is None else rotation
 
-        unity_output = self.uenv._process_immediate_message(
+        unity_output = self.uenv.process_immediate_message(
             self.uenv.sapsc.build_immediate_request("getObservation",
                                                     state))
 
@@ -434,8 +462,7 @@ class AroraGymEnv(UnityToGymWrapper):
         state += pos if position is None else position
         state += rot if rotation is None else rotation
 
-        print(f'state:{state}')
-        unity_output = self.uenv._process_immediate_message(
+        unity_output = self.uenv.process_immediate_message(
             self.uenv.sapsc.build_immediate_request("agentPosition",
                                                     state))
 
@@ -486,20 +513,14 @@ class AroraGymEnv(UnityToGymWrapper):
 
         return self.set_agent_state(rotation=rotation)
 
-    def get_navigable_map(self, resolution_x=256, resolution_y=256,
-                          cell_occupancy_threshold=0.5) -> np.ndarray:
+    def get_navigable_map(self) -> np.ndarray:
         """Get the Navigable Areas map
-
-        Args:
-            resolution_x: The size of the agent_x axis of the resulting grid, 1 to 3276, default = 256
-            resolution_y: The size of the y axis of the resulting grid, 1 to 2662, default = 256
-            cell_occupancy_threshold: If at least this much % of the cell is occupied, then it will be marked as non-navigable, 0 to 1.0, default = 50%
 
         Returns:
             A numpy array having 0 for non-navigable and 1 for navigable cells.
 
         Note:
-            Largest resolution is 3284 x 2666
+            Current resolution is 3284 x 2666
         """
 
         # TODO : Clean up these notes
@@ -518,22 +539,51 @@ class AroraGymEnv(UnityToGymWrapper):
         # 2-dimensional map, the world y-axis is omitted. The map's y-axis represents
         # the world's z-axis.
 
-        if (resolution_x > 3284) or (resolution_y > 2666):
-            raise ValueError("maximum map size is 3284 agent_x 2666")
+        # if (resolution_x > 3284) or (resolution_y > 2666):
+        #    raise ValueError("maximum map size is 3284 agent_x 2666")
 
-        self.uenv._process_immediate_message(
-            self.uenv.map_side_channel.build_immediate_request("binaryMap",
-                                                               [resolution_x,
-                                                                resolution_y,
-                                                                cell_occupancy_threshold]))
+        self.uenv.process_immediate_message(
+            self.uenv.map_side_channel.build_immediate_request("binaryMap"))
 
         return self.uenv.map_side_channel.requested_map
 
-        #self.uenv._process_immediate_message(
+    def get_navigable_map_zoom(self, x: int, y: int) -> np.ndarray:
+        """Get the Navigable Areas map
+
+        Returns:
+            Zoomed in row, col location, a numpy array having 0 for non-navigable and 1 for navigable cells.
+
+        """
+
+        # TODO : Clean up these notes
+        # The raw map array received from the Unity game is a row-major 1D flattened
+        # bitpacked array with the y-axis data ordered for image output
+        # (origin at top left).
+
+        # For example, if reshaping to a 2D array without reordering with
+        # dimensions `(resolution_y, resolution_x)`, then the desired coordinate `(x,y)`
+        # is at array element `[resolution_y-1-y, x]`.
+        # Finding the agent map position based on world position*:
+        # `map_x = floor(world_x / (max_x / resolution_x) )`
+        # `map_y = (resolution_y - 1) - floor(world_z / (max_y / resolution_y) )`
+
+        # *Note: When converting from the 3-dimensional world position to the
+        # 2-dimensional map, the world y-axis is omitted. The map's y-axis represents
+        # the world's z-axis.
+
+        # if (resolution_x > 3284) or (resolution_y > 2666):
+        #    raise ValueError("maximum map size is 3284 agent_x 2666")
+
+        self.uenv.process_immediate_message(
+            self.uenv.map_side_channel.build_immediate_request("binaryMapZoom", [y, x]))
+
+        return self.uenv.map_side_channel.requested_map
+
+        # self.uenv._process_immediate_message(
         #    self.uenv.map_side_channel.build_immediate_request("binaryMap",
         #                                                       [cell_occupancy_threshold]))
         #
-        #self.uenv._process_immediate_message(
+        # self.uenv._process_immediate_message(
         #    self.uenv.map_side_channel.build_immediate_request("binaryMapZoom",
         #                                                       [row,col,
         #                                                        cell_occupancy_threshold]))
@@ -574,47 +624,40 @@ class AroraGymEnv(UnityToGymWrapper):
 
     #    return self.map_side_channel.requested_map
 
-    def unity_to_navmap_location(self, unity_x, unity_z, navmap_max_x=256,
-                                 navmap_max_y=256):
+    def unity_to_navmap_location(self, unity_x, unity_z):
         """Convert a location from Unity's 3D coordinate system to navigable map's 2D coordinate system
 
         Args:
             unity_x: x coordinate in unity
             unity_z: z coordinate in unity
-            navmap_max_x: maximum x of navmap
-            navmap_max_y: maximum y of navmap
 
         Returns:
             navmap_x, navmap_y
         """
-        unity_max_x, _, unity_max_z = self.unity_map_dims
         # TODO: 0 <= unity_x < math.floor(unity_max_x) && 0 <= unity_z < math.floor(unity_max_z)
         navmap_x = math.floor(
-            unity_x / (math.floor(unity_max_x) / navmap_max_x))
+            unity_x / (math.floor(self.uenv.unity_max_x) / self.uenv.navmap_max_x))
         navmap_y = math.floor(
-            unity_z / (math.floor(unity_max_z) / navmap_max_y))
+            unity_z / (math.floor(self.uenv.unity_max_z) / self.uenv.navmap_max_y))
         return navmap_x, navmap_y
 
-    def navmap_to_unity_location(self, navmap_x, navmap_y, navmap_max_x=256,
-                                 navmap_max_y=256, navmap_cell_center=True):
+    def navmap_to_unity_location(self, navmap_x, navmap_y, navmap_cell_center=True):
         """Convert a location from navigable map's 2D coordinate system to Unity's 3D coordinate system
 
         Args:
             navmap_x, navmap_y: x, y location on navmap
-            navmap_max_x, navmap_max_y: maximum x,y on navmap
             navmap_cell_center: Whether to return the point in cell center, default True.
 
         Returns:
             unity_x, unity_z
         """
-        unity_max_x, unity_max_y, unity_max_z = self.unity_map_dims
 
         # TODO:  input: 0 <= navmap_x < navmap_max_x && 0<= navmap_y < navmap_max_y
-        unity_x = navmap_x * (math.floor(unity_max_x) / navmap_max_x)
-        unity_z = navmap_y * (math.floor(unity_max_z) / navmap_max_y)
+        unity_x = navmap_x * (math.floor(self.uenv.unity_max_x) / self.uenv.navmap_max_x)
+        unity_z = navmap_y * (math.floor(self.uenv.unity_max_z) / self.uenv.navmap_max_y)
         if navmap_cell_center:
-            unity_x += (math.floor(unity_max_x) / navmap_max_x) / 2
-            unity_z += (math.floor(unity_max_z) / navmap_max_y) / 2
+            unity_x += (math.floor(self.uenv.unity_max_x) / self.uenv.navmap_max_x) / 2
+            unity_z += (math.floor(self.uenv.unity_max_z) / self.uenv.navmap_max_y) / 2
 
         return unity_x, unity_z
 
@@ -627,8 +670,8 @@ class AroraGymEnv(UnityToGymWrapper):
         Returns:
             [x,y] vector components of rotation
         """
-        x, _, z = self._qv_mult(unity_rotation, [0, 0, 1])
-        return self._normalize([x, z])
+        x, _, z = _qv_mult(unity_rotation, [0, 0, 1])
+        return _normalize([x, z])
 
     def unity_rotation_in_euler(self, unity_rotation: List[float] = None):
         """Position of agent in Euler coordinates roll_x, pitch_y, yaw_z
@@ -674,8 +717,8 @@ class AroraGymEnv(UnityToGymWrapper):
         """
         x, y = navmap_rotation
 
-        v1 = self._normalize([x, 0, y])
-        v2 = self._normalize(np.cross([0.1, 0], v1))
+        v1 = _normalize(np.asarray([x, 0, y]))
+        v2 = _normalize(np.cross([0.1, 0], v1))
         v3 = np.cross(v1, v2)
         m00, m01, m02 = v2
         m10, m11, m12 = v3
@@ -712,31 +755,6 @@ class AroraGymEnv(UnityToGymWrapper):
             w = (m01 - m10) * num2
         return [x, y, z, w]
 
-    def _normalize(self, vec: List[float]):
-        magnitude = 0.0
-        for i in vec:
-            magnitude += (i * i)
-        magnitude = math.sqrt(magnitude)
-        return vec / magnitude
-
-    def _qv_mult(self, q: List[float], v: List[float]):
-        qx, qy, qz, qw = q
-        vx, vy, vz = v
-        qc = [-q.x, -qy, -qz, qw]
-        d = [vx, vy, vz, 0]
-        result = self._q_mult(self._q_mult(q, d), qc)
-        return result[0:3]
-
-    def _q_mult(q1, q2):
-        x1, y1, z1, w1 = q1
-        x2, y2, z2, w2 = q1
-
-        x = w1 * x2 + x1 * w2 + y1 * z2 - z1 * y2
-        y = w1 * y2 + y1 * w2 + z1 * x2 - x1 * z2
-        z = w1 * z2 + z1 * w2 + x1 * y2 - y1 * x2
-        w = w1 * w2 - x1 * x2 - y1 * y2 - z1 * z2
-        return [x, y, z, w]
-
     def sample_navigable_point(self, x: float = None, y: float = None,
                                z: float = None):
         """Provides a random sample of navigable point
@@ -769,7 +787,7 @@ class AroraGymEnv(UnityToGymWrapper):
             else:
                 point = [x, y, z]
 
-        self.uenv._process_immediate_message(
+        self.uenv.process_immediate_message(
             self.uenv.nsc.build_immediate_request("navigable", point))
 
         return self.uenv.nsc.point
@@ -851,15 +869,6 @@ class AroraGymEnv(UnityToGymWrapper):
         """Returns an instance of the sim
         """
         return self
-
-    @property
-    def unity_map_dims(self):
-        """Returns the maximum x,y,z values of Unity Map
-
-        Note: While converting to 2-D map, the Z-axis max of 3-D Unity Map
-        corresponds to Y-axis max of 2-D map
-        """
-        return 3284.0, 52.9, 2666.3
 
     @property
     def agent_obs(self):

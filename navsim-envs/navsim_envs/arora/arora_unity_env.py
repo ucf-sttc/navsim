@@ -6,9 +6,9 @@ from mlagents_envs.logging_util import get_logger
 from mlagents_envs.side_channel.engine_configuration_channel import EngineConfigurationChannel
 from mlagents_envs.side_channel.environment_parameters_channel import EnvironmentParametersChannel
 from mlagents_envs.side_channel.float_properties_channel import FloatPropertiesChannel
-from navsim_envs.arora.map_side_channel import MapSideChannel
-from navsim_envs.arora.navigable_side_channel import NavigableSideChannel
-from navsim_envs.arora.set_agent_position_side_channel import SetAgentPositionSideChannel
+from .map_side_channel import MapSideChannel
+from .navigable_side_channel import NavigableSideChannel
+from .set_agent_position_side_channel import SetAgentPositionSideChannel
 
 from .configs import default_env_config
 
@@ -87,3 +87,8 @@ class AroraUnityEnv(UnityEnvironment):
                          additional_args=ad_args)
 
         self.env_config = env_config
+        self.navmap_max_x = MapSideChannel.navmap_max_x
+        self.navmap_max_y = MapSideChannel.navmap_max_y
+        self.unity_max_x = 3284.0
+        self.unity_max_y = 52.9
+        self.unity_max_z = 2666.3

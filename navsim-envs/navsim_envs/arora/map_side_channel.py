@@ -1,6 +1,6 @@
 import struct
 import uuid
-from typing import List
+from typing import List, Optional
 
 import numpy as np
 from mlagents_envs.side_channel import SideChannel, IncomingMessage, \
@@ -13,6 +13,8 @@ class MapSideChannel(SideChannel):
     The arguments for a mapRequest are ("binaryMap", [RESOLUTION_X, RESOLUTION_Y, THRESHOLD])
     """
     resolution = None
+    navmap_max_x = 3284
+    navmap_max_y = 2666
 
     def __init__(self) -> None:
         channel_id = uuid.UUID("24b099f1-b184-407c-af72-f3d439950bdb")
@@ -30,19 +32,37 @@ class MapSideChannel(SideChannel):
                                                          self.resolution[0]))
         return self.requested_map
 
-    def send_request(self, key: str, value: List[float]) -> None:
+    def send_request(self, key: Optional[str] = 'binaryMap', value: Optional[List[float]] = None) -> None:
         """Sends a request to Unity
         The arguments for a mapRequest are ("binaryMap", [RESOLUTION_X, RESOLUTION_Y, THRESHOLD])
         """
-        self.resolution = value
+        if key == 'binaryMap':
+            if value is None:
+                value = []
+                self.resolution = [self.navmap_max_x, self.navmap_max_y]
+        elif key == 'binaryMapZoom':
+            if value is None:
+                raise ValueError('[x,y] not provided')
+            self.resolution = [100, 100]  # resolution at cm scale for 1 square meter tile
+        else:
+            raise ValueError('invalid key')
         msg = OutgoingMessage()
         msg.write_string(key)
         msg.write_float32_list(value)
         super().queue_message_to_send(msg)
 
-    def build_immediate_request(self, key: str,
-                                value: List[float]) -> bytearray:
-        self.resolution = value
+    def build_immediate_request(self, key: Optional[str] = 'binaryMap',
+                                value: Optional[List[float]] = None) -> bytearray:
+        if key == 'binaryMap':
+            if value is None:
+                value = []
+                self.resolution = [self.navmap_max_x, self.navmap_max_y]
+        elif key == 'binaryMapZoom':
+            if value is None:
+                raise ValueError('[x,y] not provided')
+            self.resolution = [100, 100]  # resolution at cm scale for 1 square meter tile
+        else:
+            raise ValueError('invalid key')
         msg = OutgoingMessage()
         msg.write_string(key)
         msg.write_float32_list(value)

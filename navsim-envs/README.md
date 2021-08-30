@@ -4,18 +4,7 @@
 Learning. Current implementation has the following sims encapsulated:
 * ARORA from UCF
 
-## Installation
-
-`pip install --upgrade navsim_envs`
-
-Note: We assume that you have a virtual env activated. 
-If not, please create a conda env with `conda create -n navtest python=3.8` 
-and then activate it with `conda activate navtest`.
-
-If you would like to create our optimized conda env for navsim, then refer to 
-the navsim conda and container page.
-
-### Test the installation
+## Test the installation
 
 In order to test the install:
 * Create an experiment folder, we use folder `~/exp` and change into this folder.
