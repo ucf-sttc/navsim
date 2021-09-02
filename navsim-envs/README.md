@@ -6,7 +6,6 @@ Learning. Current implementation has the following sims encapsulated:
 
 ## Test the installation
 
-In order to test the install:
 * Create an experiment folder, we use folder `~/exp` and change into this folder.
 * Create a minimal yaml file with the following contents:
   ```yaml
@@ -22,7 +21,7 @@ If you only want to use `AroraGymEnv`, then either subclass it or use it as foll
 
 ```python
 import navsim_envs
-from navsim_envs.env.arora import AroraGymEnv, default_env_config
+from navsim_envs.arora import AroraGymEnv, default_env_config
 import gym
 
 env_config = default_env_config.copy()
@@ -114,10 +113,10 @@ reward exploration.
 * `reward_collision_mul` : This reward multiple is used to determine the reward upon collision are anything that is not a goal point or 
 exploration point. This includes other cars, building, trees, etc.  
 * `reward_for_no_viable_path` : The map is a tiled specified bounded by the values of env.unity_map_dims(). If the agent 
-goes outside of this area and falls -15m below the environment area or enters an area outside of the navigable area then this reward is 
+goes outside this area and falls -15m below the environment area or enters an area outside of the navigable area then this reward is 
 activated. This will also result in a reset.  
 * `reward_step_mul` : This reward multiplier is used to determine the rewards given at every step in addition to any 
-other reward recieved at the same step.  
+other reward received at the same step.  
 * `reward_spl_delta_mul` : This reward multiplier is used to determine the reward as the agent reduces the current SPL to the goal
 
 #### Reward Specifications
@@ -143,18 +142,18 @@ else:
 ```
 
 ### Agent Car Physics
-* `0` - Simple : Collisions and gravity only - An agent that moves by a 
+* 0 - Simple : Collisions and gravity only - An agent that moves by a 
   specific distance and direction scaled by the provided action. This agent only experiences collision and gravity forces  
-* `1` - Intermediate 1 : Addition of wheel torque   
-* `2` - Intermediate 2 : Addition of suspension, downforce, and sideslip  
-* `10` - Complex : Addition of traction control and varying surface friction  
+* 1 - Intermediate 1 : Addition of wheel torque   
+* 2 - Intermediate 2 : Addition of suspension, downforce, and sideslip  
+* 10 - Complex : Addition of traction control and varying surface friction  
 
 ## Action Space
     [Throttle, Steering, Brake]  
-* `Throttle` : -1.0 to 1.0 : Moves the agent backward or forward  
-* `Steering` : -1.0 to 1.0 : Turns the steering column of the vehicle towards 
+* Throttle : -1.0 to 1.0 : Moves the agent backward or forward  
+* Steering : -1.0 to 1.0 : Turns the steering column of the vehicle towards 
   left or right    
-* `Brake` : -1.0 to 1.0 : Reduces the agents current velocity    
+* Brake : -1.0 to 1.0 : Reduces the agents current velocity    
 
 ### Car motion explanation based on action space
 
