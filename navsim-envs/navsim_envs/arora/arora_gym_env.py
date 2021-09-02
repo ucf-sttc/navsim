@@ -89,7 +89,7 @@ def _q_mult(q1, q2):
 def _qv_mult(q: List[float], v: List[float]):
     qx, qy, qz, qw = q
     vx, vy, vz = v
-    qc = [-q.x, -qy, -qz, qw]
+    qc = [-qx, -qy, -qz, qw]
     d = [vx, vy, vz, 0]
     result = _q_mult(_q_mult(q, d), qc)
     return result[0:3]

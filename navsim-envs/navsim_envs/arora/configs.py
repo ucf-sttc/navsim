@@ -29,5 +29,5 @@ default_env_config = {
     "timeout": 600,
     "traffic_vehicles": 0,
     "worker_id": 0,
-    "base_port": 5005,
+    "base_port": 5004,
 }
