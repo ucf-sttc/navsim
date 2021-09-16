@@ -14,4 +14,5 @@ env classes
    :undoc-members:
    :member-order: bysource
 
+.. autofunction:: navsim_envs.arora.increase_brightness
 

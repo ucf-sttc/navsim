@@ -68,16 +68,16 @@ def navsimgymenv_creator(env_config):
 
 
 def _normalize(vec: np.ndarray):
-    magnitude = 0.0
-    for i in vec:
-        magnitude += (i * i)
-    magnitude = math.sqrt(magnitude)
-    return vec / magnitude
+    # magnitude = 0.0
+    # for i in vec:
+    #    magnitude += (i * i)
+    #magnitude =   # math.sqrt(magnitude)
+    return vec / np.linalg.norm(vec)
 
 
-def _q_mult(q1, q2):
+def _q_mult(q1: List[float], q2: List[float]):
     x1, y1, z1, w1 = q1
-    x2, y2, z2, w2 = q1
+    x2, y2, z2, w2 = q2
 
     x = w1 * x2 + x1 * w2 + y1 * z2 - z1 * y2
     y = w1 * y2 + y1 * w2 + z1 * x2 - x1 * z2
@@ -93,7 +93,6 @@ def _qv_mult(q: List[float], v: List[float]):
     d = [vx, vy, vz, 0]
     result = _q_mult(_q_mult(q, d), qc)
     return result[0:3]
-
 
 class AroraGymEnv(UnityToGymWrapper):
     """AroraGymEnv inherits from Unity2Gym that inherits from the Gym interface.
@@ -248,6 +247,7 @@ class AroraGymEnv(UnityToGymWrapper):
                          action_space_seed=env_config['seed']
                          )
 
+        self._navigable_map = self.uenv.get_navigable_map()
         # TODO: the filenames should be prefixed with specific id of this instance of env
 
         # TODO: Read the file upto start_episode and purge the records
@@ -513,6 +513,19 @@ class AroraGymEnv(UnityToGymWrapper):
 
         return self.set_agent_state(rotation=rotation)
 
+    @property
+    def navigable_map(self,x,y) -> np.ndarray:
+        """Get the Navigable Areas map
+
+        Returns:
+            A numpy array having 0 for non-navigable and 1 for navigable cells.
+
+        Note:
+            Current resolution is 3284 x 2666
+        """
+        self._navigable_map = self.uenv.get_navigable_map()
+        return self._navigable_map[y,x]
+
     def get_navigable_map(self) -> np.ndarray:
         """Get the Navigable Areas map
 
@@ -542,10 +555,7 @@ class AroraGymEnv(UnityToGymWrapper):
         # if (resolution_x > 3284) or (resolution_y > 2666):
         #    raise ValueError("maximum map size is 3284 agent_x 2666")
 
-        self.uenv.process_immediate_message(
-            self.uenv.map_side_channel.build_immediate_request("binaryMap"))
-
-        return self.uenv.map_side_channel.requested_map
+        return self.uenv.get_navigable_map()
 
     def get_navigable_map_zoom(self, x: int, y: int) -> np.ndarray:
         """Get the Navigable Areas map
@@ -554,75 +564,7 @@ class AroraGymEnv(UnityToGymWrapper):
             Zoomed in row, col location, a numpy array having 0 for non-navigable and 1 for navigable cells.
 
         """
-
-        # TODO : Clean up these notes
-        # The raw map array received from the Unity game is a row-major 1D flattened
-        # bitpacked array with the y-axis data ordered for image output
-        # (origin at top left).
-
-        # For example, if reshaping to a 2D array without reordering with
-        # dimensions `(resolution_y, resolution_x)`, then the desired coordinate `(x,y)`
-        # is at array element `[resolution_y-1-y, x]`.
-        # Finding the agent map position based on world position*:
-        # `map_x = floor(world_x / (max_x / resolution_x) )`
-        # `map_y = (resolution_y - 1) - floor(world_z / (max_y / resolution_y) )`
-
-        # *Note: When converting from the 3-dimensional world position to the
-        # 2-dimensional map, the world y-axis is omitted. The map's y-axis represents
-        # the world's z-axis.
-
-        # if (resolution_x > 3284) or (resolution_y > 2666):
-        #    raise ValueError("maximum map size is 3284 agent_x 2666")
-
-        self.uenv.process_immediate_message(
-            self.uenv.map_side_channel.build_immediate_request("binaryMapZoom", [y, x]))
-
-        return self.uenv.map_side_channel.requested_map
-
-        # self.uenv._process_immediate_message(
-        #    self.uenv.map_side_channel.build_immediate_request("binaryMap",
-        #                                                       [cell_occupancy_threshold]))
-        #
-        # self.uenv._process_immediate_message(
-        #    self.uenv.map_side_channel.build_immediate_request("binaryMapZoom",
-        #                                                       [row,col,
-        #                                                        cell_occupancy_threshold]))
-        # def start_navigable_map(self, resolution_x=256, resolution_y=256,
-        #                        cell_occupancy_threshold=0.5):
-        # """Start the Navigable Areas map
-        #
-        # Args:
-        #    resolution_x: The size of the agent_x axis of the resulting grid, default = 256
-        #    resolution_y: The size of the y axis of the resulting grid, default = 256
-        #    cell_occupancy_threshold: If at least this much % of the cell is occupied, then it will be marked as non-navigable, default = 50%
-        #
-        # Returns:
-        #    Nothing
-
-        # Note:
-        #    Largest resolution is 3284 agent_x 2666
-        # """
-        #    if (resolution_x > 3284) or (resolution_y > 2666):
-        #        raise ValueError("maximum map size is 3284 agent_x 2666")
-        #    self.map_side_channel.send_request("binaryMap",
-        #                                       [resolution_x, resolution_y,
-        #                                        cell_occupancy_threshold])
-        # print('Inside get navigable map function:',self.map_side_channel.requested_map)
-
-        # def get_navigable_map(self) -> np.ndarray:
-        # """Get the Navigable Areas map
-        #
-        # Args:
-        #
-        # Returns:
-        #    A numpy array having 0 for non-navigable and 1 for navigable cells
-        #
-        # Note:
-        #    This only works if you have called ``reset()`` or ``step()`` on the
-        #    environment at least once after calling start_navigable_map() method.
-        # """
-
-    #    return self.map_side_channel.requested_map
+        return self.uenv.get_navigable_map_zoom(x=x, y=y)
 
     def unity_to_navmap_location(self, unity_x, unity_z):
         """Convert a location from Unity's 3D coordinate system to navigable map's 2D coordinate system
@@ -671,7 +613,7 @@ class AroraGymEnv(UnityToGymWrapper):
             [x,y] vector components of rotation
         """
         x, _, z = _qv_mult(unity_rotation, [0, 0, 1])
-        return _normalize([x, z])
+        return list(_normalize(np.asarray([x, z])))
 
     def unity_rotation_in_euler(self, unity_rotation: List[float] = None):
         """Position of agent in Euler coordinates roll_x, pitch_y, yaw_z
@@ -771,26 +713,7 @@ class AroraGymEnv(UnityToGymWrapper):
 
             If x,y,z are given, returns True if x,y,z is navigable else returns False.
         """
-
-        # if self.map_side_channel.requested_map is None:
-        #    self.get_navigable_map(resolution_x, resolution_y,
-        #                           cell_occupancy_threshold)
-        #
-        # idx = np.argwhere(self.map_side_channel.requested_map == 1)
-        # idx_sample = np.random.choice(len(idx), replace=False)
-        # return idx[idx_sample]
-        if x is None or z is None:
-            point = []
-        else:
-            if y is None:
-                point = [x, z]
-            else:
-                point = [x, y, z]
-
-        self.uenv.process_immediate_message(
-            self.uenv.nsc.build_immediate_request("navigable", point))
-
-        return self.uenv.nsc.point
+        return self.uenv.sample_navigable_point(x=x, y=y, z=z)
 
     def is_navigable(self, x: float, y: float, z: float) -> bool:
         """Returns if the point is navigable or not
@@ -864,11 +787,6 @@ class AroraGymEnv(UnityToGymWrapper):
         return actions_data, actions_names
 
     # Functions added to have parity with Env and RLEnv of habitat lab
-    @property
-    def sim(self):
-        """Returns an instance of the sim
-        """
-        return self
 
     @property
     def agent_obs(self):
@@ -935,4 +853,4 @@ class AroraGymEnv(UnityToGymWrapper):
         """the shortest navigable path length from current location to
         goal position
         """
-        return self.uenv.fpc.get_property("ShortestPath")
+        return self.uenv.shortest_path_length

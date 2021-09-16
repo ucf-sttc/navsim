@@ -1,0 +1,15 @@
+zip -r tools/repo.zip \
+    navsim-lab navsim-envs \
+    navsim-mlagents/ml-agents-envs \
+    navsim-mlagents/gym-unity \
+    version.txt \
+    tools/install-repo.sh \
+    docs \
+    examples \
+    -x "*/\build" \
+    -x "*/\dist" \
+    -x "*/\*pycache*" \
+    -x "*/\*.egg-info"
+
+scp tools/repo.zip fixer:/data/work/navsim-repo/repo.zip
+rm  tools/repo.zip

@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import numpy as np
 from mlagents_envs.environment import UnityEnvironment
 
 from mlagents_envs.logging_util import get_logger
@@ -87,8 +88,94 @@ class AroraUnityEnv(UnityEnvironment):
                          additional_args=ad_args)
 
         self.env_config = env_config
-        self.navmap_max_x = MapSideChannel.navmap_max_x
-        self.navmap_max_y = MapSideChannel.navmap_max_y
-        self.unity_max_x = 3284.0
-        self.unity_max_y = 52.9
-        self.unity_max_z = 2666.3
+
+    @property
+    def navmap_max_x(self):
+        return MapSideChannel.navmap_max_x
+
+    @property
+    def navmap_max_y(self):
+        return MapSideChannel.navmap_max_y
+
+    @property
+    def unity_max_x(self):
+        return 3284.0
+
+    @property
+    def unity_max_y(self):
+        return 52.9
+
+    @property
+    def unity_max_z(self):
+        return 2666.3
+
+    @property
+    def shortest_path_length(self):
+        """the shortest navigable path length from current location to
+        goal position
+        """
+        return self.fpc.get_property("ShortestPath")
+
+    def sample_navigable_point(self, x: float = None, y: float = None,
+                               z: float = None):
+        """Provides a random sample of navigable point
+
+        Args:
+            x: x in unity's coordinate system
+            y: y in unity's coordinate system
+            z: z in unity's coordinate system
+
+        Returns:
+            If x,y,z are None, returns a randomly sampled navigable point [x,y,z].
+
+            If x,z is given and y is None, returns True if x,z is navigable at some ht y else returns False.
+
+            If x,y,z are given, returns True if x,y,z is navigable else returns False.
+        """
+
+        # if self.map_side_channel.requested_map is None:
+        #    self.get_navigable_map(resolution_x, resolution_y,
+        #                           cell_occupancy_threshold)
+        #
+        # idx = np.argwhere(self.map_side_channel.requested_map == 1)
+        # idx_sample = np.random.choice(len(idx), replace=False)
+        # return idx[idx_sample]
+        if x is None or z is None:
+            point = []
+        else:
+            if y is None:
+                point = [x, z]
+            else:
+                point = [x, y, z]
+
+        self.process_immediate_message(
+            self.nsc.build_immediate_request("navigable", point))
+
+        return self.nsc.point
+
+    def get_navigable_map(self) -> np.ndarray:
+        """Get the Navigable Areas map
+
+        Returns:
+            A numpy array having 0 for non-navigable and 1 for navigable cells.
+
+        Note:
+            Current resolution is 3284 x 2666
+        """
+
+        self.process_immediate_message(
+            self.map_side_channel.build_immediate_request("binaryMap"))
+
+        return self.map_side_channel.requested_map
+
+    def get_navigable_map_zoom(self, x: int, y: int) -> np.ndarray:
+        """Get the Navigable Areas map
+
+        Returns:
+            Zoomed in row, col location, a numpy array having 0 for non-navigable and 1 for navigable cells.
+
+        """
+        self.process_immediate_message(
+            self.map_side_channel.build_immediate_request("binaryMapZoom", [y, x]))
+
+        return self.map_side_channel.requested_map
