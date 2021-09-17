@@ -71,7 +71,7 @@ def _normalize(vec: np.ndarray):
     # magnitude = 0.0
     # for i in vec:
     #    magnitude += (i * i)
-    #magnitude =   # math.sqrt(magnitude)
+    # magnitude =   # math.sqrt(magnitude)
     return vec / np.linalg.norm(vec)
 
 
@@ -93,6 +93,7 @@ def _qv_mult(q: List[float], v: List[float]):
     d = [vx, vy, vz, 0]
     result = _q_mult(_q_mult(q, d), qc)
     return result[0:3]
+
 
 class AroraGymEnv(UnityToGymWrapper):
     """AroraGymEnv inherits from Unity2Gym that inherits from the Gym interface.
@@ -513,19 +514,6 @@ class AroraGymEnv(UnityToGymWrapper):
 
         return self.set_agent_state(rotation=rotation)
 
-    @property
-    def navigable_map(self,x,y) -> np.ndarray:
-        """Get the Navigable Areas map
-
-        Returns:
-            A numpy array having 0 for non-navigable and 1 for navigable cells.
-
-        Note:
-            Current resolution is 3284 x 2666
-        """
-        self._navigable_map = self.uenv.get_navigable_map()
-        return self._navigable_map[y,x]
-
     def get_navigable_map(self) -> np.ndarray:
         """Get the Navigable Areas map
 
@@ -535,25 +523,6 @@ class AroraGymEnv(UnityToGymWrapper):
         Note:
             Current resolution is 3284 x 2666
         """
-
-        # TODO : Clean up these notes
-        # The raw map array received from the Unity game is a row-major 1D flattened
-        # bitpacked array with the y-axis data ordered for image output
-        # (origin at top left).
-
-        # For example, if reshaping to a 2D array without reordering with
-        # dimensions `(resolution_y, resolution_x)`, then the desired coordinate `(x,y)`
-        # is at array element `[resolution_y-1-y, x]`.
-        # Finding the agent map position based on world position*:
-        # `map_x = floor(world_x / (max_x / resolution_x) )`
-        # `map_y = (resolution_y - 1) - floor(world_z / (max_y / resolution_y) )`
-
-        # *Note: When converting from the 3-dimensional world position to the
-        # 2-dimensional map, the world y-axis is omitted. The map's y-axis represents
-        # the world's z-axis.
-
-        # if (resolution_x > 3284) or (resolution_y > 2666):
-        #    raise ValueError("maximum map size is 3284 agent_x 2666")
 
         return self.uenv.get_navigable_map()
 

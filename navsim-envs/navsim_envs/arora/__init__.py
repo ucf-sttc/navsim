@@ -2,7 +2,7 @@
 from .configs import default_env_config # noqa
 from .arora_gym_env import (
     AroraGymEnv,
-    AroraUnityEnv
+    AroraUnityEnv  #noqa
 )
 AroraGymEnv.register_with_gym()
 
