@@ -8,6 +8,7 @@ default_env_config = {
     "env_path": None,
     "goal": 0,
     "goal_distance": 50,
+    "goal_clearance": 2.5,
     "log_folder": "./env_log",
     "obs_mode": 0,
     "obs_height": 64,

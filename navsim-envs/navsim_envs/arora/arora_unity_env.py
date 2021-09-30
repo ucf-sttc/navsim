@@ -57,6 +57,7 @@ class AroraUnityEnv(UnityEnvironment):
         env_sfp("goalSelectionIndex", env_config['goal'])
         env_sfp("agentCarPhysics", env_config['agent_car_physics'])
         env_sfp("goalDistance", env_config['goal_distance'])
+        env_sfp("goalClearance", env_config['goal_clearance'])
         env_sfp("numberOfTrafficVehicles", env_config['traffic_vehicles'])
 
         timeout = env_config['timeout'] + (0.5 * (env_config['start_from_episode'] - 1))
