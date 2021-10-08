@@ -29,11 +29,11 @@ env_id = "arora-v0"
 #        logger.setLevel(20)
 
 
-# @pytest.fixture(scope="session", params=[
+#@pytest.fixture(scope="session", params=[
 #    {'seed': 0},
 #    {'seed': 123},
 #    {'seed': 1000},
-# ])
+#])
 
 @pytest.fixture(scope="session")
 def env_config_4_session(request):
@@ -210,79 +210,6 @@ class TestAroraGymEnv1:
         #               unity_loc[1] > 2665 - resolution_margin and
         #               unity_loc[1] < 2665 + resolution_margin)
 
-    # Tests sample navigable point and setting the agent's position
-    def test_set_agent_position(self, request, env_4_class, env_config_4_session):
-        logger.info(f"=========== Running {request.node.name}")
-        # setLoggerLevel(env_config["debug"])
-
-        env = env_4_class(env_config_4_session)
-        navigable_map = env.get_navigable_map()
-        env.reset()
-        err_margin = 1.0
-        samples = 10
-        for i in range(0, samples):
-            logger.debug(f"===========")
-            logger.debug(f"Original Position: {env.agent_position} and {env.agent_rotation} and {env.goal_position}")
-            sampled_position = env.sample_navigable_point()
-            success = env.set_agent_position(sampled_position)
-            logger.debug(f"Sampled Position: {sampled_position}")
-            o, r, done, i = env.step([0, 0, 1])
-
-            # TODO Replace with env.agent_position and env.agent_rotation after they are updated
-            # logger.info(f"After Agent Set: {env.agent_position} and {env.agent_rotation} and {env.goal_position}")
-            cur_position = o[0][:3]
-            cur_rotation = o[0][6:10]
-            logger.debug(f"Observation: {o}")
-            logger.debug(f"Position {cur_position} and Rotation {cur_rotation}")
-
-            logger.debug(f"Set Agent Position Request Returned : {success}")
-            assert success == True
-            assert cur_position[0] < sampled_position[0] + err_margin and cur_position[0] > sampled_position[
-                0] - err_margin
-            assert cur_position[1] < sampled_position[1] + err_margin and cur_position[1] > sampled_position[
-                1] - err_margin
-            assert cur_position[2] < sampled_position[2] + err_margin and cur_position[2] > sampled_position[
-                2] - err_margin
-
-        logger.info(f'{samples} sampled points are able to set agent state')
-
-    def test_set_agent_rotation(self, request, env_4_class, env_config_4_session):
-        logger.info(f"=========== Running {request.node.name}")
-
-        env = env_4_class(env_config_4_session)
-        navigable_map = env.get_navigable_map()
-        err_margin = 0.1
-        samples = 10
-        for sample in range(0, samples):
-            env.reset()
-            for sampled_rotation in VALID_QUATERNIONS:
-                logger.debug(f"===========")
-                logger.debug(
-                    f"Original Position: {env.agent_position} and {env.agent_rotation} and {env.goal_position}")
-                sampled_rotation_euler = env.unity_rotation_in_euler(sampled_rotation)
-
-                success = env.set_agent_rotation(sampled_rotation)
-                logger.debug(f"Sampled Rotation: {sampled_rotation}")
-                o, r, done, i = env.step([0, 0, 1])
-
-                # TODO Replace with env.agent_position and env.agent_rotation after they are updated
-                cur_position = o[0][:3]
-                cur_rotation = o[0][6:10]
-                cur_rotation_euler = env.unity_rotation_in_euler(o[0][6:10])
-                logger.debug(f"Observation: {o}")
-                logger.debug(f"Position {cur_position} and Rotation {cur_rotation}")
-
-                logger.debug(f"Euler {sampled_rotation_euler} {cur_rotation_euler}")
-
-                logger.debug(f"Set Agent Position Request Returned : {success}")
-                assert success == True
-                assert cur_rotation_euler[1] < sampled_rotation_euler[1] + err_margin and cur_rotation_euler[1] > \
-                       sampled_rotation_euler[1] - err_margin
-
-            logger.debug(f'reset {sample} completed successfully')
-
-        logger.info(f'{samples} sampled points are able to set agent state')
-
     def test_get_obs(self, request, env_4_class, env_config_4_session):
         logger.info(f"=========== Running {request.node.name}")
 
@@ -314,6 +241,82 @@ class TestAroraGymEnv2:
     env is initialized once in each function
     """
 
+    # Tests sample navigable point and setting the agent's position
+    def test_set_agent_position(self, request, env_4_func, env_config_4_func):
+        logger.info(f"=========== Running {request.node.name}")
+        # setLoggerLevel(env_config["debug"])
+        env_config_4_func['seed']=1
+        env_config_4_func['goal_clearance'] = 3
+
+        env = env_4_func(env_config_4_func)
+        navigable_map = env.get_navigable_map()
+        
+        err_margin = 1.0
+        samples = 10
+        for i in range(0, samples):
+            env.reset()
+            logger.debug(f"===========")
+            logger.debug(f"Original Position: {env.agent_position} and {env.agent_rotation} and {env.goal_position}")
+            #sampled_position = env.sample_navigable_point()
+            sampled_position = env.goal_position # use goal position to set agent
+            success = env.set_agent_position(env.goal_position)
+            logger.debug(f"Destination Position: {env.goal_position}")
+            o, r, done, i = env.step([0, 0, 1])
+
+            cur_position = o[0][:3]
+            cur_rotation = o[0][6:10]
+            logger.debug(f"Observation: {o}")
+            logger.debug(f"Position {cur_position} and Rotation {cur_rotation}")
+
+            logger.debug(f"Set Agent Position Request Returned : {success}")
+            assert success == True
+            assert cur_position[0] < sampled_position[0] + err_margin and cur_position[0] > sampled_position[
+                0] - err_margin
+            assert cur_position[1] < sampled_position[1] + err_margin and cur_position[1] > sampled_position[
+                1] - err_margin
+            assert cur_position[2] < sampled_position[2] + err_margin and cur_position[2] > sampled_position[
+                2] - err_margin
+
+        logger.info(f'{samples} successful executions of set agent state')
+
+    def test_set_agent_rotation(self, request, env_4_func, env_config_4_func):
+        logger.info(f"=========== Running {request.node.name}")
+        env_config_4_func['seed']=1
+        env_config_4_func['goal_clearance'] = 3
+
+        env = env_4_func(env_config_4_func)
+        navigable_map = env.get_navigable_map()
+        err_margin = 0.1
+        samples = 3
+        for sample in range(0, samples):
+            env.reset()
+            env.set_agent_position(env.goal_position)
+            for sampled_rotation in VALID_QUATERNIONS:
+                logger.debug(f"===========")
+                logger.debug(
+                    f"Original Position: {env.agent_position} and {env.agent_rotation} and {env.goal_position}")
+                sampled_rotation_euler = env.unity_rotation_in_euler(sampled_rotation)
+
+                success = env.set_agent_rotation(sampled_rotation)
+                logger.debug(f"Sampled Rotation: {sampled_rotation}")
+                o, r, done, i = env.step([0, 0, 1])
+
+                cur_position = o[0][:3]
+                cur_rotation = o[0][6:10]
+                cur_rotation_euler = env.unity_rotation_in_euler(o[0][6:10])
+                logger.debug(f"Observation: {o}")
+                logger.debug(f"Position {cur_position} and Rotation {cur_rotation}")
+
+                logger.debug(f"Euler {sampled_rotation_euler} {cur_rotation_euler}")
+
+                logger.debug(f"Set Agent Rotation Request Returned : {success}")
+                assert success == True
+                assert cur_rotation_euler[1] < sampled_rotation_euler[1] + err_margin and cur_rotation_euler[1] > \
+                       sampled_rotation_euler[1] - err_margin
+
+            logger.debug(f'reset {sample} completed successfully')
+
+        logger.info(f'{samples} successful executions of set agent rotation')
 
 #    def test_observation_brightness(self, request, env_4_func, env_config_4_func):
 #        """
