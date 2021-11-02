@@ -63,7 +63,9 @@ class AroraUnityEnv(UnityEnvironment):
         timeout = env_config['timeout'] + (0.5 * (env_config['start_from_episode'] - 1))
 
         ad_args = [
-            # "-force-device-index",
+            # "-force-device-
+            "-allowedArea",
+            f"{env_config['area']}",
             "-gpu",
             f"{env_config['env_gpu_id']}",
             "-observationWidth",

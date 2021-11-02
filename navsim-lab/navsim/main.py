@@ -1,12 +1,28 @@
 from pathlib import Path
 
+import cv2
+import gym
 import navsim
 import navsim_envs
 
 from ezai_util.dict import ObjDict
+from matplotlib import pyplot as plt
+from navsim.planner.navsim_planner import NavsimPlanner
+
 from .cli_utils import argparser, non_default_args
 from navsim.executor.navsim_executor import Executor
 
+def increase_brightness(image, value=0.1):
+    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    # h, s, v = cv2.split(hsv)
+    # lim = 255 - value
+    # v[v > lim] = 255
+    # v[v <= lim] += value
+    # final_hsv = cv2.merge((h, s, v))
+
+    hsv[:,:,2] = cv2.add(hsv[:, :, 2], value )
+    image = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
+    return image
 
 def main():
     """
@@ -81,7 +97,6 @@ def main():
         if run_base_folder.exists():
             shutil.rmtree(run_base_folder)
         # run_config = ObjDict()
-        # TODO: run_config = navsim.default_conf
         run_config = ObjDict(navsim.util.run_config.copy())
         env_config = ObjDict(navsim_envs.arora.default_env_config.copy())
         env_log_folder = run_base_folder / 'env_log'
@@ -121,7 +136,8 @@ def main():
                    "agent_car_physics", "base_port", "episode_max_steps", "env_gpu_id", "goal", "goal_distance",
                    "obs_mode",
                    "obs_height", "obs_width", "segmentation_mode", "task", "timeout", "traffic_vehicles"]
-    float_args = ["discount", "tau", "expl_noise"] + ["reward_for_goal", "reward_for_no_viable_path", "reward_step_mul",
+    float_args = ["discount", "tau", "expl_noise"] + ["goal_clearance", "reward_for_goal", "reward_for_no_viable_path",
+                                                      "reward_step_mul",
                                                       "reward_collision_mul", "reward_spl_delta_mul"]
     for arg in int_args:
         if arg in run_config:
@@ -143,39 +159,37 @@ def main():
     run_config.save_to_yaml_file(str(run_base_folder / "run_config.yml"))
     env_config.save_to_yaml_file(str(run_base_folder / "env_config.yml"))
 
-    """
-    env_conf = ObjDict({
-        "agent_car_physics": int(args["agent_car_physics"]),
-        "debug": args["debug"],
-        "episode_max_steps": int(args["episode_max_steps"]),
-        "env_gpu_id": int(args["env_gpu_id"]),
-        "env_path": args["env_path"],
-        "goal": int(args["goal"]),
-        "goal_distance": int(args["goal_distance"]),
-        "log_folder": str(run_base_folder / "env_log"),
-        "obs_mode": int(args["obs_mode"]),
-        "obs_height": int(args["obs_height"]),
-        "obs_width": int(args["obs_width"]),
-        "reward_for_goal": float(args["reward_for_goal"]),
-        "reward_for_no_viable_path": float(args["reward_for_no_viable_path"]),
-        "reward_step_mul": float(args["reward_step_mul"]),
-        "reward_collision_mul": float(args["reward_collision_mul"]),
-        "reward_spl_delta_mul": float(args["reward_spl_delta_mul"]),
-        "save_actions": args["save_actions"],
-        "save_vector_obs": args["save_vector_obs"],
-        "save_visual_obs": args["save_visual_obs"],
-        "seed": int(args["seed"]),
-        "segmentation_mode": int(args["segmentation_mode"]),
-        "show_visual": args["show_visual"],
-        "task": int(args["task"]),
-        "timeout": int(args["timeout"]),
-        "traffic_vehicles": int(args["traffic_vehicles"]),
-        "worker_id": 0,
-        "base_port": 5005,
-    })
-    """
-
-    if args["rl_backend"] == "rllib":
+    if args["plan"] is True:
+        env_config["episode_max_steps"]= 10000
+        env_config["goal_clearance"] = 20
+        env_config["goal_distance"]= 100
+        env_config["obs_mode"] = 2
+        env_config["obs_height"] = 256
+        env_config["obs_width"] = 256
+        env_config["seed"] = 12345
+        env_config["relative_steering"] = False
+        env = gym.make("arora-v0", env_config=env_config)
+        o = env.reset()
+        planner = NavsimPlanner(env)
+        num_step = 0
+        a = False
+        d = False
+        plt.ion()
+        while (a is not None) and (d is False):
+            a = planner.plan(o)
+#            if a is None:
+#                break
+            o, r, d, i = env.step(a)
+            print("distance:", env.shortest_path_length, "reward", r)
+#            if d:
+#                break
+            num_step += 1
+            if num_step % 3 == 0:
+                plt.imshow(increase_brightness(env.render()))
+                plt.show()
+                plt.pause(0.001)
+                plt.clf()
+    elif args["rl_backend"] == "rllib":
         import ray.rllib.agents.ppo as ppo
         config = ObjDict(ppo.DEFAULT_CONFIG.copy())
         for arg in run_config:

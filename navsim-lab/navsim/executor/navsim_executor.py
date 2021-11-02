@@ -60,10 +60,9 @@ class Executor:
         self.run_config = config
         for key in navsim.util.run_config:
             if key not in config:
-                config[key]=navsim.util.run_config[key]
+                config[key] = navsim.util.run_config[key]
 
-        self.env_config = config.get("env_config",None)
-
+        self.env_config = config.get("env_config", None)
 
         self.run_base_folder = Path(self.run_id).resolve()
         if self.run_config.resume or self.run_config.continue_arg:
@@ -146,7 +145,9 @@ class Executor:
                 from navsim.memory import NumpyMemory
                 mem_backend = NumpyMemory
 
-            obs_shapes = [obs.shape for obs in self.env.observation_space.spaces] if hasattr(self.env.observation_space,'spaces') else [self.env.observation_space.shape]
+            obs_shapes = [obs.shape for obs in self.env.observation_space.spaces] if hasattr(self.env.observation_space,
+                                                                                             'spaces') else [
+                self.env.observation_space.shape]
 
             if self.run_config.resume and self.run_base_folder.is_dir() and (
                     not self.run_config["clear_memory"]):
@@ -172,8 +173,8 @@ class Executor:
             self.memory.info()
 
             self.agent = DDPGAgent(
-                observation_space_shapes = obs_shapes,
-                action_space_shape = self.env.action_space.shape,
+                observation_space_shapes=obs_shapes,
+                action_space_shape=self.env.action_space.shape,
                 action_max=self.env.action_space.high[0],
                 device=self.device,
                 discount=self.run_config['discount'], tau=self.run_config['tau']
@@ -189,7 +190,7 @@ class Executor:
 
             dummy_nn = self.agent.get_nn_wrapper()
 
-            self.summary_writer.add_graph(dummy_nn,[dummy_obs, dummy_act])
+            self.summary_writer.add_graph(dummy_nn, [dummy_obs, dummy_act])
             del dummy_nn, dummy_obs, dummy_act
 
             if self.run_config.seed is not None:
@@ -260,9 +261,9 @@ class Executor:
         self.pylog_file.write(log_str)
         print(log_str)
         self.pylog_file.flush()
-        #try:
+        # try:
         #    self.env.info()
-        #except:
+        # except:
         env_info(self.env)
 
         # self.env.info_steps(save_visuals=True)
@@ -306,7 +307,7 @@ class Executor:
         step_res = np.full((checkpoint_interval, t_max, 10, 3), 0.0)
         # [[[[0] * 3] * 10] * t_max] * checkpoint_interval
         step_rew = np.full((checkpoint_interval, t_max), 0.0)
-        #step_spl = np.full((checkpoint_interval, t_max), 0.0)
+        # step_spl = np.full((checkpoint_interval, t_max), 0.0)
         step_loss = np.full((checkpoint_interval, t_max, 2), 0.0)
 
         for i in range(0, num_episode_blocks):
@@ -420,7 +421,7 @@ class Executor:
                     step_res[ckpt_e, t - 1, 8] = self.rc.snapshot()  # s8
 
                     step_rew[ckpt_e, t - 1] = r
-                    #step_spl[ckpt_e, t - 1] = self.env.spl_current
+                    # step_spl[ckpt_e, t - 1] = self.env.spl_current
                     step_loss[ckpt_e, t - 1] = [
                         0 if self.agent.actor_loss is None else self.agent.actor_loss.data.cpu().numpy(),
                         0 if self.agent.critic_loss is None else self.agent.critic_loss.data.cpu().numpy()]
@@ -482,9 +483,9 @@ class Executor:
                                'time': episode_time,
                                'peak_memory': episode_resources[e_num, 1, 2],
                                'total_steps': episode_steps[e_num],
-                               #'max_spl': step_spl[e_num].max(),
-                               #'min_spl': step_spl[e_num].min(),
-                               #'spl_span': step_spl[e_num].max() - step_spl[
+                               # 'max_spl': step_spl[e_num].max(),
+                               # 'min_spl': step_spl[e_num].min(),
+                               # 'spl_span': step_spl[e_num].max() - step_spl[
                                #    e_num].min()
                                },
                               start_episode + e_num)  # episode_num
@@ -518,7 +519,7 @@ class Executor:
                     r = step_rew[e_num, t]
                     self.write_tb('step',
                                   {'step_reward': r,
-                                  # 'step_spl': step_spl[e_num, t]
+                                   # 'step_spl': step_spl[e_num, t]
                                    },
                                   t_global)
                     self.write_tb('time',

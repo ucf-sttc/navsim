@@ -2,6 +2,7 @@ import yaml
 
 default_env_config = {
     "agent_car_physics": 0,
+    "area": 0,
     "debug": False,
     "episode_max_steps": 1000,
     "env_gpu_id": 0,

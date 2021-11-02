@@ -52,6 +52,13 @@ def _create_argparser() -> argparse.ArgumentParser:
     )
 
     run_conf.add_argument(
+        "--plan",
+        default=False,
+        help="Run with Planner",
+        action=ArgActionStoreTrue,
+    )
+
+    run_conf.add_argument(
         "--rl_backend",
         default="navsim",
         help="The backend library for RL.",
@@ -177,6 +184,14 @@ def _create_argparser() -> argparse.ArgumentParser:
     env_desc = "The arguments are used to configure the environment."
     env_conf = argparser.add_argument_group(title="Environment Configuration",
                                             description=env_desc)
+
+    env_conf.add_argument(
+        "--area",
+        default=default_env_config['area'],
+        action=ArgAction,
+        help="0 for all map, 1 for train area (0, 0 to 500, 3000), 2 for test area (500, 0 to 4000, 3000)",
+    )
+
     env_conf.add_argument(
         "--env_path",
         default=None,

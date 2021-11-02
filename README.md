@@ -16,7 +16,7 @@ In the future, navsim may be compatible with a variety of simulators, but for no
   * or install conda env from our repo: Go to `navsim` conda section
 * Install the repos in `navsim` virtual env
   ```
-  export $NAVSIM_REPO=/path/to/ai_coop_py
+  export NAVSIM_REPO=/path/to/ai_coop_py
   $NAVSIM_REPO/tools/install-repo.sh
   ```
 * Read `navsim_envs` tutorial to use and test the `navsim_envs`
@@ -77,7 +77,7 @@ In the future, navsim may be compatible with a variety of simulators, but for no
 1. Download and extract the unity binary zip file
 2. The following environment variables need to be set in both cases:
    ```shell
-   envdir=$(realpath "/data/work/unity-envs/Build2.10.9");
+   envdir=$(realpath "/data/work/unity-envs/Build2.10.13");
    envbin="Berlin_Walk_V2"; 
    expdir=$(realpath "$HOME/exp"); 
    run_id="demo"; 
@@ -102,7 +102,7 @@ In the future, navsim may be compatible with a variety of simulators, but for no
    -v $envdir:$envdir \
    -v $expdir:$expdir \
    -w $expdir \
-   $repo/navsim:2.10.10 DISPLAY=:0.0 <navsim command>
+   $repo/navsim:2.10.13 DISPLAY=:0.0 <navsim command>
    ```
 Note: Add the following if you want to use your local repos instead of the ones burnt in the container:
 `-v $(realpath "$HOME/projects/ai_coop_py") /opt/conda/navsim-repo`
@@ -124,7 +124,7 @@ zero to the index number of GPU for environment binary.
 
 * `navsim_env_test min_env_config.yml`
 * `navsim --help` shows the options
-* `navsim --run_id $run_id --env $envdir/$envbin` - executes and/or trains the model
+* `navsim --run_id $run_id --env_path $envdir/$envbin` - executes and/or trains the model
 * `navsim-benchmark $envdir/$envbin` - benchmarks the model
 * `navsim-saturate-gpu $envdir/$envbin` - Saturates the GPU
 
