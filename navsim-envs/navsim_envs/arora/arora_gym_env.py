@@ -389,10 +389,10 @@ class AroraGymEnv(UnityToGymWrapper):
         elif mode == 'vector' and self.env_config["obs_mode"] in [0, 2]:
             obs = self._obs[-1]
         else:
-            raise ValueError("Bad render mode was specified or the "
-                             "observation mode of the environment doesnt "
-                             "support this render mode. render mode = "
-                             "{mode}, observation mode = {self.obs_mode}")
+            raise ValueError(f"Bad render mode was specified or the "
+                             f"observation mode of the environment doesnt "
+                             f"support this render mode. render mode = "
+                             f"{mode}, observation mode = {self.obs_mode}")
         return obs
 
     def get_agent_obs_at(self, position: Optional[List[float]] = None,
