@@ -160,35 +160,36 @@ def main():
     env_config.save_to_yaml_file(str(run_base_folder / "env_config.yml"))
 
     if args["plan"] is True:
-        env_config["episode_max_steps"]= 10000
-        env_config["goal_clearance"] = 20
-        env_config["goal_distance"]= 100
+        #env_config["episode_max_steps"]= 10000
+        #env_config["goal_clearance"] = 20
+        #env_config["goal_distance"]= 100
         env_config["obs_mode"] = 2
-        env_config["obs_height"] = 256
-        env_config["obs_width"] = 256
-        env_config["seed"] = 12345
+        #env_config["obs_height"] = 256
+        #env_config["obs_width"] = 256
+        #env_config["seed"] = 12345
         env_config["relative_steering"] = False
         env = gym.make("arora-v0", env_config=env_config)
-        o = env.reset()
-        planner = NavsimPlanner(env)
-        num_step = 0
-        a = False
-        d = False
-        plt.ion()
-        while (a is not None) and (d is False):
-            a = planner.plan(o)
-#            if a is None:
-#                break
-            o, r, d, i = env.step(a)
-            print("distance:", env.shortest_path_length, "reward", r)
-#            if d:
-#                break
-            num_step += 1
-            if num_step % 3 == 0:
-                plt.imshow(increase_brightness(env.render()))
-                plt.show()
-                plt.pause(0.001)
-                plt.clf()
+        for episode_num in range(0,run_config["total_episodes"]+1):
+            o = env.reset()
+            planner = NavsimPlanner(env)
+            num_step = 0
+            a = False
+            d = False
+            plt.ion()
+            while (a is not None) and (d is False):
+                a = planner.plan(o)
+    #            if a is None:
+    #                break
+                o, r, d, i = env.step(a)
+                print("distance:", env.shortest_path_length, "reward", r)
+    #            if d:
+    #                break
+                num_step += 1
+                if num_step % 3 == 0:
+                    plt.imshow(increase_brightness(env.render()))
+                    plt.show()
+                    plt.pause(0.001)
+                    plt.clf()
     elif args["rl_backend"] == "rllib":
         import ray.rllib.agents.ppo as ppo
         config = ObjDict(ppo.DEFAULT_CONFIG.copy())

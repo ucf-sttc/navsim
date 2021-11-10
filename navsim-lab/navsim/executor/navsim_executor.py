@@ -2,7 +2,9 @@ import csv
 from pathlib import Path
 import json
 
+import cv2
 import torch
+from navsim.planner.navsim_planner import NavsimPlanner
 from tqdm import tqdm
 import numpy as np
 import math
@@ -274,6 +276,50 @@ class Executor:
         else:
             print("closing the env now")
             self.env.close()
+
+    def increase_brightness(image, value=0.1):
+        hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+        # h, s, v = cv2.split(hsv)
+        # lim = 255 - value
+        # v[v > lim] = 255
+        # v[v <= lim] += value
+        # final_hsv = cv2.merge((h, s, v))
+
+        hsv[:,:,2] = cv2.add(hsv[:, :, 2], value )
+        image = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
+        return image
+
+    def plan(self):
+        #env_config["episode_max_steps"]= 10000
+        #env_config["goal_clearance"] = 20
+        #env_config["goal_distance"]= 100
+        #env_config["obs_mode"] = 2
+        #env_config["obs_height"] = 256
+        #env_config["obs_width"] = 256
+        #env_config["seed"] = 12345
+        #env_config["relative_steering"] = False
+        env = gym.make("arora-v0", env_config=env_config)
+        o = env.reset()
+        planner = NavsimPlanner(env)
+        num_step = 0
+        a = False
+        d = False
+        plt.ion()
+        while (a is not None) and (d is False):
+            a = planner.plan(o)
+            #            if a is None:
+            #                break
+            o, r, d, i = env.step(a)
+            print("distance:", env.shortest_path_length, "reward", r)
+            #            if d:
+            #                break
+            num_step += 1
+            if num_step % 3 == 0:
+                plt.imshow(increase_brightness(env.render()))
+                plt.show()
+                plt.pause(0.001)
+                plt.clf()
+
 
     def execute(self):
         """

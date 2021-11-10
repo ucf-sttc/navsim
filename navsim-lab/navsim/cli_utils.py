@@ -184,6 +184,12 @@ def _create_argparser() -> argparse.ArgumentParser:
     env_desc = "The arguments are used to configure the environment."
     env_conf = argparser.add_argument_group(title="Environment Configuration",
                                             description=env_desc)
+    env_conf.add_argument(
+        "--agent_car_physics",
+        default=default_env_config['agent_car_physics'],
+        help="Agent Car Physics Levels : 0,1,2,10",
+        action=ArgAction,
+    )
 
     env_conf.add_argument(
         "--area",
@@ -206,12 +212,29 @@ def _create_argparser() -> argparse.ArgumentParser:
         action=ArgAction,
         help="Which GPU to run env on",
     )
+
     env_conf.add_argument(
-        "--timeout",
-        default=default_env_config['timeout'],
-        help="TimeOut for the Env",
+        "--goal",
+        default=default_env_config['goal'],
+        help="Goal",
         action=ArgAction,
     )
+
+    env_conf.add_argument(
+        "--goal_distance",
+        default=default_env_config['goal_distance'],
+        help="Distance to goal from current location",
+        action=ArgAction,
+    )
+
+    env_conf.add_argument(
+        "--goal_clearance",
+        default=default_env_config['goal_clearance'],
+        help="Goal clearance",
+        action=ArgAction,
+    )
+
+
     env_conf.add_argument(
         "--obs_mode",
         default=default_env_config['obs_mode'],
@@ -230,48 +253,6 @@ def _create_argparser() -> argparse.ArgumentParser:
         "--obs_width",
         default=default_env_config['obs_width'],
         help="Observation width",
-        action=ArgAction,
-    )
-
-    env_conf.add_argument(
-        "--segmentation_mode",
-        default=default_env_config['segmentation_mode'],
-        help="Segmentation Mode",
-        action=ArgAction,
-    )
-
-    env_conf.add_argument(
-        "--task",
-        default=default_env_config['task'],
-        help="Task",
-        action=ArgAction,
-    )
-
-    env_conf.add_argument(
-        "--goal",
-        default=default_env_config['goal'],
-        help="Goal",
-        action=ArgAction,
-    )
-
-    env_conf.add_argument(
-        "--goal_distance",
-        default=default_env_config['goal_distance'],
-        help="Distance to goal from current location",
-        action=ArgAction,
-    )
-
-    env_conf.add_argument(
-        "--traffic_vehicles",
-        default=default_env_config['traffic_vehicles'],
-        help="Number of traffic vehicles",
-        action=ArgAction,
-    )
-
-    env_conf.add_argument(
-        "--agent_car_physics",
-        default=default_env_config['agent_car_physics'],
-        help="Agent Car Physics Levels : 0,1,2,10",
         action=ArgAction,
     )
 
@@ -337,6 +318,39 @@ def _create_argparser() -> argparse.ArgumentParser:
         action=ArgActionStoreTrue,
         help="Show visual obs window",
     )
+
+    env_conf.add_argument(
+        "--segmentation_mode",
+        default=default_env_config['segmentation_mode'],
+        help="Segmentation Mode",
+        action=ArgAction,
+    )
+
+    env_conf.add_argument(
+        "--task",
+        default=default_env_config['task'],
+        help="Task",
+        action=ArgAction,
+    )
+
+    env_conf.add_argument(
+        "--timeout",
+        default=default_env_config['timeout'],
+        help="TimeOut for the Env",
+        action=ArgAction,
+    )
+
+
+    env_conf.add_argument(
+        "--traffic_vehicles",
+        default=default_env_config['traffic_vehicles'],
+        help="Number of traffic vehicles",
+        action=ArgAction,
+    )
+
+
+
+
 
     dev_desc = "The arguments are used by developers to benchmark and debug navsim API"
     dev_conf = argparser.add_argument_group(title="Developer Configuration",

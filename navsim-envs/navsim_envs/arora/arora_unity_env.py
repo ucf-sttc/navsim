@@ -39,7 +39,7 @@ class AroraUnityEnv(UnityEnvironment):
         self.sapsc = SetAgentPositionSideChannel()
 
         eng_sc = EngineConfigurationChannel()
-        eng_sc.set_configuration_parameters(time_scale=10, quality_level=0)
+        eng_sc.set_configuration_parameters(time_scale=0.25, quality_level=0)
 
         env_pc = EnvironmentParametersChannel()
         env_sfp = env_pc.set_float_parameter

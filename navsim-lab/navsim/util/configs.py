@@ -19,5 +19,6 @@ run_config = {
     "log_level": "INFO",
     "framework": "torch",
     "resume": False,
-    "continue_arg": False
+    "continue_arg": False,
+    "plan": False
 }
