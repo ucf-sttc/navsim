@@ -28,25 +28,29 @@ env_config = default_env_config.copy()
 
 # or
 
-env_config = {
+default_env_config = {
   "agent_car_physics": 0,
+  "area": 0,
   "debug": False,
   "episode_max_steps": 1000,
   "env_gpu_id": 0,
-  "env_path": "/path/to/Berlin_Walk_V2.x86_64",
+  "env_path": None,
   "goal": 0,
   "goal_distance": 50,
+  "goal_clearance": 2.5,
   "log_folder": "./env_log",
   "obs_mode": 0,
-  "obs_height": 256,
-  "obs_width": 256,
-  "seed": 123,
+  "obs_height": 64,
+  "obs_width": 64,
+  "seed": None,
+  "segmentation_mode": 1,
   "start_from_episode": 1,
   "reward_for_goal": 50,
   "reward_for_no_viable_path": -50,
   "reward_step_mul": 0.1,
   "reward_collision_mul": 4,
   "reward_spl_delta_mul": 1,
+  "relative_steering": True,
   "save_actions": True,
   "save_vector_obs": True,
   "save_visual_obs": True,
@@ -54,6 +58,8 @@ env_config = {
   "task": 0,
   "timeout": 600,
   "traffic_vehicles": 0,
+  "worker_id": 0,
+  "base_port": 5004,
 }
 
 # Either use gym.make to create an env
@@ -223,4 +229,11 @@ with some minor behavioral differences:
 
     [[Raw Agent Camera],[Depth Agent Camera],[Segmentation Agent Camera]]
 
+### Depth Camera Images
 
+The depth sensor records distances between a near plane 0.3 meters from the 
+camera to a far plane 500 meters from the camera. The field of view is 60 degrees. 
+The camera is positioned near the windshield of the vehicle, so it is 0.94 
+meters above and 0.82 meters in front of the position of the vehicle. 
+The resulting values are raised to the power of 0.25 
+to get the final value passed out in the depth sensor image.

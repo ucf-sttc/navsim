@@ -230,7 +230,7 @@ def _create_argparser() -> argparse.ArgumentParser:
     env_conf.add_argument(
         "--goal_clearance",
         default=default_env_config['goal_clearance'],
-        help="Goal clearance",
+        help="Sets the minimum clear area around a point for it to be a valid location to place the goal",
         action=ArgAction,
     )
 
