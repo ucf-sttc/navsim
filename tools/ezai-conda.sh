@@ -55,7 +55,7 @@ install_cuda () {
   echo "Installing cuda ..."
   #conda config --env --prepend channels nvidia
   conda config --show-sources
-  conda install -y -S "cudatoolkit=11.0" "cudnn>=7.6.0" "nccl" "cutensor" "cupy" "cusparselt" "mkl" "libblas=*=*mkl"
+  conda install -y -S "cudatoolkit=11.1.1" "cudnn>=7.6.0" "nccl" "cutensor" "cupy" "cusparselt" "mkl" "libblas=*=*mkl"
   #&& \
   #conda install -y -S "nccl" #"mpi4py>=3.0.0" gxx_linux-64 gcc_linux-64
   return $?
@@ -67,7 +67,7 @@ install_fastai_pytorch () {
   #conda config --env --prepend channels fastai
   conda config --show-sources
   # numpy spec due to tensorflow and pillow spec due to gym
-  conda install -y -S "pytorch=1.9" "numpy>1.19.0"
+  conda install -y -S "pytorch=1.8.1" "numpy>1.19.0"
   return $?
 }
 
