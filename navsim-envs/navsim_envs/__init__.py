@@ -12,6 +12,6 @@ __version_banner__ = f'=========================================\n' \
                      f'navsim_env version {__version__}\n' \
                      f'=========================================\n'
 
-from . import arora
+from . import arora, ride, util
 
-__all__ = ['arora']
+__all__ = ['arora','ride','util']

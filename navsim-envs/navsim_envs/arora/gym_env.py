@@ -1,3 +1,5 @@
+#ARORA
+
 import csv
 from pathlib import Path
 import numpy as np
@@ -19,7 +21,7 @@ from .configs import default_env_config
 #    rotation: Optional["np.ndarray"] = None
 
 from navsim_envs.exceptions import EnvNotInitializedError
-from .arora_unity_env import AroraUnityEnv
+from .unity_env import AroraUnityEnv
 
 from mlagents_envs.logging_util import get_logger
 
@@ -28,39 +30,7 @@ from mlagents_envs.environment import UnityEnvironment
 
 from mlagents_envs.rpc_utils import steps_from_proto
 
-try:
-    from cv2 import imwrite as imwrite
-
-    print("navsim_envs: using cv2 as image library")
-except ImportError as error:
-    try:
-        from imageio import imwrite as imwrite
-
-        print("navsim_envs: using imageio as image library")
-    except ImportError as error:
-        try:
-            from matplotlib.pyplot import imsave as imwrite
-
-            print("navsim_envs: using matplotlib as image library")
-        except ImportError as error:
-            try:
-                from PIL import Image
-
-                print("navsim_envs: using PIL as image library")
-
-
-                def imwrite(filename, arr):
-                    im = Image.fromarray(arr)
-                    im.save(filename)
-            except ImportError as error:
-                def imwrite(filename=None, arr=None):
-                    print("navsim_envs: unable to load any of the following "
-                          "image libraries: cv2, imageio, matplotlib, "
-                          "PIL. Install one of these libraries to "
-                          "save visuals.")
-
-
-                imwrite()
+from navsim_envs.util import imwrite
 
 
 def navsimgymenv_creator(env_config):
@@ -102,7 +72,7 @@ class AroraGymEnv(UnityToGymWrapper):
     """
     metadata = {
         'render.modes': ['rgb_array', 'depth', 'segmentation', 'vector']}
-    logger = get_logger(__name__)
+    logger = get_logger("navsim")
 
     def __init__(self, env_config) -> None:
         """
@@ -128,8 +98,8 @@ class AroraGymEnv(UnityToGymWrapper):
 
         if env_config['obs_mode'] == 0:
             env_config["save_visual_obs"] = False
-        elif env_config['obs_mode'] == 1:
-            env_config["save_vector_obs"] = False
+        #elif env_config['obs_mode'] == 1:
+        #    env_config["save_vector_obs"] = False
 
         self.e_num = 0
         self.s_num = 0
@@ -190,56 +160,26 @@ class AroraGymEnv(UnityToGymWrapper):
         # env_path = self.env_config.get('env_path')
         # env_path = None if env_path is None else str(Path(env_path).resolve())
         #
-        self._navsim_base_port = env_config['base_port']
-        if self._navsim_base_port is None:
-            self._navsim_base_port = UnityEnvironment.BASE_ENVIRONMENT_PORT if env_config[
-                'env_path'] else UnityEnvironment.DEFAULT_EDITOR_PORT
-        self._navsim_worker_id = env_config['worker_id']
+        #self._navsim_base_port = env_config['base_port']
+        #if self._navsim_base_port is None:
+        #    self._navsim_base_port = UnityEnvironment.BASE_ENVIRONMENT_PORT if env_config[
+        #        'env_path'] else UnityEnvironment.DEFAULT_EDITOR_PORT
+        #self._navsim_worker_id = env_config['worker_id']
 
-        while True:
-            try:
-                #        log_folder = Path(
-                #            self.env_config.get('log_folder', './env_log')).resolve()
-                #        log_folder.mkdir(parents=True, exist_ok=True)
-                #        ad_args = [
-                #            #"-force-device-index",
-                #            "-gpu",
-                #            f"{self.env_config.get('env_gpu_id', 0)}",
-                #            "-observationWidth",
-                #            f"{self.env_config.get('obs_width', 256)}",
-                #            "-observationHeight",
-                #            f"{self.env_config.get('obs_height', 256)}",
-                #            "-fastForward", f"{self.start_from_episode - 1}",
-                #            "-showVisualObservations" if self.env_config.get(
-                #                'show_visual', False) else "",
-                #            "-saveStepLog" if self.debug else ""
-                #        ]
-                #        self.uenv = UnityEnvironment(file_name=env_path,
-                #                                     log_folder=str(log_folder),
-                #                                     seed=seed,
-                #                                     timeout_wait=self.env_config.get(
-                #                                         'timeout', 600) + (0.5 * (
-                #                                             self.start_from_episode - 1)),
-                #                                     worker_id=self._navsim_worker_id,
-                #                                     base_port=self._navsim_base_port,
-                #                                     no_graphics=False,
-                #                                     side_channels=[eng_sc, env_pc,
-                #                                                    self.map_side_channel,
-                #                                                    self.fpc, self.nsc,
-                #                                                    self.sapsc],
-                #                                     additional_args=ad_args)
-                env_config["worker_id"] = self._navsim_worker_id
-                env_config["base_port"] = self._navsim_base_port
-                self.uenv = AroraUnityEnv(env_config=env_config)
-            except UnityWorkerInUseException:
-                time.sleep(2)
-                self._navsim_base_port += 1
-            else:
-                from_str = "" if env_config['env_path'] is None else f"from {env_config['env_path']}"
-                AroraGymEnv.logger.info(f"Created UnityEnvironment {from_str} "
-                                        f"at port {self._navsim_base_port + self._navsim_worker_id} "
-                                        f"to start from episode {env_config['start_from_episode']}")
-                break
+        #while True:
+        #    try:
+        #        env_config["worker_id"] = self._navsim_worker_id
+        #        env_config["base_port"] = self._navsim_base_port
+        self.uenv = AroraUnityEnv(env_config=env_config)
+        #    except UnityWorkerInUseException:
+        #        time.sleep(2)
+        #        self._navsim_base_port += 1
+        #    else:
+        #        from_str = "" if env_config['env_path'] is None else f"from {env_config['env_path']}"
+        #        AroraGymEnv.logger.info(f"Created UnityEnvironment {from_str} "
+        #                                f"at port {self._navsim_base_port + self._navsim_worker_id} "
+        #                                f"to start from episode {env_config['start_from_episode']}")
+        #        break
 
         super().__init__(unity_env=self.uenv,
                          uint8_visual=False,
@@ -264,7 +204,7 @@ class AroraGymEnv(UnityToGymWrapper):
                                              quotechar='"',
                                              quoting=csv.QUOTE_MINIMAL)
 
-        if env_config['save_visual_obs'] and (env_config["obs_mode"] in [1, 2]):
+        if env_config['save_visual_obs'] and (env_config["obs_mode"] in [1]):
             self.rgb_folder = log_folder / 'rgb_obs'
             self.rgb_folder.mkdir(parents=True, exist_ok=True)
             self.dep_folder = log_folder / 'dep_obs'
@@ -274,7 +214,7 @@ class AroraGymEnv(UnityToGymWrapper):
         else:
             env_config['save_visual_obs'] = False
 
-        if env_config['save_vector_obs'] and (env_config["obs_mode"] in [0, 2]):
+        if env_config['save_vector_obs'] and (env_config["obs_mode"] in [0, 1]):
             self.vec_file = log_folder / 'vec_obs.csv'
             if (env_config['start_from_episode'] == 1) or (
                     self.vec_file.exists() == False):
@@ -323,7 +263,7 @@ class AroraGymEnv(UnityToGymWrapper):
 
     def _set_obs(self, s_):
         self._obs = s_
-        if self.env_config['obs_mode'] in [0, 2]:
+        if self.env_config['obs_mode'] in [0, 1]:
             vec_obs = list(self._obs[-1])
             self._agent_position = vec_obs[0:3]
             self._agent_velocity = vec_obs[3:6]
@@ -380,13 +320,13 @@ class AroraGymEnv(UnityToGymWrapper):
             For Observation Mode 1 and 2 - each render mode returns a numpy array of the image
             For Observation Mode 0 and 2 - render mode vector returns vector observations
         """
-        if mode == 'rgb_array' and self.env_config["obs_mode"] in [1, 2]:
+        if mode == 'rgb_array' and self.env_config["obs_mode"] in [1]:
             obs = self._obs[0]
-        elif mode == 'depth' and self.env_config["obs_mode"] in [1, 2]:
+        elif mode == 'depth' and self.env_config["obs_mode"] in [1]:
             obs = self._obs[1]
-        elif mode == 'segmentation' and self.env_config["obs_mode"] in [1, 2]:
+        elif mode == 'segmentation' and self.env_config["obs_mode"] in [1]:
             obs = self._obs[2]
-        elif mode == 'vector' and self.env_config["obs_mode"] in [0, 2]:
+        elif mode == 'vector' and self.env_config["obs_mode"] in [0, 1]:
             obs = self._obs[-1]
         else:
             raise ValueError(f"Bad render mode was specified or the "
@@ -704,11 +644,15 @@ class AroraGymEnv(UnityToGymWrapper):
         env_id = 'arora-v0'
         from gym.envs.registration import register, registry
 
-        env_dict = registry.env_specs.copy()
-        for env in env_dict:
-            if env_id in env:
-                print(f"navsim_envs: Removing {env} from Gym registry")
-                del registry.env_specs[env]
+        #env_dict = registry.env_specs
+        #if gym.envs.spec(env_id).id == env_id:
+        #    print(f"navsim_envs: Removing {env} from Gym registry")
+        #    del registry.env_specs[env]
+
+        #for env in registry.env_specs:
+        #    if env_id in env:
+        #        print(f"navsim_envs: Removing {env} from Gym registry")
+        #        del registry.env_specs[env]
 
         print(f"navsim_envs: Adding {env_id} to Gym registry")
         register(id=env_id, entry_point='navsim_envs.arora:AroraGymEnv')
