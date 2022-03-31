@@ -79,23 +79,24 @@ class AroraUnityEnv(UnityEnvironment):
         env_pc = EnvironmentParametersChannel()
         env_sfp = env_pc.set_float_parameter
 
-        env_sfp("segmentationMode", env_config['segmentation_mode'])
-        env_sfp("selectedTaskIndex", env_config['task'])
-        env_sfp("goalSelectionIndex", env_config['goal'])
-        env_sfp("agentCarPhysics", env_config['agent_car_physics'])
-        env_sfp("numberOfTrafficVehicles", env_config['traffic_vehicles'])
+
+
+
+
 
         timeout = env_config['timeout'] + (0.5 * (env_config['start_from_episode'] - 1))
 
         ad_args = [
-            # "-force-device-
             "-allowedArea", f"{env_config['area']}",
+            "-agentCarPhysics", f"{env_config['agent_car_physics']}",
             "-episodeLength", f"{env_config['episode_max_steps']}",
             "-fastForward", f"{env_config['start_from_episode'] - 1}",
             "-force-device-index", f"{env_config['env_gpu_id']}",
             "-force-vulkan" if (env_config["env_gpu_id"] > 0) else "",
             "-goalDistance", f"{env_config['goal_distance']}",
             "-goalClearance", f"{env_config['goal_clearance']}",
+            "-goalSelectionIndex", f"{env_config['goal']}",
+            "-numberOfTrafficVehicles", f"{env_config['traffic_vehicles']}",
             "-observationMode", f"{env_config['obs_mode']}",
             "-observationWidth", f"{env_config['obs_width']}",
             "-observationHeight", f"{env_config['obs_height']}",
@@ -106,7 +107,9 @@ class AroraUnityEnv(UnityEnvironment):
             "-rewardCollisionMul", f"{env_config['reward_collision_mul']}",
             "-rewardSplDeltaMul", f"{env_config['reward_spl_delta_mul']}",
             "-showVisualObservations" if env_config['show_visual'] else "",
-            "-saveStepLog" if env_config["debug"] else ""
+            "-saveStepLog" if env_config["debug"] else "",
+            "-segmentationMode", f"{env_config['segmentation_mode']}",
+            "-selectedTaskIndex", f"{env_config['task']}"
         ]
 
         # super().__init__(file_name=env_config['env_path'],
