@@ -5,7 +5,7 @@ import gym
 import navsim
 import navsim_envs
 
-from ezai_util.dict import ObjDict
+from ezai.util import ObjDict
 from matplotlib import pyplot as plt
 from navsim.planner.navsim_planner import NavsimPlanner
 
@@ -98,7 +98,7 @@ def main():
             shutil.rmtree(run_base_folder)
         # run_config = ObjDict()
         run_config = ObjDict(navsim.util.run_config.copy())
-        env_config = ObjDict(navsim_envs.arora.default_env_config.copy())
+        env_config = ObjDict(navsim.util.env_config.copy())
         env_log_folder = run_base_folder / 'env_log'
         env_log_folder.mkdir(parents=True, exist_ok=True)
         env_config["log_folder"] = str(env_log_folder)
@@ -160,15 +160,16 @@ def main():
     env_config.save_to_yaml_file(str(run_base_folder / "env_config.yml"))
 
     if args["plan"] is True:
+        run_config["total_episodes"]=0
         #env_config["episode_max_steps"]= 10000
         #env_config["goal_clearance"] = 20
         #env_config["goal_distance"]= 100
-        env_config["obs_mode"] = 2
+        env_config["obs_mode"] = 1
         #env_config["obs_height"] = 256
         #env_config["obs_width"] = 256
         #env_config["seed"] = 12345
         env_config["relative_steering"] = False
-        env = gym.make("arora-v0", env_config=env_config)
+        env = gym.make(run_config["env"], env_config=env_config)
         for episode_num in range(0,run_config["total_episodes"]+1):
             o = env.reset()
             planner = NavsimPlanner(env)
@@ -178,18 +179,20 @@ def main():
             plt.ion()
             while (a is not None) and (d is False):
                 a = planner.plan(o)
-    #            if a is None:
-    #                break
+                if a is None:
+                    break
                 o, r, d, i = env.step(a)
-                print("distance:", env.shortest_path_length, "reward", r)
+                print("distance:", env.shortest_path_length, " | reward:", r)
     #            if d:
     #                break
                 num_step += 1
-                if num_step % 3 == 0:
-                    plt.imshow(increase_brightness(env.render()))
-                    plt.show()
-                    plt.pause(0.001)
-                    plt.clf()
+                # replaced with --show_visual from unity
+                #if num_step % 3 == 0:
+                #    #print(type(env))
+                #    plt.imshow(increase_brightness(env.render(mode='rgb_array')))
+                #    plt.show()
+                #    plt.pause(0.001)
+                #    plt.clf()
     elif args["rl_backend"] == "rllib":
         import ray.rllib.agents.ppo as ppo
         config = ObjDict(ppo.DEFAULT_CONFIG.copy())
@@ -202,7 +205,7 @@ def main():
         import ray
         ray.shutdown()
         ray.init(ignore_reinit_error=True)
-        navsim_envs.env.AroraGymEnv.register_with_ray()
+        navsim_envs.env.RideGymEnv.register_with_ray()
         result = ray.tune.run(
             ppo.PPOTrainer,
             config=config,

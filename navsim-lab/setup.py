@@ -33,7 +33,7 @@ setuptools.setup(
     ],
     include_package_data=True,
     # data_files=[('navsim',['navsim/version.txt'])],
-    python_requires='>=3.7',
+    python_requires='>=3.8',
     install_requires=[
         'navsim_envs',
         # 'opencv-python',

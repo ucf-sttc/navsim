@@ -20,14 +20,13 @@ class NavsimPlanner():
         self.planner = FMMPlanner(traversible)
         self.planner.set_goal((self.goal_map_x, self.goal_map_y))
 
-    @staticmethod
-    def map_action(a):
+    def map_action(self,a):
         if a == 3:
-            return [1.0, -1.0, -1.0]
+            return self.env.actions['forward_left']
         if a == 2:
-            return [1.0, 1.0, -1.0]
+            return self.env.actions['forward_right']
         if a == 1:
-            return [1.0, 0.0, -1.0]
+            return self.env.actions['forward']
         if a == 0:
             return None
 
@@ -54,5 +53,5 @@ class NavsimPlanner():
                 self.last_action = 2
             else:
                 self.last_action = 1
-        return NavsimPlanner.map_action(self.last_action)
+        return self.map_action(self.last_action)
 

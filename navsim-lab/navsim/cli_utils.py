@@ -2,7 +2,7 @@ import argparse
 from typing import Optional, List, Set
 
 non_default_args: Set[str] = set()
-from navsim_envs.arora import default_env_config
+from .util import env_config as default_env_config
 from .util import run_config as default_run_config
 
 class ArgAction(argparse.Action):
@@ -48,6 +48,13 @@ def _create_argparser() -> argparse.ArgumentParser:
              "as the saved model itself. If you use TensorBoard to view the training statistics, "
              "always set a unique run-id for each training run. (The statistics for all runs with the "
              "same id are combined as if they were produced by a the same session.)",
+        action=ArgAction,
+    )
+
+    run_conf.add_argument(
+        "--env",
+        default="arora-v0",
+        help="EnvironmentL arora-v0 or ride-v0",
         action=ArgAction,
     )
 

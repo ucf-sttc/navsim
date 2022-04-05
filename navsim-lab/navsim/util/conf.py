@@ -1,6 +1,6 @@
 import attr
 import cattr
-from . import ObjDict
+
 
 @attr.s(auto_attribs=True)
 class BaseConfig:
