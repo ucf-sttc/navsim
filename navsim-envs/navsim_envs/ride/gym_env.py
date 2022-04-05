@@ -23,13 +23,9 @@ from .configs import default_env_config
 from navsim_envs.exceptions import EnvNotInitializedError
 from .unity_env import RideUnityEnv
 
-from mlagents_envs.logging_util import get_logger
-
-from mlagents_envs.exception import UnityWorkerInUseException
-from mlagents_envs.environment import UnityEnvironment
-
 from mlagents_envs.rpc_utils import steps_from_proto
-from navsim_envs.util import imwrite  
+from navsim_envs.util import imwrite
+from ..util import logger 
 
 def ridegymenv_creator(env_config):
     return RideGymEnv(env_config)  # return an env instance
@@ -70,7 +66,7 @@ class RideGymEnv(UnityToGymWrapper):
     """
     metadata = {
         'render.modes': ['rgb_array','vector']}
-    logger = get_logger("navsim")
+    logger = logger
 
     def __init__(self, env_config) -> None:
         """

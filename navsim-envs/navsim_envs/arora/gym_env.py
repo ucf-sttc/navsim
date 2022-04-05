@@ -23,7 +23,7 @@ from .configs import default_env_config
 from navsim_envs.exceptions import EnvNotInitializedError
 from .unity_env import AroraUnityEnv
 
-from mlagents_envs.logging_util import get_logger
+from ..util import logger
 
 from mlagents_envs.exception import UnityWorkerInUseException
 from mlagents_envs.environment import UnityEnvironment
@@ -72,7 +72,7 @@ class AroraGymEnv(UnityToGymWrapper):
     """
     metadata = {
         'render.modes': ['rgb_array', 'depth', 'segmentation', 'vector']}
-    logger = get_logger("navsim")
+    logger = logger
 
     def __init__(self, env_config) -> None:
         """
@@ -698,6 +698,11 @@ class AroraGymEnv(UnityToGymWrapper):
         actions_data = np.zeros([1, action_dim], dtype=np.float)
         actions_names = f'action_{action_dim}'
         return actions_data, actions_names
+
+    # expose properties from uenv
+    @property
+    def actions(self):
+        return self.uenv.actions
 
     # Functions added to have parity with Env and RLEnv of habitat lab
 

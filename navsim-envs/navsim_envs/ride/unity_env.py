@@ -4,7 +4,6 @@ import time
 from mlagents_envs.environment import UnityEnvironment
 from mlagents_envs.exception import UnityWorkerInUseException
 
-from mlagents_envs.logging_util import get_logger
 from mlagents_envs.side_channel.engine_configuration_channel import EngineConfigurationChannel
 from mlagents_envs.side_channel.environment_parameters_channel import EnvironmentParametersChannel
 from mlagents_envs.side_channel.float_properties_channel import FloatPropertiesChannel
@@ -16,14 +15,15 @@ from .set_agent_position_side_channel import SetAgentPositionSideChannel
 
 from .configs import default_env_config
 import numpy as np
-
+from ..util import logger
 
 class RideUnityEnv(UnityEnvironment):
     """RideUnityEnv Class is a wrapper to UnityEnvironment
 
     Read the **NavSim Environment Tutorial** on how to use this class.
     """
-    logger = get_logger("navsim")
+
+    logger = logger
     actions = {
         'forward_left' : [1,-1],
         'forward_right' :[1, 1],

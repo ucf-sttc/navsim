@@ -31,3 +31,12 @@ except ImportError as error:
 
 
                 imwrite()
+
+def get_logger(name:str='navsim'):
+    #import logging
+    #logger = logging.getLogger('navsim')
+    from mlagents_envs.logging_util import get_logger
+    logger = get_logger(name)
+    return logger
+
+logger = get_logger()

@@ -35,7 +35,7 @@ setuptools.setup(
     # data_files=[('navsim',['navsim/version.txt'])],
     python_requires='>=3.8',
     install_requires=[
-        'ezai_util',
+        'ezai',
         'numpy',
         'opencv-python',
         'pytest',
