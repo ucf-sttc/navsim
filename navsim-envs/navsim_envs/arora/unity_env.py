@@ -153,7 +153,7 @@ class AroraUnityEnv(UnityEnvironment):
                 time.sleep(2)
                 self._navsim_base_port += 1
             else:
-                from_str = "" if env_config['env_path'] is None else f"from {env_config['env_path']}"
+                from_str = "Editor" if env_config['env_path'] is None else f"from {env_config['env_path']}"
                 AroraUnityEnv.logger.info(f"Created UnityEnvironment {from_str} "
                                          f"at port {self._navsim_base_port + self._navsim_worker_id} "
                                          f"to start from episode {env_config['start_from_episode']}")
