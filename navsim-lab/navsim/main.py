@@ -160,7 +160,7 @@ def main():
     env_config.save_to_yaml_file(str(run_base_folder / "env_config.yml"))
 
     if args["plan"] is True:
-        run_config["total_episodes"]=0
+        run_config["total_episodes"]=2
         #env_config["episode_max_steps"]= 10000
         #env_config["goal_clearance"] = 20
         #env_config["goal_distance"]= 100
@@ -170,7 +170,7 @@ def main():
         #env_config["seed"] = 12345
         env_config["relative_steering"] = False
         env = gym.make(run_config["env"], env_config=env_config)
-        for episode_num in range(0,run_config["total_episodes"]+1):
+        for episode_num in range(0,run_config["total_episodes"]):
             o = env.reset()
             planner = NavsimPlanner(env)
             num_step = 0
