@@ -79,11 +79,6 @@ class AroraUnityEnv(UnityEnvironment):
         env_pc = EnvironmentParametersChannel()
         env_sfp = env_pc.set_float_parameter
 
-
-
-
-
-
         timeout = env_config['timeout'] + (0.5 * (env_config['start_from_episode'] - 1))
 
         ad_args = [
