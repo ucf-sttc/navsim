@@ -1,6 +1,7 @@
 #ARORA
 
-from abc import abstractclassmethod
+from abc import abstractmethod, abstractclassmethod
+from importlib.resources import path
 from pathlib import Path
 
 import numpy as np
@@ -15,9 +16,8 @@ from mlagents_envs.side_channel.float_properties_channel import FloatPropertiesC
 from .map_side_channel import MapSideChannel
 from .navigable_side_channel import NavigableSideChannel
 from .set_agent_position_side_channel import SetAgentPositionSideChannel
-
+from .shortest_path_side_channel import ShortestPathSideChannel
 from .configs import default_env_config
-from abc import abstractmethod
 
 class UnityEnvBase(UnityEnvironment):
 
@@ -72,6 +72,7 @@ class AroraUnityEnv(UnityEnvironment):
         self.fpc = FloatPropertiesChannel()
         self.nsc = NavigableSideChannel()
         self.sapsc = SetAgentPositionSideChannel()
+        self.spsc = ShortestPathSideChannel()
 
         eng_sc = EngineConfigurationChannel()
         eng_sc.set_configuration_parameters(time_scale=0.25, quality_level=0)
@@ -117,7 +118,7 @@ class AroraUnityEnv(UnityEnvironment):
         #                 side_channels=[eng_sc, env_pc,
         #                                self.map_side_channel,
         #                                self.fpc, self.nsc,
-        #                                self.sapsc],
+        #                                self.sapsc, self.spsc],
         #                 additional_args=ad_args)
 
         self._navsim_base_port = env_config['base_port']
@@ -141,7 +142,7 @@ class AroraUnityEnv(UnityEnvironment):
                                  side_channels=[eng_sc, env_pc,
                                                 self.map_side_channel,
                                                 self.fpc, self.nsc,
-                                                self.sapsc
+                                                self.sapsc, self.spsc
                                                 ],
                                  additional_args=ad_args)
             except UnityWorkerInUseException:
@@ -181,6 +182,12 @@ class AroraUnityEnv(UnityEnvironment):
         """
         return self.fpc.get_property("ShortestPath")
 
+    @property
+    def shortest_path(self):
+        self.process_immediate_message(
+            self.spsc.build_immediate_request())
+        return self.spsc.path
+
     def sample_navigable_point(self, x: float = None, y: float = None,
                                z: float = None):
         """Provides a random sample of navigable point
@@ -218,6 +225,8 @@ class AroraUnityEnv(UnityEnvironment):
 
         return self.nsc.point
 
+
+
     def get_navigable_map(self) -> np.ndarray:
         """Get the Navigable Areas map
 
@@ -247,7 +256,9 @@ class AroraUnityEnv(UnityEnvironment):
 
     def reset(self):
         UnityEnvironment.reset(self)
-        self.map_side_channel.unity_max_x = 3284.0 #self.fpc.get_property("TerrainX")
-        self.map_side_channel.unity_max_z = 2666.3 #self.fpc.get_property("TerrainZ")
+        self.map_side_channel.unity_max_x = 3284.0 
+        self.map_side_channel.unity_max_z = 2666.3 
+        #self.map_side_channel.unity_max_x = self.fpc.get_property("TerrainX") #3284.0 #
+        #self.map_side_channel.unity_max_z = self.fpc.get_property("TerrainZ") #2666.3 #
         self.map_side_channel.navmap_max_x = int(self.map_side_channel.unity_max_x)
         self.map_side_channel.navmap_max_y = int(self.map_side_channel.unity_max_z)

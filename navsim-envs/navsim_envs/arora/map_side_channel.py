@@ -23,7 +23,7 @@ class MapSideChannel(SideChannel):
         self.unity_max_x = None
         self.unity_max_z = None
 
-    def on_message_received(self, msg: IncomingMessage) -> np.ndarray:
+    def on_message_received(self, msg: IncomingMessage) -> None:
         if self.resolution is None:
             raise ValueError('resolution to full map is not set')
 
@@ -32,7 +32,6 @@ class MapSideChannel(SideChannel):
                              0:self.resolution[0] * self.resolution[1]]
         self.requested_map = self.requested_map.reshape((self.resolution[1],
                                                          self.resolution[0]))
-        return self.requested_map
 
     def _request_helper(self, key: Optional[str]='binaryMap', value: Optional[List[float]] = None ):
         if key == 'binaryMap':

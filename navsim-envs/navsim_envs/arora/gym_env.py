@@ -216,6 +216,7 @@ class AroraGymEnv(UnityToGymWrapper):
 
         if env_config['save_vector_obs'] and (env_config["obs_mode"] in [0, 1]):
             self.vec_file = log_folder / 'vec_obs.csv'
+            self.sp_file = log_folder / 'sp_obs.csv'
             if (env_config['start_from_episode'] == 1) or (
                     self.vec_file.exists() == False):
                 self.vec_file = self.vec_file.open(mode='w')
@@ -236,6 +237,24 @@ class AroraGymEnv(UnityToGymWrapper):
                                              quotechar='"',
                                              quoting=csv.QUOTE_MINIMAL)
             self.vec_file.flush()
+            if (env_config['start_from_episode'] == 1) or (
+                    self.sp_file.exists() == False):
+                self.sp_file = self.sp_file.open(mode='w')
+                self.sp_writer = csv.writer(self.sp_file,
+                                             delimiter=',',
+                                             quotechar='"',
+                                             quoting=csv.QUOTE_MINIMAL)
+                self.sp_writer.writerow(
+                    ['e_num', 's_num', 'spl'])
+            else:
+                # TODO: Read the file upto start_episode and purge the records
+                self.sp_file = self.sp_file.open(mode='a')
+                self.sp_writer = csv.writer(self.sp_file,
+                                             delimiter=',',
+                                             quotechar='"',
+                                             quoting=csv.QUOTE_MINIMAL)
+            self.sp_file.flush()
+
         else:
             env_config['save_vector_obs'] = False
 
@@ -261,6 +280,14 @@ class AroraGymEnv(UnityToGymWrapper):
             imwrite(str(self.dep_folder / filename), obs[1] * 255.0)
             imwrite(str(self.seg_folder / filename), obs[2] * 255.0)
 
+    def _save_sp(self):
+        """Private method to save the shortest path in file
+        """
+        if self.env_config['save_vector_obs']:
+            self.sp_writer.writerow(
+                [self.e_num, self.s_num] + [] if self.shortest_path is None else  list(self.shortest_path) )
+            self.sp_file.flush()
+
     def _set_obs(self, s_):
         self._obs = s_
         if self.env_config['obs_mode'] in [0, 1]:
@@ -277,6 +304,7 @@ class AroraGymEnv(UnityToGymWrapper):
         self.spl_start = self.spl_current = self.shortest_path_length
         self._set_obs(s0)
         self._save_obs(self._obs)
+        self._save_sp()
         return s0
 
     def step(self, action: List[Any]) -> GymStepResult:
@@ -703,6 +731,12 @@ class AroraGymEnv(UnityToGymWrapper):
     @property
     def actions(self):
         return self.uenv.actions
+
+    @property
+    def shortest_path(self):
+        return self.uenv.shortest_path
+
+
 
     # Functions added to have parity with Env and RLEnv of habitat lab
 
