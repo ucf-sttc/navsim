@@ -1,18 +1,11 @@
 #RIDE
 
-import csv
-from pathlib import Path
 import numpy as np
 
 from typing import Any, List, Union, Optional
 
-import time
 import math
 
-from gym_unity.envs import (
-    UnityToGymWrapper,
-    GymStepResult
-)
 from .configs import default_env_config
 
 # @attr.s(auto_attribs=True)
@@ -24,8 +17,8 @@ from navsim_envs.exceptions import EnvNotInitializedError
 from .unity_env import RideUnityEnv
 
 from mlagents_envs.rpc_utils import steps_from_proto
-from navsim_envs.util import imwrite
-from ..util import logger 
+
+from navsim_envs.base_envs import AroraGymEnvBase
 
 def ridegymenv_creator(env_config):
     return RideGymEnv(env_config)  # return an env instance
@@ -59,24 +52,25 @@ def _qv_mult(q: List[float], v: List[float]):
     return result[0:3]
 
 
-class RideGymEnv(UnityToGymWrapper):
+class RideGymEnv(AroraGymEnvBase):
     """RideGymEnv inherits from Unity2Gym that inherits from the Gym interface.
 
     Read the **NavSim Environment Tutorial** on how to use this class.
     """
     metadata = {
         'render.modes': ['rgb_array','vector']}
-    logger = logger
 
     def __init__(self, env_config) -> None:
         """
         env_config: The environment configuration dictionary Object
         """
 
+        super().__init__(env_config, default_env_config, RideUnityEnv)
+
         # TODO: convert env_config to self.env_config so we can add missing values
         #   and use self.env_config to print in the info section
         # filename: Optional[str] = None, obs_mode: int = 0, max_steps:int = 5):
-
+        """
         for key in default_env_config:
             if key not in env_config:
                 env_config[key] = env_config
@@ -161,6 +155,9 @@ class RideGymEnv(UnityToGymWrapper):
             env_config['save_visual_obs'] = False
 
         if env_config['save_vector_obs'] and (env_config["obs_mode"] in [0, 1]):
+            self.sp_folder = log_folder / 'sp_obs'
+            self.sp_folder.mkdir(parents=True, exist_ok=True)
+
             self.vec_file = log_folder / 'vec_obs.csv'
             if (env_config['start_from_episode'] == 1) or (
                     self.vec_file.exists() == False):
@@ -186,61 +183,9 @@ class RideGymEnv(UnityToGymWrapper):
             env_config['save_vector_obs'] = False
 
         self.env_config = env_config
-
-    def _save_obs(self, obs):
-        """Private method to save the observations in file
-
-        Args:
-            obs: observations object as returned by step() or reset()
-
-        Returns:
-
         """
-        if self.env_config['save_vector_obs']:
-            self.vec_writer.writerow(
-                [self.e_num, self.s_num, self.spl_current, time.time()] +
-                list(obs[-1]))
-            self.vec_file.flush()
-        if self.env_config['save_visual_obs']:
-            filename = f'{self.e_num}_{self.s_num}.jpg'
-            imwrite(str(self.rgb_folder / filename), obs[0] * 255.0)
-            if len(obs)>2:
-                imwrite(str(self.dep_folder / filename), obs[1] * 255.0)
-                imwrite(str(self.seg_folder / filename), obs[2] * 255.0)
 
-    def _set_obs(self, s_):
-        self._obs = s_
-        if self.env_config['obs_mode'] in [0, 1]:
-            vec_obs = list(self._obs[-1])
-            self._agent_position = vec_obs[0:3]
-            self._agent_velocity = vec_obs[3:6]
-            self._agent_rotation = vec_obs[6:10]
-            self._goal_position = vec_obs[10:13]
 
-    def reset(self) -> Union[List[np.ndarray], np.ndarray]:
-        s0 = super().reset()
-        self.s_num = 0
-        self.e_num += 1 if self.e_num else self.env_config['start_from_episode']
-        if hasattr(self,'shortest_path_length'):
-            self.spl_start = self.spl_current = self.shortest_path_length
-        else:
-            self.spl_start = self.spl_current = None
-        self._set_obs(s0)
-        self._save_obs(self._obs)
-        return s0
-
-    def step(self, action: List[Any]) -> GymStepResult:
-        s_, r, episode_done, info = super().step(action)
-        self.s_num += 1
-        if hasattr(self,'shortest_path_length'):
-            self.spl_current = self.shortest_path_length
-        self._set_obs(s_)
-        self._save_obs(self._obs)
-        if self.env_config['save_actions']:
-            self.actions_writer.writerow(
-                [self.e_num, self.s_num] + list(action))
-            self.actions_file.flush()
-        return s_, r, episode_done, info
 
     # def close(self):
     #    if self.save_vector_obs:
@@ -721,3 +666,7 @@ class RideGymEnv(UnityToGymWrapper):
         goal position
         """
         return self.uenv.shortest_path_length
+
+    @property
+    def shortest_path(self):
+        return self.uenv.shortest_path

@@ -9,25 +9,33 @@ from mlagents_envs.side_channel.environment_parameters_channel import Environmen
 from mlagents_envs.side_channel.float_properties_channel import FloatPropertiesChannel
 from pathlib import Path
 
-from .map_side_channel import MapSideChannel
-from .navigable_side_channel import NavigableSideChannel
-from .set_agent_position_side_channel import SetAgentPositionSideChannel
+from ..arora.side_channels import (
+    MapSideChannel,
+    NavigableSideChannel,
+    ShortestPathSideChannel,
+    SetAgentPositionSideChannel
+)
+#from ..arora.set_agent_position_side_channel import SetAgentPositionSideChannel
+#from ..arora.shortest_path_side_channel import ShortestPathSideChannel
 
 from .configs import default_env_config
 import numpy as np
 from ..util import logger
 
-class RideUnityEnv(UnityEnvironment):
+from navsim_envs.base_envs import UnityEnvBase
+
+class RideUnityEnv(UnityEnvBase):
     """RideUnityEnv Class is a wrapper to UnityEnvironment
 
     Read the **NavSim Environment Tutorial** on how to use this class.
     """
 
-    logger = logger
+    #logger = logger
     actions = {
         'forward_left' : [1,-1],
         'forward_right' :[1, 1],
-        'forward' : [1,0]
+        'forward' : [1,0],
+        'backward' : [-1,0]
     }
     observation_modes = [0,1]
 
@@ -51,6 +59,7 @@ class RideUnityEnv(UnityEnvironment):
         self.fpc = FloatPropertiesChannel()
         self.nsc = NavigableSideChannel()
         self.sapsc = SetAgentPositionSideChannel()
+        self.spsc = ShortestPathSideChannel()
 
         eng_sc = EngineConfigurationChannel()
         # time_scale 
@@ -118,7 +127,7 @@ class RideUnityEnv(UnityEnvironment):
                                  side_channels=[eng_sc, env_pc,
                                                 self.map_side_channel,
                                                 self.fpc, self.nsc,
-                                                self.sapsc
+                                                self.sapsc, self.spsc,
                                                 ],
                                  additional_args=ad_args)
             except UnityWorkerInUseException:
@@ -157,6 +166,12 @@ class RideUnityEnv(UnityEnvironment):
         goal position
         """
         return self.fpc.get_property("ShortestPath")
+    
+    @property
+    def shortest_path(self):
+        self.process_immediate_message(
+            self.spsc.build_immediate_request())
+        return self.spsc.path
 
     def sample_navigable_point(self, x: float = None, y: float = None,
                                z: float = None):

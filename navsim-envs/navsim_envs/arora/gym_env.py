@@ -1,18 +1,11 @@
 #ARORA
 
-import csv
-from pathlib import Path
 import numpy as np
 
 from typing import Any, List, Union, Optional
 
-import time
 import math
 
-from gym_unity.envs import (
-    UnityToGymWrapper,
-    GymStepResult
-)
 from .configs import default_env_config
 
 # @attr.s(auto_attribs=True)
@@ -23,15 +16,9 @@ from .configs import default_env_config
 from navsim_envs.exceptions import EnvNotInitializedError
 from .unity_env import AroraUnityEnv
 
-from ..util import logger
-
-from mlagents_envs.exception import UnityWorkerInUseException
-from mlagents_envs.environment import UnityEnvironment
-
 from mlagents_envs.rpc_utils import steps_from_proto
 
-from navsim_envs.util import imwrite
-
+from navsim_envs.base_envs import AroraGymEnvBase
 
 def navsimgymenv_creator(env_config):
     return AroraGymEnv(env_config)  # return an env instance
@@ -65,259 +52,21 @@ def _qv_mult(q: List[float], v: List[float]):
     return result[0:3]
 
 
-class AroraGymEnv(UnityToGymWrapper):
+class AroraGymEnv(AroraGymEnvBase):
     """AroraGymEnv inherits from Unity2Gym that inherits from the Gym interface.
 
     Read the **NavSim Environment Tutorial** on how to use this class.
     """
     metadata = {
         'render.modes': ['rgb_array', 'depth', 'segmentation', 'vector']}
-    logger = logger
 
     def __init__(self, env_config) -> None:
         """
         env_config: The environment configuration dictionary Object
         """
+        super().__init__(env_config, default_env_config, AroraUnityEnv)
 
-        # TODO: convert env_config to self.env_config so we can add missing values
-        #   and use self.env_config to print in the info section
-        # filename: Optional[str] = None, obs_mode: int = 0, max_steps:int = 5):
 
-        for key in default_env_config:
-            if key not in env_config:
-                env_config[key] = env_config
-
-        log_folder = Path(env_config['log_folder']).resolve()
-        # self.obs_mode = int(self.env_config.get('obs_mode', 2))
-        if env_config['debug']:
-            self.logger.setLevel(10)
-        else:
-            self.logger.setLevel(20)
-
-        self._obs = None
-
-        if env_config['obs_mode'] == 0:
-            env_config["save_visual_obs"] = False
-        #elif env_config['obs_mode'] == 1:
-        #    env_config["save_vector_obs"] = False
-
-        self.e_num = 0
-        self.s_num = 0
-
-        self._agent_position = None
-        self._agent_velocity = None
-        self._agent_rotation = None
-        self._goal_position = None
-
-        self.spl_start = self.spl_current = None
-        # self.reward_spl_delta_mul = env_config['reward_spl_delta_mul']
-
-        # self.run_base_folder_str = env_config.get("run_base_folder_str", '.')
-        # self.run_base_folder = Path(self.run_base_folder_str)
-        # seed = int(self.env_config.get('seed') or 0)
-
-        # if self._env:
-        #    raise ValueError('Environment already open')
-        # else:
-
-        # self.map_side_channel = MapSideChannel()
-        # self.fpc = FloatPropertiesChannel()
-        # self.nsc = NavigableSideChannel()
-        # self.sapsc = SetAgentPositionSideChannel()
-        # print(self.map_side_channel
-        # )
-
-        # eng_sc = EngineConfigurationChannel()
-        # eng_sc.set_configuration_parameters(time_scale=10, quality_level=0)
-
-        # env_pc = EnvironmentParametersChannel()
-        # env_sfp = env_pc.set_float_parameter
-
-        # env_sfp("rewardForGoal",
-        #        float(self.env_config.get('reward_for_goal', 50)))
-        # env_sfp("rewardForNoViablePath",
-        #        float(self.env_config.get('reward_for_no_viable_path', -50)))
-        # env_sfp("rewardStepMul",
-        #        float(self.env_config.get('reward_step_mul', 0.1)))
-        # env_sfp("rewardCollisionMul",
-        #        float(self.env_config.get('reward_collision_mul', 4)))
-        # env_sfp("rewardSplDeltaMul",
-        #        float(self.env_config.get('reward_spl_delta_mul', 1)))
-        # env_sfp("segmentationMode",
-        #        float(self.env_config.get('segmentation_mode', 1)))
-        # env_sfp("observationMode",
-        #        float(self.env_config.get('obs_mode', 2)))
-        # env_sfp("episodeLength",
-        #        float(self.env_config.get('episode_max_steps', 100)))
-        # env_sfp("selectedTaskIndex", float(self.env_config.get('task', 0)))
-        # env_sfp("goalSelectionIndex", float(self.env_config.get('goal', 0)))
-        # env_sfp("agentCarPhysics",
-        #        float(self.env_config.get('agent_car_physics', 0)))
-        # env_sfp("goalDistance", float(self.env_config.get('goal_distance', 10)))
-        # env_sfp("numberOfTrafficVehicles",
-        #        float(self.env_config.get('traffic_vehicles', 0)))
-        #
-        # env_path = self.env_config.get('env_path')
-        # env_path = None if env_path is None else str(Path(env_path).resolve())
-        #
-        #self._navsim_base_port = env_config['base_port']
-        #if self._navsim_base_port is None:
-        #    self._navsim_base_port = UnityEnvironment.BASE_ENVIRONMENT_PORT if env_config[
-        #        'env_path'] else UnityEnvironment.DEFAULT_EDITOR_PORT
-        #self._navsim_worker_id = env_config['worker_id']
-
-        #while True:
-        #    try:
-        #        env_config["worker_id"] = self._navsim_worker_id
-        #        env_config["base_port"] = self._navsim_base_port
-        self.uenv = AroraUnityEnv(env_config=env_config)
-        #    except UnityWorkerInUseException:
-        #        time.sleep(2)
-        #        self._navsim_base_port += 1
-        #    else:
-        #        from_str = "" if env_config['env_path'] is None else f"from {env_config['env_path']}"
-        #        AroraGymEnv.logger.info(f"Created UnityEnvironment {from_str} "
-        #                                f"at port {self._navsim_base_port + self._navsim_worker_id} "
-        #                                f"to start from episode {env_config['start_from_episode']}")
-        #        break
-
-        super().__init__(unity_env=self.uenv,
-                         uint8_visual=False,
-                         flatten_branched=False,
-                         allow_multiple_obs=True,
-                         action_space_seed=env_config['seed']
-                         )
-
-        self._navigable_map = self.uenv.get_navigable_map()
-        # TODO: the filenames should be prefixed with specific id of this instance of env
-
-        # TODO: Read the file upto start_episode and purge the records
-        self.actions_file = log_folder / 'actions.csv'
-        if env_config['save_actions']:
-            if (env_config["start_from_episode"] == 1) or (
-                    self.actions_file.exists() == False):
-                self.actions_file = self.actions_file.open(mode='w')
-            else:
-                self.actions_file = self.actions_file.open(mode='a')
-            self.actions_writer = csv.writer(self.actions_file,
-                                             delimiter=',',
-                                             quotechar='"',
-                                             quoting=csv.QUOTE_MINIMAL)
-
-        if env_config['save_visual_obs'] and (env_config["obs_mode"] in [1]):
-            self.rgb_folder = log_folder / 'rgb_obs'
-            self.rgb_folder.mkdir(parents=True, exist_ok=True)
-            self.dep_folder = log_folder / 'dep_obs'
-            self.dep_folder.mkdir(parents=True, exist_ok=True)
-            self.seg_folder = log_folder / 'seg_obs'
-            self.seg_folder.mkdir(parents=True, exist_ok=True)
-        else:
-            env_config['save_visual_obs'] = False
-
-        if env_config['save_vector_obs'] and (env_config["obs_mode"] in [0, 1]):
-            self.vec_file = log_folder / 'vec_obs.csv'
-            self.sp_file = log_folder / 'sp_obs.csv'
-            if (env_config['start_from_episode'] == 1) or (
-                    self.vec_file.exists() == False):
-                self.vec_file = self.vec_file.open(mode='w')
-                self.vec_writer = csv.writer(self.vec_file,
-                                             delimiter=',',
-                                             quotechar='"',
-                                             quoting=csv.QUOTE_MINIMAL)
-                self.vec_writer.writerow(
-                    ['e_num', 's_num', 'spl_current', 'timestamp'] +
-                    ['posx', 'posy', 'posz', 'velx', 'vely', 'velz',
-                     'rotx', 'roty', 'rotz', 'rotw', 'goalx', 'goaly', 'goalz',
-                     'proxforward', 'prox45left', 'prox45right'])
-            else:
-                # TODO: Read the file upto start_episode and purge the records
-                self.vec_file = self.vec_file.open(mode='a')
-                self.vec_writer = csv.writer(self.vec_file,
-                                             delimiter=',',
-                                             quotechar='"',
-                                             quoting=csv.QUOTE_MINIMAL)
-            self.vec_file.flush()
-            if (env_config['start_from_episode'] == 1) or (
-                    self.sp_file.exists() == False):
-                self.sp_file = self.sp_file.open(mode='w')
-                self.sp_writer = csv.writer(self.sp_file,
-                                             delimiter=',',
-                                             quotechar='"',
-                                             quoting=csv.QUOTE_MINIMAL)
-                self.sp_writer.writerow(
-                    ['e_num', 's_num', 'spl'])
-            else:
-                # TODO: Read the file upto start_episode and purge the records
-                self.sp_file = self.sp_file.open(mode='a')
-                self.sp_writer = csv.writer(self.sp_file,
-                                             delimiter=',',
-                                             quotechar='"',
-                                             quoting=csv.QUOTE_MINIMAL)
-            self.sp_file.flush()
-
-        else:
-            env_config['save_vector_obs'] = False
-
-        self.env_config = env_config
-
-    def _save_obs(self, obs):
-        """Private method to save the observations in file
-
-        Args:
-            obs: observations object as returned by step() or reset()
-
-        Returns:
-
-        """
-        if self.env_config['save_vector_obs']:
-            self.vec_writer.writerow(
-                [self.e_num, self.s_num, self.spl_current, time.time()] +
-                list(obs[-1]))
-            self.vec_file.flush()
-        if self.env_config['save_visual_obs']:
-            filename = f'{self.e_num}_{self.s_num}.jpg'
-            imwrite(str(self.rgb_folder / filename), obs[0] * 255.0)
-            imwrite(str(self.dep_folder / filename), obs[1] * 255.0)
-            imwrite(str(self.seg_folder / filename), obs[2] * 255.0)
-
-    def _save_sp(self):
-        """Private method to save the shortest path in file
-        """
-        if self.env_config['save_vector_obs']:
-            self.sp_writer.writerow(
-                [self.e_num, self.s_num] + [] if self.shortest_path is None else  list(self.shortest_path) )
-            self.sp_file.flush()
-
-    def _set_obs(self, s_):
-        self._obs = s_
-        if self.env_config['obs_mode'] in [0, 1]:
-            vec_obs = list(self._obs[-1])
-            self._agent_position = vec_obs[0:3]
-            self._agent_velocity = vec_obs[3:6]
-            self._agent_rotation = vec_obs[6:10]
-            self._goal_position = vec_obs[10:13]
-
-    def reset(self) -> Union[List[np.ndarray], np.ndarray]:
-        s0 = super().reset()
-        self.s_num = 0
-        self.e_num += 1 if self.e_num else self.env_config['start_from_episode']
-        self.spl_start = self.spl_current = self.shortest_path_length
-        self._set_obs(s0)
-        self._save_obs(self._obs)
-        self._save_sp()
-        return s0
-
-    def step(self, action: List[Any]) -> GymStepResult:
-        s_, r, episode_done, info = super().step(action)
-        self.s_num += 1
-        self.spl_current = self.shortest_path_length
-        self._set_obs(s_)
-        self._save_obs(self._obs)
-        if self.env_config['save_actions']:
-            self.actions_writer.writerow(
-                [self.e_num, self.s_num] + list(action))
-            self.actions_file.flush()
-        return s_, r, episode_done, info
 
     # def close(self):
     #    if self.save_vector_obs:
@@ -502,6 +251,17 @@ class AroraGymEnv(UnityToGymWrapper):
 
         """
         return self.uenv.get_navigable_map_zoom(x=x, y=y)
+
+    
+    def get_navigable_map_zoom_area(self, x1: int, y1: int, x2:int, y2: int) -> np.ndarray:
+        """Get the Zoom into a rectangle of cells bounded by x1,y1 - x2,y2 in Navigable Areas map
+
+        Returns:
+            Zoomed in row, col location, a numpy array having 0 for non-navigable and 1 for navigable cells.
+
+        """
+        return self.uenv.get_navigable_map_zoom_area(x1=x1,x2=x2,y1=y1,y2=y2)
+
 
     def unity_to_navmap_location(self, unity_x, unity_z):
         """Convert a location from Unity's 3D coordinate system to navigable map's 2D coordinate system

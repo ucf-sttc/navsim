@@ -9,52 +9,32 @@ import time
 from mlagents_envs.environment import UnityEnvironment
 from mlagents_envs.exception import UnityWorkerInUseException
 
-from ..util import logger
 from mlagents_envs.side_channel.engine_configuration_channel import EngineConfigurationChannel
 from mlagents_envs.side_channel.environment_parameters_channel import EnvironmentParametersChannel
 from mlagents_envs.side_channel.float_properties_channel import FloatPropertiesChannel
-from .map_side_channel import MapSideChannel
-from .navigable_side_channel import NavigableSideChannel
-from .set_agent_position_side_channel import SetAgentPositionSideChannel
-from .shortest_path_side_channel import ShortestPathSideChannel
+from .side_channels import (
+    MapSideChannel,
+    NavigableSideChannel,
+    ShortestPathSideChannel,
+    SetAgentPositionSideChannel
+)
+#from .set_agent_position_side_channel import SetAgentPositionSideChannel
+#from .shortest_path_side_channel import ShortestPathSideChannel
 from .configs import default_env_config
+from navsim_envs.base_envs import AroraUnityEnvBase
 
-class UnityEnvBase(UnityEnvironment):
-
-    logger = logger
-
-    def __init__(self, env_config) -> None:
-        """
-        env_config: The environment configuration dictionary Object
-        """
-
-    @property
-    @abstractmethod
-    def unity_max_x(self) -> float:
-        pass
-
-    @property
-    @abstractmethod
-    def unity_max_z(self) -> float:
-        pass
-
-
-#class AroraUnityEnvBase(UnityEnvBase):
-
-
-class AroraUnityEnv(UnityEnvironment):
+class AroraUnityEnv(AroraUnityEnvBase):
     """AroraUnityEnv Class is a wrapper to UnityEnvironment
 
     Read the **NavSim Environment Tutorial** on how to use this class.
     """
-    logger = logger
+    #logger = logger
     actions = {
         'forward_left' : [1,-1,0],
         'forward_right' :[1, 1,0],
         'forward' : [1,0,0],
         'backward' : [-1,0,0]
     }
-    observation_modes = [0,1]
 
     def __init__(self, env_config) -> None:
         """
@@ -184,8 +164,8 @@ class AroraUnityEnv(UnityEnvironment):
 
     @property
     def shortest_path(self):
-        self.process_immediate_message(
-            self.spsc.build_immediate_request())
+        self.process_immediate_message(self.spsc.build_immediate_request())
+        #print('inside unity_env code:',self.spsc.path)
         return self.spsc.path
 
     def sample_navigable_point(self, x: float = None, y: float = None,
@@ -243,7 +223,7 @@ class AroraUnityEnv(UnityEnvironment):
         return self.map_side_channel.requested_map
 
     def get_navigable_map_zoom(self, x: int, y: int) -> np.ndarray:
-        """Get the Navigable Areas map
+        """Get the Zoom into a cell in Navigable Areas map
 
         Returns:
             Zoomed in row, col location, a numpy array having 0 for non-navigable and 1 for navigable cells.
@@ -253,6 +233,30 @@ class AroraUnityEnv(UnityEnvironment):
             self.map_side_channel.build_immediate_request("binaryMapZoom", [y, x]))
 
         return self.map_side_channel.requested_map
+
+    def get_navigable_map_zoom_area(self, x1: int, y1: int, x2:int, y2: int) -> np.ndarray:
+        """Get the Zoom into a rectangle of cells bounded by x1,y1 - x2,y2 in Navigable Areas map
+
+        Returns:
+            Zoomed in row, col location, a numpy array having 0 for non-navigable and 1 for navigable cells.
+
+        """
+
+        if (x1 > x2):
+            x1,x2 = x2,x1
+        if (y1 > y2):
+            y1,y2 = y2,y1
+
+        area_list = []
+        for y in range(y1,y2+1):
+            row_list = []
+            for x in range(x1,x2+1):
+                row_list.append(self.get_navigable_map_zoom(x,y))    
+            row = np.concatenate(row_list,axis=1)
+            area_list.append(row)
+        area = np.concatenate(area_list,axis=0)
+
+        return area
 
     def reset(self):
         UnityEnvironment.reset(self)
