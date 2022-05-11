@@ -3,7 +3,6 @@ from pathlib import Path
 import cv2
 import gym
 import navsim
-import navsim_envs
 
 from ezai.util import ObjDict
 from matplotlib import pyplot as plt
@@ -31,7 +30,7 @@ def main():
     """
     print(f'=========================================')
     print(f'Navsim Python API Version {navsim.__version__}')
-    print(f'========================================')
+    print(f'=========================================')
     args = ObjDict(vars(argparser.parse_args()))
     print('arguments passed:')
     print(non_default_args if non_default_args else "None")
@@ -159,6 +158,8 @@ def main():
     run_config.save_to_yaml_file(str(run_base_folder / "run_config.yml"))
     env_config.save_to_yaml_file(str(run_base_folder / "env_config.yml"))
 
+    import navsim_envs
+
     if args["plan"] is True:
         run_config["total_episodes"]=2
         #env_config["episode_max_steps"]= 10000
@@ -176,7 +177,7 @@ def main():
             num_step = 0
             a = False
             d = False
-            plt.ion()
+            #plt.ion()
             while (a is not None) and (d is False):
                 a = planner.plan(o)
                 if a is None:
