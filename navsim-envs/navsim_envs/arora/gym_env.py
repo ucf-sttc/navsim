@@ -18,7 +18,7 @@ from .unity_env import AroraUnityEnv
 
 from mlagents_envs.rpc_utils import steps_from_proto
 
-from navsim_envs.base_envs import AroraGymEnvBase
+from navsim_envs.envs_base import AroraGymEnvBase
 
 def navsimgymenv_creator(env_config):
     return AroraGymEnv(env_config)  # return an env instance
@@ -230,37 +230,6 @@ class AroraGymEnv(AroraGymEnvBase):
         """
 
         return self.set_agent_state(rotation=rotation)
-
-    def get_navigable_map(self) -> np.ndarray:
-        """Get the Navigable Areas map
-
-        Returns:
-            A numpy array having 0 for non-navigable and 1 for navigable cells.
-
-        Note:
-            Current resolution is 3284 x 2666
-        """
-
-        return self.uenv.get_navigable_map()
-
-    def get_navigable_map_zoom(self, x: int, y: int) -> np.ndarray:
-        """Get the Navigable Areas map
-
-        Returns:
-            Zoomed in row, col location, a numpy array having 0 for non-navigable and 1 for navigable cells.
-
-        """
-        return self.uenv.get_navigable_map_zoom(x=x, y=y)
-
-    
-    def get_navigable_map_zoom_area(self, x1: int, y1: int, x2:int, y2: int) -> np.ndarray:
-        """Get the Zoom into a rectangle of cells bounded by x1,y1 - x2,y2 in Navigable Areas map
-
-        Returns:
-            Zoomed in row, col location, a numpy array having 0 for non-navigable and 1 for navigable cells.
-
-        """
-        return self.uenv.get_navigable_map_zoom_area(x1=x1,x2=x2,y1=y1,y2=y2)
 
 
     def unity_to_navmap_location(self, unity_x, unity_z):
@@ -487,14 +456,7 @@ class AroraGymEnv(AroraGymEnvBase):
         actions_names = f'action_{action_dim}'
         return actions_data, actions_names
 
-    # expose properties from uenv
-    @property
-    def actions(self):
-        return self.uenv.actions
 
-    @property
-    def shortest_path(self):
-        return self.uenv.shortest_path
 
 
 

@@ -18,7 +18,7 @@ from .unity_env import RideUnityEnv
 
 from mlagents_envs.rpc_utils import steps_from_proto
 
-from navsim_envs.base_envs import AroraGymEnvBase
+from navsim_envs.envs_base import AroraGymEnvBase
 
 def ridegymenv_creator(env_config):
     return RideGymEnv(env_config)  # return an env instance
@@ -350,33 +350,9 @@ class RideGymEnv(AroraGymEnvBase):
 
         return self.set_agent_state(rotation=rotation)
 
-    # expose properties from uenv
-    @property
-    def actions(self):
-        return self.uenv.actions
 
     # expose methods from uenv
 
-    def get_navigable_map(self) -> np.ndarray:
-        """Get the Navigable Areas map
-
-        Returns:
-            A numpy array having 0 for non-navigable and 1 for navigable cells.
-
-        Note:
-            Current resolution is 3284 x 2666
-        """
-
-        return self.uenv.get_navigable_map()
-
-    def get_navigable_map_zoom(self, x: int, y: int) -> np.ndarray:
-        """Get the Navigable Areas map
-
-        Returns:
-            Zoomed in row, col location, a numpy array having 0 for non-navigable and 1 for navigable cells.
-
-        """
-        return self.uenv.get_navigable_map_zoom(x=x, y=y)
 
     def unity_to_navmap_location(self, unity_x, unity_z):
         """Convert a location from Unity's 3D coordinate system to navigable map's 2D coordinate system
@@ -598,75 +574,4 @@ class RideGymEnv(AroraGymEnvBase):
         actions_names = f'action_{action_dim}'
         return actions_data, actions_names
 
-    # Functions added to have parity with Env and RLEnv of habitat lab
-
-    @property
-    def agent_obs(self):
-        """Agent observations
-        """
-        if self._obs is None:
-            raise EnvNotInitializedError()
-        return self._obs
-
-    @property
-    def agent_position(self):
-        """Position of agent in unity coordinates x,y,z
-        """
-        if self._agent_position is None:
-            raise EnvNotInitializedError()
-
-        return self._agent_position
-
-    @property
-    def agent_rotation(self):
-        """Rotation of agent in unity quaternions x,y,z,w
-        """
-        if self._agent_rotation is None:
-            raise EnvNotInitializedError()
-
-        return self._agent_rotation
-
-    @property
-    def agent_velocity(self):
-        """Velocity of agent in unity coordinates x,y,z
-        """
-        if self._agent_velocity is None:
-            raise EnvNotInitializedError()
-        return self._agent_velocity
-
-    # sim.get_agent_state() -> agent_x, y, orientation
-    # sim.set_agent_state(position, orientation)
-    # sim.get_observations_at(position, orientation) -> observation when agent is at position with specified orientation
-    # sim.sample_navigable_point() -> agent_x,y (must be a navigable location in the map)
-
-    @property
-    def goal_position(self):
-        """Position of goal in unity coordinates x,y,z
-        """
-        if self._goal_position is None:
-            raise EnvNotInitializedError()
-
-        return self._goal_position
-
-    @property
-    def current_episode_num(self):
-        """Currently executing episode number, 0 means env just initialized
-        """
-        return self.e_num
-
-    @property
-    def last_step_num(self):
-        """Last executed step number, 0 mean env just initialized or reset
-        """
-        return self.s_num
-
-    @property
-    def shortest_path_length(self):
-        """the shortest navigable path length from current location to
-        goal position
-        """
-        return self.uenv.shortest_path_length
-
-    @property
-    def shortest_path(self):
-        return self.uenv.shortest_path
+    

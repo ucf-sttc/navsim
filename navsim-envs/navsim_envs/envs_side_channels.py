@@ -134,10 +134,10 @@ class ShortestPathSideChannel(AroraSideChannelBase):
         """
         path = msg.read_float32_list()
         #path_length = int(len(path)/3)
+        print('inside channel code 1:',path)
         self.path = np.reshape(path, (-1,3))  # reshape -1,3
-        #print('inside channel code:',self.path)
+        print('inside channel code 2:',self.path)
     
-        
     def send_request(self) -> None:
         """
         Sends a request to Unity for the shortest path points
@@ -148,7 +148,7 @@ class ShortestPathSideChannel(AroraSideChannelBase):
         return super().build_immediate_request()
 
 
-class SetAgentPositionSideChannel(SideChannel):
+class SetAgentPositionSideChannel(AroraSideChannelBase):
     """
     This is the SideChannel for setting an agent's position in Unity.
     The arguments for setting the agent position are are ("agentPosition", [AGENT_ID, POSITION_X, POSITION_Y, POSITION_Z OPTIONAL(ROTATION_X, ROTATION_Y, ROTATION_Z, ROTATION_W)])
