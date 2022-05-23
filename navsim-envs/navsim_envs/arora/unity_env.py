@@ -29,56 +29,57 @@ class AroraUnityEnv(AroraUnityEnvBase):
         """
 
         super().__init__(env_config,default_env_config)
+        del env_config
 
         eng_sc = EngineConfigurationChannel()
         eng_sc.set_configuration_parameters(time_scale=0.25, quality_level=0)
         env_pc = EnvironmentParametersChannel()
 
-        timeout = env_config['timeout'] + (0.5 * (env_config['start_from_episode'] - 1))
+        timeout = self.env_config['timeout'] + (0.5 * (self.env_config['start_from_episode'] - 1))
 
         ad_args = [
-            "-allowedArea", f"{env_config['area']}",
-            "-agentCarPhysics", f"{env_config['agent_car_physics']}",
-            "-episodeLength", f"{env_config['episode_max_steps']}",
-            "-fastForward", f"{env_config['start_from_episode'] - 1}",
-            "-force-device-index", f"{env_config['env_gpu_id']}",
-            "-force-vulkan" if (env_config["env_gpu_id"] > 0) else "",
-            "-goalDistance", f"{env_config['goal_distance']}",
-            "-goalClearance", f"{env_config['goal_clearance']}",
-            "-goalSelectionIndex", f"{env_config['goal']}",
-            "-numberOfTrafficVehicles", f"{env_config['traffic_vehicles']}",
-            "-observationMode", f"{env_config['obs_mode']}",
-            "-observationWidth", f"{env_config['obs_width']}",
-            "-observationHeight", f"{env_config['obs_height']}",
-            "-relativeSteering", f"{env_config['relative_steering']}",
-            "-rewardForGoal", f"{env_config['reward_for_goal']}",
-            "-rewardForNoViablePath", f"{env_config['reward_for_no_viable_path']}",
-            "-rewardStepMul", f"{env_config['reward_step_mul']}",
-            "-rewardCollisionMul", f"{env_config['reward_collision_mul']}",
-            "-rewardSplDeltaMul", f"{env_config['reward_spl_delta_mul']}",
-            "-showVisualObservations" if env_config['show_visual'] else "",
-            "-saveStepLog" if env_config["debug"] else "",
-            "-segmentationMode", f"{env_config['segmentation_mode']}",
-            "-selectedTaskIndex", f"{env_config['task']}"
+            "-allowedArea", f"{self.env_config['area']}",
+            "-agentCarPhysics", f"{self.env_config['agent_car_physics']}",
+            "-episodeLength", f"{self.env_config['episode_max_steps']}",
+            "-fastForward", f"{self.env_config['start_from_episode'] - 1}",
+            "-force-device-index", f"{self.env_config['env_gpu_id']}",
+            "-force-vulkan" if (self.env_config["env_gpu_id"] > 0) else "",
+            "-goalDistance", f"{self.env_config['goal_distance']}",
+            "-goalClearance", f"{self.env_config['goal_clearance']}",
+            "-goalSelectionIndex", f"{self.env_config['goal']}",
+            "-numberOfTrafficVehicles", f"{self.env_config['traffic_vehicles']}",
+            "-observationMode", f"{self.env_config['obs_mode']}",
+            "-observationWidth", f"{self.env_config['obs_width']}",
+            "-observationHeight", f"{self.env_config['obs_height']}",
+            "-relativeSteering", f"{self.env_config['relative_steering']}",
+            "-rewardForGoal", f"{self.env_config['reward_for_goal']}",
+            "-rewardForNoViablePath", f"{self.env_config['reward_for_no_viable_path']}",
+            "-rewardStepMul", f"{self.env_config['reward_step_mul']}",
+            "-rewardCollisionMul", f"{self.env_config['reward_collision_mul']}",
+            "-rewardSplDeltaMul", f"{self.env_config['reward_spl_delta_mul']}",
+            "-showVisualObservations" if self.env_config['show_visual'] else "",
+            "-saveStepLog" if self.env_config["debug"] else "",
+            "-segmentationMode", f"{self.env_config['segmentation_mode']}",
+            "-selectedTaskIndex", f"{self.env_config['task']}"
         ]
 
-        self._navsim_base_port = env_config['base_port']
+        self._navsim_base_port = self.env_config['base_port']
         if self._navsim_base_port is None:
             self._navsim_base_port = UnityEnvironment.BASE_ENVIRONMENT_PORT if env_config[
                 'env_path'] else UnityEnvironment.DEFAULT_EDITOR_PORT
-        self._navsim_worker_id = env_config['worker_id']
+        self._navsim_worker_id = self.env_config['worker_id']
 
         while True:
             try:
-                env_config["worker_id"] = self._navsim_worker_id
-                env_config["base_port"] = self._navsim_base_port
-                UnityEnvironment.__init__(self,file_name=env_config['env_path'],
-                                 log_folder=env_config["log_folder"],
+                self.env_config["worker_id"] = self._navsim_worker_id
+                self.env_config["base_port"] = self._navsim_base_port
+                UnityEnvironment.__init__(self,file_name=self.env_config['env_path'],
+                                 log_folder=self.env_config["log_folder"],
                                  no_graphics=False,
-                                 seed=env_config["seed"],
+                                 seed=self.env_config["seed"],
                                  timeout_wait=timeout,
-                                 worker_id=env_config["worker_id"],
-                                 base_port=env_config["base_port"],
+                                 worker_id=self.env_config["worker_id"],
+                                 base_port=self.env_config["base_port"],
                                  side_channels=[eng_sc, env_pc,
                                                 self.map_side_channel,
                                                 self.fpc, self.nsc,
@@ -89,13 +90,13 @@ class AroraUnityEnv(AroraUnityEnvBase):
                 time.sleep(2)
                 self._navsim_base_port += 1
             else:
-                from_str = "Editor" if env_config['env_path'] is None else f"from {env_config['env_path']}"
+                from_str = "Editor" if self.env_config['env_path'] is None else f"from {self.env_config['env_path']}"
                 AroraUnityEnv.logger.info(f"Created UnityEnvironment {from_str} "
                                          f"at port {self._navsim_base_port + self._navsim_worker_id} "
-                                         f"to start from episode {env_config['start_from_episode']}")
+                                         f"to start from episode {self.env_config['start_from_episode']}")
                 break
 
-        self.env_config = env_config
+        #self.env_config = env_config
 
 
 

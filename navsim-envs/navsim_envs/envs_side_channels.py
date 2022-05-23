@@ -134,9 +134,9 @@ class ShortestPathSideChannel(AroraSideChannelBase):
         """
         path = msg.read_float32_list()
         #path_length = int(len(path)/3)
-        print('inside channel code 1:',path)
+        #print('inside channel code 1:',path)
         self.path = np.reshape(path, (-1,3))  # reshape -1,3
-        print('inside channel code 2:',self.path)
+        #print('inside channel code 2:',self.path)
     
     def send_request(self) -> None:
         """
