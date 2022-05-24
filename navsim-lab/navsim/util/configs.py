@@ -51,6 +51,7 @@ env_config = {
     "save_visual_obs": True,
     "show_visual": False,
     "task": 0,
+    "terrain": 0,
     "timeout": 600,
     "traffic_vehicles": 0,
     "worker_id": 0,

@@ -341,6 +341,13 @@ def _create_argparser() -> argparse.ArgumentParser:
     )
 
     env_conf.add_argument(
+        "--terrain",
+        default=default_env_config['terrain'],
+        help="Terrain: could be 0 or 1",
+        action=ArgAction,
+    )
+
+    env_conf.add_argument(
         "--timeout",
         default=default_env_config['timeout'],
         help="TimeOut for the Env",
