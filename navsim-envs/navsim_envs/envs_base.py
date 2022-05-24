@@ -131,11 +131,13 @@ class AroraUnityEnvBase(UnityEnvBase):
 
     def reset(self):
         s0 = super().reset()
+        self.process_immediate_message(
+            self.map_side_channel.build_immediate_request("mapSizeRequest"))
         #TODO: These should not be in reset() but in the map channel
-        self.map_side_channel.unity_max_x = self.fpc.get_property("TerrainX") 
-        self.map_side_channel.unity_max_z = self.fpc.get_property("TerrainZ")
-        self.map_side_channel.navmap_max_x = int(self.map_side_channel.unity_max_x)
-        self.map_side_channel.navmap_max_y = int(self.map_side_channel.unity_max_z)
+        #self.map_side_channel.unity_max_x = self.fpc.get_property("TerrainX") 
+        #self.map_side_channel.unity_max_z = self.fpc.get_property("TerrainZ")
+        #self.map_side_channel.navmap_max_x = int(self.map_side_channel.unity_max_x)#3284
+        #self.map_side_channel.navmap_max_y = int(self.map_side_channel.unity_max_z)#2666
         return s0
 
     def get_navigable_map(self) -> np.ndarray:
