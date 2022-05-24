@@ -554,7 +554,7 @@ class AroraGymEnvBase(UnityToGymWrapper):
             self.actions_file.flush()
         return s_, r, episode_done, info
 
-    def render(self, mode:str='rgb_array'):
+    def render(self, mode:str):
         """Returns the image array based on the render mode
 
         Args:

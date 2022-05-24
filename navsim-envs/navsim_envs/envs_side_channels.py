@@ -1,7 +1,7 @@
 from mlagents_envs.side_channel.side_channel import (
     SideChannel,
     IncomingMessage,
-    OutgoingMessage,
+    OutgoingMessage
 )
 from typing import List, Optional
 import numpy as np
@@ -51,20 +51,22 @@ class MapSideChannel(AroraSideChannelBase):
         self.unity_max_z = None
 
     def on_message_received(self, msg: IncomingMessage) -> None:
-    	if(msg.read_string() == "mapSizeResponse"):
-    		self.unity_max_x = msg.read_float32()
-    		self.unity_max_z = msg.read_float32()
-    		self.navmap_max_x = int(self.unity_max_x)
-    		self.navmap_max_y = int(self.unity_max_z)
-    	else:
-		    if self.resolution is None:
-		        raise ValueError('resolution to full map is not set')
-
-		    raw_bytes = msg.get_raw_bytes()
-		    self.requested_map = np.unpackbits(raw_bytes)[
-		                         0:self.resolution[0] * self.resolution[1]]
-		    self.requested_map = self.requested_map.reshape((self.resolution[1],
-		                                                     self.resolution[0]))
+        msg_str = msg.read_string()
+        #print('from channel:',msg_rcd)
+        if (msg_str == "mapSizeResponse"):
+            self.unity_max_x = msg.read_float32()
+            self.unity_max_z = msg.read_float32()
+            self.navmap_max_x = int(self.unity_max_x)
+            self.navmap_max_y = int(self.unity_max_z)
+        else:
+            if self.resolution is None:
+                raise ValueError('resolution to full map is not set')
+                
+            raw_bytes = msg.get_raw_bytes()
+            self.requested_map = np.unpackbits(raw_bytes)[
+                0:self.resolution[0] * self.resolution[1]]
+            self.requested_map = self.requested_map.reshape((self.resolution[1],
+                                                             self.resolution[0]))
 
     def _request_helper(self, key: Optional[str]='binaryMap', value: Optional[List[float]] = None ) -> OutgoingMessage:
         if key == 'binaryMap':
@@ -76,7 +78,7 @@ class MapSideChannel(AroraSideChannelBase):
                 raise ValueError('[x,y] not provided')
             self.resolution = [100, 100]  # resolution at cm scale for 1 square meter tile
         elif key == 'mapSizeRequest':
-        	value = []
+            value = []
         else:
             raise ValueError('invalid key')
 
