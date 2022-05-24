@@ -17,10 +17,10 @@ class RideUnityEnv(AroraUnityEnvBase):
     """
 
     actions = {
-        'forward_left' : [1,-1],
-        'forward_right' :[1, 1],
-        'forward' : [1,0],
-        'backward' : [-1,0]
+        'forward_left' : [0.3,-0.5],
+        'forward_right' :[0.3, 0.5],
+        'forward' : [0.5,0],
+        'backward' : [-0.5,0]
     }
 
     def __init__(self, env_config) -> None:
@@ -48,14 +48,15 @@ class RideUnityEnv(AroraUnityEnvBase):
             "-observationMode", f"{self.env_config['obs_mode']}",
             "-observationWidth", f"{self.env_config['obs_width']}",
             "-observationHeight", f"{self.env_config['obs_height']}",
-            "-relativeSteering", f"{self.env_config['relative_steering']}",
+            "-relativeSteering", "1" if self.env_config['relative_steering'] else "0",
             "-rewardForGoal", f"{self.env_config['reward_for_goal']}",
             "-rewardForNoViablePath", f"{self.env_config['reward_for_no_viable_path']}",
             "-rewardStepMul", f"{self.env_config['reward_step_mul']}",
             "-rewardCollisionMul", f"{self.env_config['reward_collision_mul']}",
             "-rewardSplDeltaMul", f"{self.env_config['reward_spl_delta_mul']}",
             "-showVisualObservations" if self.env_config['show_visual'] else "",
-            "-saveStepLog" if self.env_config["debug"] else ""
+            "-saveStepLog" if self.env_config["debug"] else "",
+            "-terrain",f"{self.env_config['terrain']}"
         ]
 
         self._navsim_base_port = self.env_config['base_port']

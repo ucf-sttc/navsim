@@ -51,7 +51,7 @@ class AroraUnityEnv(AroraUnityEnvBase):
             "-observationMode", f"{self.env_config['obs_mode']}",
             "-observationWidth", f"{self.env_config['obs_width']}",
             "-observationHeight", f"{self.env_config['obs_height']}",
-            "-relativeSteering", f"{self.env_config['relative_steering']}",
+            "-relativeSteering", f"1" if self.env_config['relative_steering'] else f"0",
             "-rewardForGoal", f"{self.env_config['reward_for_goal']}",
             "-rewardForNoViablePath", f"{self.env_config['reward_for_no_viable_path']}",
             "-rewardStepMul", f"{self.env_config['reward_step_mul']}",

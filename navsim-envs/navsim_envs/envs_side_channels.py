@@ -118,6 +118,31 @@ class NavigableSideChannel(AroraSideChannelBase):
     #def build_immediate_request(self, key: str, value: List[float]) -> bytearray:
     #    return super.build_immediate_request(key=key,value=value)
 
+class OnScreenSideChannel(AroraSideChannelBase):
+    """
+    This is the SideChannel for display pairs of strings on screen
+    """
+
+    def __init__(self) -> None:
+        super().__init__(channel_id = uuid.UUID("e018c382-a6b9-4ea7-8f22-2b73c6dc54e3"))
+        
+    def on_message_received(self, msg: IncomingMessage) -> None:
+        # do nothing
+        pass
+        
+    def send_request(self, value: List[str]) -> None:
+        """
+        Sends a list of strings to Unity to display on screen
+        
+        """
+        msg = OutgoingMessage()
+        for item in value:
+            msg.write_string(item)
+        super().queue_message_to_send(msg)
+
+    def build_immediate_request(self) -> None:
+        # do nothing
+        pass
 
 class ShortestPathSideChannel(AroraSideChannelBase):
     """
@@ -162,7 +187,6 @@ class SetAgentPositionSideChannel(AroraSideChannelBase):
         self.success = msg.read_bool()
 
     def send_request(self, key:str, value: List[float]) -> None:
-
         super().send_request(key=key,value=value)
 
     def build_immediate_request(key:str, value: List[float]) -> bytearray:
