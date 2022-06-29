@@ -38,3 +38,4 @@ __pycache__
 /navsim-lab/dist/
 /navsim-lab/navsim.egg-info/
 /.vscode/
+/navsim-lab/navsim_lab.egg-info/
