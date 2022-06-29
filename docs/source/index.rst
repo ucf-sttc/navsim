@@ -8,4 +8,4 @@ Welcome to NavSim |version| documentation
    navsim_envs_api
    ARORA Sim Tutorial - After Action Review (AAR) Mode<navsim-envs/aar.md>
    Conda/Container Tutorial <navsim/navsim_conda.md>
-   navsim_api
+   navsim_lab_api
