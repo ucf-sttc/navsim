@@ -10,9 +10,9 @@ with open('../version.txt', 'r') as vf:
 long_description = " "
 
 setuptools.setup(
-    name="navsim",
+    name="navsim_lab",
     version=__version__,
-    author="AF, STTC, IST, UCF",
+    author="Armando Fandango, STTC, IST, UCF",
     author_email="armando@ucf.edu",
     description="Navigation Simulator",
     long_description=long_description,
@@ -36,11 +36,14 @@ setuptools.setup(
     python_requires='>=3.8',
     install_requires=[
         'navsim_envs',
+        'cattrs',
+        'scikit-fmm',
+        'tensorboard',
         # 'opencv-python',
     ],
     entry_points={
         "console_scripts": [
-            "navsim=navsim.main:main",
+            "navsim=navsim_lab.main:main",
 
         ]
     },

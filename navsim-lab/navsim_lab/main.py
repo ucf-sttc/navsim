@@ -2,26 +2,14 @@ from pathlib import Path
 
 import cv2
 import gym
-import navsim
+import navsim_lab
 
 from ezai.util import ObjDict
 from matplotlib import pyplot as plt
-from navsim.planner.navsim_planner import NavsimPlanner
+from navsim_lab.planner.navsim_planner import NavsimPlanner
 
 from .cli_utils import argparser, non_default_args
-from navsim.executor.navsim_executor import Executor
-
-def increase_brightness(image, value=0.1):
-    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-    # h, s, v = cv2.split(hsv)
-    # lim = 255 - value
-    # v[v > lim] = 255
-    # v[v <= lim] += value
-    # final_hsv = cv2.merge((h, s, v))
-
-    hsv[:,:,2] = cv2.add(hsv[:, :, 2], value )
-    image = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
-    return image
+from navsim_lab.executor.navsim_executor import Executor
 
 def main():
     """
@@ -29,7 +17,7 @@ def main():
     :return:
     """
     print(f'=========================================')
-    print(f'Navsim Python API Version {navsim.__version__}')
+    print(f'navsim_lab Python API Version {navsim_lab.__version__}')
     print(f'=========================================')
     args = ObjDict(vars(argparser.parse_args()))
     print('arguments passed:')
@@ -96,8 +84,8 @@ def main():
         if run_base_folder.exists():
             shutil.rmtree(run_base_folder)
         # run_config = ObjDict()
-        run_config = ObjDict(navsim.util.run_config.copy())
-        env_config = ObjDict(navsim.util.env_config.copy())
+        run_config = ObjDict(navsim_lab.util.run_config.copy())
+        env_config = ObjDict(navsim_lab.util.env_config.copy())
         env_log_folder = run_base_folder / 'env_log'
         env_log_folder.mkdir(parents=True, exist_ok=True)
         env_config["log_folder"] = str(env_log_folder)

@@ -32,7 +32,9 @@ class AroraGymEnv(AroraGymEnvBase):
         """
         super().__init__(env_config, default_env_config, AroraUnityEnv)
         if self.env_config['obs_mode']==1:
-            self.metadata['render.modes']+=['rgb_array', 'depth', 'segmentation']
+            for mode in ['rgb_array', 'depth', 'segmentation']:
+                if not mode in self.metadata['render.modes']:
+                    self.metadata['render.modes']+=[mode]
 
 
     # def close(self):

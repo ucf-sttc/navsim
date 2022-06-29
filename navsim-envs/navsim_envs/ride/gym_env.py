@@ -32,7 +32,9 @@ class RideGymEnv(AroraGymEnvBase):
 
         super().__init__(env_config, default_env_config, RideUnityEnv)
         if self.env_config['obs_mode']==1:
-            self.metadata['render.modes']+=['rgb_array']
+            for mode in ['rgb_array']:
+                if not mode in self.metadata['render.modes']:
+                    self.metadata['render.modes']+=[mode]
 
         # TODO: convert env_config to self.env_config so we can add missing values
         #   and use self.env_config to print in the info section

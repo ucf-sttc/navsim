@@ -15,7 +15,7 @@ from copy import deepcopy
 #   returns q
 
 
-from navsim.agent.nn import ActorCriticWrapper, Actor, Critic
+from navsim_lab.agent.nn import ActorCriticWrapper, Actor, Critic
 
 
 class DDPGAgent(object):

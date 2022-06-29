@@ -8,7 +8,7 @@ with open(version_file, 'r') as vf:
 
 
 
-from navsim import util, agent, executor
+from navsim_lab import util, agent, executor
 
 
 __all__ = ['agent', 'util', 'executor']

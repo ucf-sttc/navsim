@@ -1,0 +1,102 @@
+#version: "3.9"
+
+x-volumes: &volumes
+  - ${HOME}:${HOME}
+  - /work:/work
+  - /etc/passwd:/etc/passwd:ro
+  - /etc/group:/etc/group:ro
+  - /etc/shadow:/etc/shadow:ro
+  - /etc/sudoers.d:/etc/sudoers.d:ro
+#  - /tmp/.X11-unix:/tmp/.X11-unix:rw
+x-x11sock: &x11sock
+  - /tmp/.X11-unix:/tmp/.X11-unix:rw
+#  - /usr/share/vulkan/icd.d:/usr/share/vulkan/icd.d
+
+
+services:
+
+  navsim:
+    build: 
+      context: .
+      dockerfile: dockerfiles/Dockerfile-navsim-ubuntu2004
+      args:
+        - from=ghcr.io/armando-fandango/ezai/ez:0.1-ai-nvidia-ubuntu2004
+    #    - from=registry.gitlab.com/armando-fandango/ezai/ez:0.1-ai-nvidia-ubuntu2004
+    #depends_on:
+    #  - base
+    image: ghcr.io/ucf-sttc/navsim/navsim:0.1-navsim-ubuntu2004
+    container_name: navsim-test
+    command: bash -c "nvidia-smi; vulkaninfo"
+    volumes: *volumes
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              #device_ids: ['0', '3']
+              capabilities: [gpu]
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all
+    #  - DISPLAY
+    #  - QT_X11_NO_MITSHM=1
+    #command: /bin/bash
+    working_dir: ${HOME}
+    user: ${DUID}:${DGID}
+
+  nvidia-test1:
+    image: ubuntu:20.04
+    container_name: nvidia-test
+    command: bash -c "nvidia-smi"
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all
+      - DISPLAY
+
+  nvidia-test2:
+    image: ubuntu:20.04
+    container_name: nvidia-test2
+    command: bash -c "nvidia-smi"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              #device_ids: ['0', '3']
+              capabilities: [gpu]
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all
+      - DISPLAY
+
+  vulkan-test1:
+    #image: nvidia/vulkan:1.2.133-450
+    image: nvidia/vulkan:1.2.170-470
+    container_name: vulkan-test
+    command: bash -c "nvidia-smi; vulkaninfo"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              #device_ids: ['0', '3']
+              capabilities: [gpu]
+    user: ${DUID}:${DGID}
+  
+  vulkan-test2:
+    image: ghcr.io/armando-fandango/ezai/ez:0.1-ai-nvidia-ubuntu2004
+    container_name: vulkan-test
+    command: bash -c "nvidia-smi; vulkaninfo"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              #device_ids: ['0', '3']
+              capabilities: [gpu]
+    user: ${DUID}:${DGID}

@@ -389,22 +389,18 @@ class AroraGymEnvBase(UnityToGymWrapper):
                 env_config[key] = env_config
 
         log_folder = Path(env_config['log_folder']).resolve()
-        # self.obs_mode = int(self.env_config.get('obs_mode', 2))
         if env_config['debug']:
             self.logger.setLevel(10)
         else:
             self.logger.setLevel(20)
 
-        self._obs = None
-
         if env_config['obs_mode'] == 0:
             env_config["save_visual_obs"] = False
-        #elif env_config['obs_mode'] == 1:
-        #    env_config["save_vector_obs"] = False
 
         self.e_num = 0
         self.s_num = 0
 
+        self._obs = None
         self._agent_position = None
         self._agent_velocity = None
         self._agent_rotation = None

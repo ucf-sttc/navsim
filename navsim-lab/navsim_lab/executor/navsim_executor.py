@@ -4,19 +4,19 @@ import json
 
 import cv2
 import torch
-from navsim.planner.navsim_planner import NavsimPlanner
+from navsim_lab.planner.navsim_planner import NavsimPlanner
 from tqdm import tqdm
 import numpy as np
 import math
 
 import gym
-from navsim.agent.ddpg import DDPGAgent
+from navsim_lab.agent.ddpg import DDPGAgent
 from ezai.util.fmt import sizeof_fmt
 from ezai.image import image_layout, s_hwc_to_chw
 #from ezai.util.dict import ObjDict
 from ezai.env import env_info
 from ezai.res import ResourceCounter
-import navsim
+import navsim_lab
 
 import traceback
 from torch.utils.tensorboard import SummaryWriter

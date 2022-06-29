@@ -13,8 +13,8 @@ from copy import deepcopy
 import navsim_envs
 from navsim_envs.arora import AroraGymEnv
 from navsim_envs.arora import default_env_config
-from ezai_util.configs import config_banner, load_config
-from ezai_util.image import isbright
+from ezai.configs import config_banner, load_config
+from ezai.image import isbright
 
 from scipy.spatial.transform import Rotation as R
 

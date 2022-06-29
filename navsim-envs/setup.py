@@ -12,7 +12,7 @@ long_description = " "
 setuptools.setup(
     name="navsim_envs",
     version=__version__,
-    author="AF, STTC, IST, UCF",
+    author="Armando Fandango, STTC, IST, UCF",
     author_email="armando@ucf.edu",
     description="Navigation Simulator Environments",
     long_description=long_description,
