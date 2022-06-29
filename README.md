@@ -139,8 +139,14 @@ Inside ai_coop_py repo, follow these commands:
 ./zip-repo
 cd tools
 docker-compose build navsim
-docker tag navsim:0.1-navsim-ubuntu2004 ghcr.io/ucf-sttc/navsim/navsim:0.1-navsim-ubuntu2004
+
 docker login ghcr.io -u armando-fandango     # replace with your github login and password
 docker push ghcr.io/ucf-sttc/navsim/navsim:0.1-navsim-ubuntu2004
 ```
+
+### How to run the headless binary in headless container
+
+copy navsim/tools/docker-compose.yml to ~/exp
+in line 5, change /work:/work to /data/work:/data/work
+
 DUID="$(id -u)" DGID="$(id -g)" docker-compose run navsim navsim --plan --env arora-v0 --env_path ~/unity-envs/ARORA_2.10.17_simpro/ARORA.x86_64
