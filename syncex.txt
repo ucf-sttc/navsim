@@ -1,0 +1,16 @@
+__pycache__
+.pytest_cache
+.vscode
+.ipynb_checkpoints
+.idea
+.hypothesis
+navsim-lab/navsim.egg-info
+navsim-lab/build
+navsim-lab/dist
+navsim-envs/navsim_envs.egg-info
+navsim-envs/build
+navsim-envs/dist
+navsim-mlagents/ml-agents-envs/mlagents_envs.egg-info
+navsim-mlagents/gym-unity/gym_unity.egg-info
+examples/env_log
+archived-code

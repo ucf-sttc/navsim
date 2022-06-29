@@ -16,8 +16,8 @@ In the future, navsim may be compatible with a variety of simulators, but for no
   * or install conda env from our repo: Go to `navsim` conda section
 * Install the repos in `navsim` virtual env
   ```
-  export NAVSIM_REPO=/path/to/ai_coop_py
-  $NAVSIM_REPO/tools/install-repo.sh
+  cd /path/to/ai_coop_py
+  ./install-repo.sh
   ```
 * Read `navsim_envs` tutorial to use and test the `navsim_envs`
 * Run `jupyter notebook`. The notebooks are in `examples` folder.
@@ -131,4 +131,16 @@ zero to the index number of GPU for environment binary.
 * Replace the navsim command with your own command if you are just importing
   the NavSim env and have your own code in experiment directory.
 
+### How to build the headless container
 
+Inside ai_coop_py repo, follow these commands:
+
+```shell
+./zip-repo
+cd tools
+docker-compose build navsim
+docker tag navsim:0.1-navsim-ubuntu2004 ghcr.io/ucf-sttc/navsim/navsim:0.1-navsim-ubuntu2004
+docker login ghcr.io -u armando-fandango     # replace with your github login and password
+docker push ghcr.io/ucf-sttc/navsim/navsim:0.1-navsim-ubuntu2004
+```
+DUID="$(id -u)" DGID="$(id -g)" docker-compose run navsim navsim --plan --env arora-v0 --env_path ~/unity-envs/ARORA_2.10.17_simpro/ARORA.x86_64

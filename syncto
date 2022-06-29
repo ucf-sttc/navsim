@@ -1,4 +1,0 @@
-#!/usr/bin/env bash
-
-rsync -avzhP --exclude={__pycache__,.idea,.hypothesis,.pytest_cache,navsim-lab/navsim.egg-info,navsim-lab/build,navsim-lab/dist,navsim-envs/navsim_envs.egg-info,navsim-envs/build,navsim-envs/dist} ~/projects/ai_coop_py/ $1:~/projects/ai_coop_py --delete
-

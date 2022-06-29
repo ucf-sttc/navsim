@@ -1,16 +1,19 @@
 #!/usr/bin/env bash
-loc="/data/work/unity-envs/Build$1"
-echo "-----------------------------------------------------"
-echo "............Syncing from Zemo......................"
-echo "-----------------------------------------------------"
-rsync -avzhP zemo:${loc}/ ${loc}
-echo "-----------------------------------------------------"
-machines="ph tbird tball fixer"
+
+# sync the game from local machine to servers
+loc="/data/work/unity-envs/$1"
+#echo "-----------------------------------------------------"
+#echo "............Syncing from Zemo......................"
+#echo "-----------------------------------------------------"
+#rsync -avzhP zemo:${loc}/ ${loc}
+#echo "-----------------------------------------------------"
+machines="zemo"
+#machines=""
 for m in $machines
 do
   echo "............To $m...................................."
   echo "-----------------------------------------------------"
-  rsync -avzhP ${loc}/ ${m}:${loc}
+  rsync -avzhP --delete --exclude-from='syncex.txt' ${loc}/ ${m}:${loc}
   echo "-----------------------------------------------------"
 done
 #echo "............To tbird.............................."

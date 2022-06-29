@@ -37,3 +37,4 @@ __pycache__
 /navsim-lab/build/
 /navsim-lab/dist/
 /navsim-lab/navsim.egg-info/
+/.vscode/
