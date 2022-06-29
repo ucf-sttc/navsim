@@ -5,11 +5,11 @@ In the future, navsim may be compatible with a variety of simulators, but for no
 
 # Installation
 
-* clone the `ai_coop_py` repo and checkout the active branch
+* clone the `navsim` repo and checkout the active branch
   ```
-  git clone git@ssh.dev.azure.com:v3/emb-ist-edu/AI%20COOP/ai_coop_py
-  cd ai_coop_py
-  git submodule update --init
+  git clone --recurse-submodules git@github.com:ucf-sttc/navsim.git
+  cd navsim
+  git submodule update --init --recursive
   ```
 * Either setup `navsim` conda env or activate your own python virtual environment:
   * Simple way to create conda env: `conda create -n navsim python=3.8 jupyter && conda activate navsim`
