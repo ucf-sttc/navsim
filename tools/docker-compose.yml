@@ -33,7 +33,7 @@ services:
         reservations:
           devices:
             - driver: nvidia
-              count: 1
+              count: all
               #device_ids: ['0', '3']
               capabilities: [gpu]
     environment:
@@ -64,7 +64,7 @@ services:
         reservations:
           devices:
             - driver: nvidia
-              count: 1
+              count: all
               #device_ids: ['0', '3']
               capabilities: [gpu]
     environment:

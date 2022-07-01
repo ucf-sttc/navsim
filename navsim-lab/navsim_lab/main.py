@@ -149,7 +149,7 @@ def main():
     import navsim_envs
 
     if args["plan"] is True:
-        run_config["total_episodes"]=2
+        #run_config["total_episodes"]=2
         #env_config["episode_max_steps"]= 10000
         #env_config["goal_clearance"] = 20
         #env_config["goal_distance"]= 100
