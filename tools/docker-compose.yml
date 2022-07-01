@@ -42,7 +42,7 @@ services:
     #  - DISPLAY
     #  - QT_X11_NO_MITSHM=1
     #command: /bin/bash
-    working_dir: ${HOME}
+    working_dir: ${PWD}
     user: ${DUID}:${DGID}
 
   nvidia-test1:
