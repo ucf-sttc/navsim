@@ -1,11 +1,13 @@
-FROM nvidia/cudagl:11.1.1-devel-ubuntu20.04 as base-image
-MAINTAINER Armando Fandango <armando@neurasights.com>
+ARG from
+FROM ${from}
+LABEL org.opencontainers.image.authors="armando@cortixly.ai"
 
 #ARG COMPONENTS=Unity,Windows,Windows-Mono,Mac,Mac-Mono,WebGL
 #ARG COMPONENTS=Unity,Mac,WebGL
 
 ENV CONDA_DIR="/opt/conda"
 ENV DEBIAN_FRONTEND=noninteractive
+ENV NAVSIM_DIR="/opt/navsim"
 
 USER root
 RUN apt-get -qq update && \
@@ -92,7 +94,11 @@ RUN wget http://phoronix-test-suite.com/releases/repo/pts.debian/files/phoronix-
 COPY test-profiles/local /var/lib/phoronix-test-suite/test-profiles/
 
 #Install MINICONDA and navsim_env in base
-COPY scripts/* ezai-conda* ezai-pip-* repo.zip /root/
+COPY ezai-conda* ezai-pip-* repo.zip /root/
+
+COPY scripts/install-nvidia.sh /opt/container-scripts/entrypoint.d/20-install-nvidia.sh
+COPY scripts/headfull-entrypoint.sh /opt/container-scripts/entrypoint.d/30-headfull.sh
+COPY scripts/x_server.py /opt/container-scripts/x_server.py
 
 #COPY repo.zip /root/
 #RUN ls -l /root/navsim-repo/navsim-mlagents/
@@ -103,14 +109,15 @@ RUN chmod +x /root/*.sh && \
     install_miniconda --conda_dir ${CONDA_DIR}
 ENV PATH=${CONDA_DIR}/bin:$PATH
 #ENV BASH_ENV="/root/.bashrc"
-RUN unzip -d ${CONDA_DIR}/navsim-repo repo.zip && \
-    source /root/.bashrc && source /root/ezai-conda.sh && \
+RUN source /root/.bashrc && source /root/ezai-conda.sh && \
     ezai_conda_create --venv "base" && \
     activate base && \
-    pip install -e ${CONDA_DIR}/navsim-repo/navsim-mlagents/ml-agents-envs && \
-    pip install -e ${CONDA_DIR}/navsim-repo/navsim-mlagents/gym-unity && \
-    pip install -e ${CONDA_DIR}/navsim-repo/navsim-envs && \
-    pip install -e ${CONDA_DIR}/navsim-repo/navsim-lab && \
+ 	unzip -d ${NAVSIM_DIR} repo.zip && \
+    pip install -e ${NAVSIM_DIR}/navsim-mlagents/ml-agents-envs && \
+    pip install -e ${NAVSIM_DIR}/navsim-mlagents/gym-unity && \
+    pip install -e ${NAVSIM_DIR}/navsim-envs && \
+    pip install -e ${NAVSIM_DIR}/navsim-lab && \
+    chmod -R 777 ${NAVSIM_DIR} && \
     chmod -R 777 ${CONDA_DIR} && \
     rm ezai-conda-* ezai-pip-* repo.zip
 #ENTRYPOINT ["bash", "-c", "(/root/chuser.sh && python /root/x_server.py) && bash"]

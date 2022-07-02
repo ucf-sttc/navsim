@@ -138,7 +138,7 @@ Inside ai_coop_py repo, follow these commands:
 ```shell
 ./zip-repo
 cd tools
-docker-compose build navsim
+docker-compose build navsim-container
 
 docker login ghcr.io -u armando-fandango     # replace with your github login and password
 docker push ghcr.io/ucf-sttc/navsim/navsim:0.1-navsim-ubuntu2004
@@ -150,5 +150,7 @@ copy navsim/tools/docker-compose.yml to ~/exp
 in line 5, change /work:/work to /data/work:/data/work
 
 ```
-DUID="$(id -u)" DGID="$(id -g)" docker-compose run --scale navsim=5 navsim --plan --env arora-v0 --env_path ~/unity-envs/ARORA_2.10.17_simpro/ARORA.x86_64
+DUID="$(id -u)" DGID="$(id -g)" docker-compose run -d arora-service navsim --plan --env arora-v0 --env_path ~/unity-envs/ARORA_2.10.17_simpro/ARORA.x86_64
 ```
+
+Add following parameters to docker-compose run:
