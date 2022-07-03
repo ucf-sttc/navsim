@@ -90,7 +90,7 @@ def _create_argparser() -> argparse.ArgumentParser:
 
     run_conf.add_argument(
         "--total_episodes",
-        default=2,
+        default=default_run_config['total_episodes'],
         action=ArgAction,
         help="Total number of episodes to run. If resume is used, then it will try to read the previously run episodes and continue from there.",
     )

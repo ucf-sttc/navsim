@@ -4,7 +4,7 @@ run_config = {
     "agent_gpu_id": 0,
     "num_workers": 1,
     "episode_max_steps": 50,
-    "total_episodes": 2,
+    "total_episodes": 1,
     "seed": None,
     "discount": 0.99,
     "tau": 5e-3,

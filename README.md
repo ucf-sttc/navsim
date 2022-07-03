@@ -72,6 +72,58 @@ In the future, navsim may be compatible with a variety of simulators, but for no
 * [docker](https://docs.docker.com/get-docker/)
 * [nvidia container toolkit](https://github.com/NVIDIA/nvidia-docker)
 
+### How to build the container
+
+Inside `navsim` repo, follow these commands:
+
+```shell
+cd tools
+./zip-repo
+docker-compose build navsim-headless-container
+docker-compose build navsim-headfull-container
+
+docker login ghcr.io -u armando-fandango     # replace with your github login and pat
+docker push ghcr.io/ucf-sttc/navsim/navsim:0.1-navsim-headfull-ubuntu2004
+docker push ghcr.io/ucf-sttc/navsim/navsim:0.1-navsim-headless-ubuntu2004
+```
+
+### How to run the binary in container
+
+* In your home folder have the following folders ready:
+`~/exp/` : Experiments are run in this folder
+`~/unity-envs/` : Unity-based standalone binaries are kept here
+
+If you use other folder names then change in the following commands appropriately:
+
+* copy `navsim/tools/docker-compose.yml` to `~/exp`
+
+* Because on our systems, the `exp ` and `unity-envs` reside in `/data/work` and symlinked to home folder, hence this folder also has to be mounted else the symlink wont work in container. To do that, in line 5 of `~/exp/docker-compose.yml`, change `/work:/work` to `/data/work:/data/work`
+
+* For sim-pro binary (remove -d after run if you dont want to run it in background):
+
+```
+DUID="$(id -u)" DGID="$(id -g)" docker-compose run -d navsim-headless-ubuntu2004 <navsim command>
+```
+
+* For non-simpro binary (remove -d after run if you dont want to run it in background):
+
+```
+DUID="$(id -u)" DGID="$(id -g)" docker-compose run -d navsim-headfull-container <navsim command>
+```
+
+#### The `<navsim command>`
+
+* `navsim --plan --env arora-v0 --env_path ~/unity-envs/ARORA_2.10.17_simpro/ARORA.x86_64`
+* `navsim_env_test min_env_config.yml`
+* `navsim --help` shows the options
+* `navsim --run_id $run_id --env_path $envdir/$envbin` - executes and/or trains the model
+* `navsim-benchmark $envdir/$envbin` - benchmarks the model
+* `navsim-saturate-gpu $envdir/$envbin` - Saturates the GPU
+* Replace the navsim command with your own command if you are just importing
+  the NavSim env and have your own code in experiment directory.
+
+# old instructions
+
 ### How to run the navsim training
 
 1. Download and extract the unity binary zip file
@@ -118,39 +170,3 @@ The display variable points to X Display server, and takes a value of `hostname:
 
 For the purpose of navsim container, use `DISPLAY=:0.0` and change the last
 zero to the index number of GPU for environment binary.
-
-
-#### The `<navsim command>`
-
-* `navsim_env_test min_env_config.yml`
-* `navsim --help` shows the options
-* `navsim --run_id $run_id --env_path $envdir/$envbin` - executes and/or trains the model
-* `navsim-benchmark $envdir/$envbin` - benchmarks the model
-* `navsim-saturate-gpu $envdir/$envbin` - Saturates the GPU
-
-* Replace the navsim command with your own command if you are just importing
-  the NavSim env and have your own code in experiment directory.
-
-### How to build the headless container
-
-Inside ai_coop_py repo, follow these commands:
-
-```shell
-./zip-repo
-cd tools
-docker-compose build navsim-container
-
-docker login ghcr.io -u armando-fandango     # replace with your github login and password
-docker push ghcr.io/ucf-sttc/navsim/navsim:0.1-navsim-ubuntu2004
-```
-
-### How to run the headless binary in headless container
-
-copy navsim/tools/docker-compose.yml to ~/exp
-in line 5, change /work:/work to /data/work:/data/work
-
-```
-DUID="$(id -u)" DGID="$(id -g)" docker-compose run -d arora-service navsim --plan --env arora-v0 --env_path ~/unity-envs/ARORA_2.10.17_simpro/ARORA.x86_64
-```
-
-Add following parameters to docker-compose run:

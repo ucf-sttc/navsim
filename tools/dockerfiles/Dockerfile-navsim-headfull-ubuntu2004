@@ -121,5 +121,5 @@ RUN source /root/.bashrc && source /root/ezai-conda.sh && \
     chmod -R 777 ${CONDA_DIR} && \
     rm ezai-conda-* ezai-pip-* repo.zip
 #ENTRYPOINT ["bash", "-c", "(/root/chuser.sh && python /root/x_server.py) && bash"]
-ENTRYPOINT ["/root/entrypoint.sh"]
-CMD ["bash"]
+#ENTRYPOINT ["/root/entrypoint.sh"]
+#CMD ["bash"]

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 
 # sync the code from local machine to servers
-rsync -avzhP --delete --exclude-from='syncex.txt' ~/projects/ai_coop_py/ $1:~/projects/ai_coop_py
+rsync -avzhP --delete --exclude-from='syncex.txt' ~/projects/navsim/ $1:~/projects/navsim
 

@@ -67,32 +67,11 @@ services:
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
       - NVIDIA_DRIVER_CAPABILITIES=all
+      - DUID=${DUID}
+      - DGID=${DGID}
+      - DUHOME=${HOME}
     working_dir: ${PWD}
-    user: ${DUID}:${DGID}
-
-  navsim-service:
-    #depends_on:
-    #  - base
-    image: ghcr.io/ucf-sttc/navsim/navsim:0.1-navsim-headless-ubuntu2004
-    container_name: navsim-service
-    command: bash -c "nvidia-smi; vulkaninfo"
-    volumes: *volumes
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              #device_ids: ['0', '3']
-              capabilities: [gpu]
-    environment:
-      - NVIDIA_VISIBLE_DEVICES=all
-      - NVIDIA_DRIVER_CAPABILITIES=all
-    #  - DISPLAY
-    #  - QT_X11_NO_MITSHM=1
-    #command: /bin/bash
-    working_dir: ${PWD}
-    user: ${DUID}:${DGID}
+    #user: ${DUID}:${DGID}
 
   nvidia-test1:
     image: ubuntu:20.04

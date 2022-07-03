@@ -3,7 +3,7 @@
 # Add local user
 # Either use the LOCAL_USER_ID if passed in at runtime or
 # fallback
-USER_ID=${USER_ID:-0}
+DUID=${DUID:-0}
 #NAVSIM_DIR="/opt/navsim"
 #CONTAINER_ALREADY_STARTED="/tmp/CONTAINER_ALREADY_STARTED_PLACEHOLDER"
 #if [ ! -e $CONTAINER_ALREADY_STARTED ]; then
@@ -28,7 +28,7 @@ USER_ID=${USER_ID:-0}
 nohup python /opt/container-scripts/x_server.py &
 touch nohup.out
 chmod 666 nohup.out
-chown $USER_ID nohup.out
-export HOME=${USER_HOME:-/root}
-echo "Starting with UID : $USER_ID"
-exec chroot --skip-chdir --userspec=$USER_ID / bash -c "$*"
+chown $DUID nohup.out
+export HOME=${DUHOME:-/root}
+echo "Starting with UID : $DUID"
+exec chroot --skip-chdir --userspec=$DUID / bash -c "$*"
