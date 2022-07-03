@@ -17,7 +17,7 @@ cd navsim
 git submodule update --init --recursive
 ```
 
-# Installation without container
+# Installation and use without container
 
 * Either setup `navsim` conda env or activate your own python virtual environment:
   * Simple way to create conda env: `conda create -n navsim python=3.8 jupyter && conda activate navsim`
@@ -29,6 +29,7 @@ git submodule update --init --recursive
   ```
 * Read `navsim_envs` tutorial to use and test the `navsim_envs`
 * Run `jupyter notebook`. The notebooks are in `examples` folder.
+* Run the `<navsim-command>` described in the section below
 
 # navsim-lab on container
 
@@ -38,7 +39,7 @@ git submodule update --init --recursive
 * [docker](https://docs.docker.com/get-docker/)
 * [nvidia container toolkit](https://github.com/NVIDIA/nvidia-docker)
 
-## How to build the container
+## How to build the container (not needed if you want to use our pre-built containers)
 
 Inside `navsim` repo, follow these commands:
 
@@ -76,10 +77,10 @@ docker push ghcr.io/ucf-sttc/navsim/navsim:0.1-navsim-headless-ubuntu2004
 * For non-simpro binary (remove -d after run if you dont want to run it in background):
 
   ```
-  DUID="$(id -u)" DGID="$(id -g)" docker-compose run -d navsim-headfull-container <navsim command>
+  DUID="$(id -u)" DGID="$(id -g)" docker-compose run -d navsim-headfull-ubuntu2004 <navsim command>
   ```
 
-## The `<navsim command>`
+# The `<navsim command>`
 
 * `navsim --plan --env arora-v0 --env_path ~/unity-envs/ARORA_2.10.17_simpro/ARORA.x86_64`
 * `navsim_env_test min_env_config.yml`
