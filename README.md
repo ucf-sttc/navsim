@@ -3,20 +3,28 @@ A navigation simulator (navsim) API built on top of Python, Pytorch.
 
 In the future, navsim may be compatible with a variety of simulators, but for now it uses A Realistc Open environment for Rapid Agent training(ARORA) Simulator, that is a highly attributed Unity3D GameEngine based Berlin city environment.
 
-# Installation
-
+# Getting the code
 * clone the `navsim` repo and checkout the active branch
   ```
   git clone --recurse-submodules git@github.com:ucf-sttc/navsim.git
+  ```
+
+  or
+
+  ```
+  git clone git@github.com:ucf-sttc/navsim.git
   cd navsim
   git submodule update --init --recursive
   ```
+
+# Installation without container
+
 * Either setup `navsim` conda env or activate your own python virtual environment:
   * Simple way to create conda env: `conda create -n navsim python=3.8 jupyter && conda activate navsim`
   * or install conda env from our repo: Go to `navsim` conda section
 * Install the repos in `navsim` virtual env
   ```
-  cd /path/to/ai_coop_py
+  cd /path/to/navsim
   ./install-repo.sh
   ```
 * Read `navsim_envs` tutorial to use and test the `navsim_envs`
