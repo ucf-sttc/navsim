@@ -4,18 +4,18 @@ A navigation simulator (navsim) API built on top of Python, Pytorch.
 In the future, navsim may be compatible with a variety of simulators, but for now it uses A Realistc Open environment for Rapid Agent training(ARORA) Simulator, that is a highly attributed Unity3D GameEngine based Berlin city environment.
 
 # Getting the code
-* clone the `navsim` repo and checkout the active branch
-  ```
-  git clone --recurse-submodules git@github.com:ucf-sttc/navsim.git
-  ```
 
-  or
+clone the `navsim` repo:
 
-  ```
-  git clone git@github.com:ucf-sttc/navsim.git
-  cd navsim
-  git submodule update --init --recursive
-  ```
+```
+git clone --recurse-submodules git@github.com:ucf-sttc/navsim.git
+```
+or
+```
+git clone git@github.com:ucf-sttc/navsim.git
+cd navsim
+git submodule update --init --recursive
+```
 
 # Installation without container
 
@@ -29,6 +29,66 @@ In the future, navsim may be compatible with a variety of simulators, but for no
   ```
 * Read `navsim_envs` tutorial to use and test the `navsim_envs`
 * Run `jupyter notebook`. The notebooks are in `examples` folder.
+
+# navsim-lab on container
+
+## Pre-requisites
+
+* [nvidia driver](https://github.com/NVIDIA/nvidia-docker/wiki/Frequently-Asked-Questions#how-do-i-install-the-nvidia-driver)
+* [docker](https://docs.docker.com/get-docker/)
+* [nvidia container toolkit](https://github.com/NVIDIA/nvidia-docker)
+
+## How to build the container
+
+Inside `navsim` repo, follow these commands:
+
+```shell
+cd tools
+./zip-repo
+docker-compose build navsim-headless-container
+docker-compose build navsim-headfull-container
+
+docker login ghcr.io -u armando-fandango     # replace with your github login and pat
+docker push ghcr.io/ucf-sttc/navsim/navsim:0.1-navsim-headfull-ubuntu2004
+docker push ghcr.io/ucf-sttc/navsim/navsim:0.1-navsim-headless-ubuntu2004
+```
+
+## How to run the binary in container
+
+* In your home folder have the following folders ready:
+  * `~/exp/` : Experiments are run in this folder
+  * `~/unity-envs/` : Unity-based standalone binaries are kept here
+
+  If you use other folder names then change in the following commands appropriately
+
+* copy `navsim/tools/docker-compose.yml` to `~/exp`
+
+* Because on our systems, the `exp ` and `unity-envs` reside in `/data/work` and symlinked to home folder, hence this folder also has to be mounted else the symlink wont work in container. 
+
+  To do that, in line 5 of `~/exp/docker-compose.yml`, change `/work:/work` to `/data/work:/data/work`
+
+* For sim-pro binary (remove -d after run if you dont want to run it in background):
+
+  ```
+  DUID="$(id -u)" DGID="$(id -g)" docker-compose run -d navsim-headless-ubuntu2004 <navsim command>
+  ```
+
+* For non-simpro binary (remove -d after run if you dont want to run it in background):
+
+  ```
+  DUID="$(id -u)" DGID="$(id -g)" docker-compose run -d navsim-headfull-container <navsim command>
+  ```
+
+## The `<navsim command>`
+
+* `navsim --plan --env arora-v0 --env_path ~/unity-envs/ARORA_2.10.17_simpro/ARORA.x86_64`
+* `navsim_env_test min_env_config.yml`
+* `navsim --help` shows the options
+* `navsim --run_id $run_id --env_path $envdir/$envbin` - executes and/or trains the model
+* `navsim-benchmark $envdir/$envbin` - benchmarks the model
+* `navsim-saturate-gpu $envdir/$envbin` - Saturates the GPU
+* Replace the navsim command with your own command if you are just importing
+  the NavSim env and have your own code in experiment directory.
 
 # Contributing to NavSim API
 
@@ -71,64 +131,6 @@ In the future, navsim may be compatible with a variety of simulators, but for no
 5. run `make html latexpdf`. If still errors, please call me and I will help fix
 6. `pdf` and `html` versions are inside the `docs/build/...` folders
 7. If you are happy with the PDF/formatting etc then commit and push the doc branch back
-
-## navsim-lab on container
-
-### Pre-requisites
-
-* [nvidia driver](https://github.com/NVIDIA/nvidia-docker/wiki/Frequently-Asked-Questions#how-do-i-install-the-nvidia-driver)
-* [docker](https://docs.docker.com/get-docker/)
-* [nvidia container toolkit](https://github.com/NVIDIA/nvidia-docker)
-
-### How to build the container
-
-Inside `navsim` repo, follow these commands:
-
-```shell
-cd tools
-./zip-repo
-docker-compose build navsim-headless-container
-docker-compose build navsim-headfull-container
-
-docker login ghcr.io -u armando-fandango     # replace with your github login and pat
-docker push ghcr.io/ucf-sttc/navsim/navsim:0.1-navsim-headfull-ubuntu2004
-docker push ghcr.io/ucf-sttc/navsim/navsim:0.1-navsim-headless-ubuntu2004
-```
-
-### How to run the binary in container
-
-* In your home folder have the following folders ready:
-`~/exp/` : Experiments are run in this folder
-`~/unity-envs/` : Unity-based standalone binaries are kept here
-
-If you use other folder names then change in the following commands appropriately:
-
-* copy `navsim/tools/docker-compose.yml` to `~/exp`
-
-* Because on our systems, the `exp ` and `unity-envs` reside in `/data/work` and symlinked to home folder, hence this folder also has to be mounted else the symlink wont work in container. To do that, in line 5 of `~/exp/docker-compose.yml`, change `/work:/work` to `/data/work:/data/work`
-
-* For sim-pro binary (remove -d after run if you dont want to run it in background):
-
-```
-DUID="$(id -u)" DGID="$(id -g)" docker-compose run -d navsim-headless-ubuntu2004 <navsim command>
-```
-
-* For non-simpro binary (remove -d after run if you dont want to run it in background):
-
-```
-DUID="$(id -u)" DGID="$(id -g)" docker-compose run -d navsim-headfull-container <navsim command>
-```
-
-#### The `<navsim command>`
-
-* `navsim --plan --env arora-v0 --env_path ~/unity-envs/ARORA_2.10.17_simpro/ARORA.x86_64`
-* `navsim_env_test min_env_config.yml`
-* `navsim --help` shows the options
-* `navsim --run_id $run_id --env_path $envdir/$envbin` - executes and/or trains the model
-* `navsim-benchmark $envdir/$envbin` - benchmarks the model
-* `navsim-saturate-gpu $envdir/$envbin` - Saturates the GPU
-* Replace the navsim command with your own command if you are just importing
-  the NavSim env and have your own code in experiment directory.
 
 # old instructions
 
