@@ -20,7 +20,7 @@ services:
       context: .
       dockerfile: dockerfiles/Dockerfile-navsim-headless-ubuntu2004
       args:
-        - from=ghcr.io/armando-fandango/ezai/ez:0.1-ai-nvidia-ubuntu2004
+        - from=ghcr.io/armando-fandango/ez/ez:0.1-ai-nvidia-ubuntu2004
     #    - from=registry.gitlab.com/armando-fandango/ezai/ez:0.1-ai-nvidia-ubuntu2004
     #depends_on:
     #  - base
@@ -47,7 +47,7 @@ services:
       context: .
       dockerfile: dockerfiles/Dockerfile-navsim-headfull-ubuntu2004
       args:
-        - from=ghcr.io/armando-fandango/ezai/ez:0.1-ai-nvidia-ubuntu2004
+        - from=ghcr.io/armando-fandango/ez/ez:0.1-ai-nvidia-ubuntu2004
       #  - from=nvidia/vulkan:1.2.170-470
       #  - from=nvidia/cudagl:11.1.1-devel-ubuntu20.04
     #depends_on:
@@ -110,13 +110,13 @@ services:
         reservations:
           devices:
             - driver: nvidia
-              count: 1
+              count: all
               #device_ids: ['0', '3']
               capabilities: [gpu]
     user: ${DUID}:${DGID}
   
   vulkan-test2:
-    image: ghcr.io/armando-fandango/ezai/ez:0.1-ai-nvidia-ubuntu2004
+    image: ghcr.io/armando-fandango/ez/ez:0.1-ai-nvidia-ubuntu2004
     container_name: vulkan-test
     command: bash -c "nvidia-smi; vulkaninfo"
     deploy:
@@ -124,7 +124,7 @@ services:
         reservations:
           devices:
             - driver: nvidia
-              count: 1
+              count: all
               #device_ids: ['0', '3']
               capabilities: [gpu]
     user: ${DUID}:${DGID}
