@@ -12,7 +12,6 @@ x-x11sock: &x11sock
   - /tmp/.X11-unix:/tmp/.X11-unix:rw
 #  - /usr/share/vulkan/icd.d:/usr/share/vulkan/icd.d
 
-
 services:
 
   navsim-headless-ubuntu2004:
