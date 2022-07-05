@@ -17,42 +17,13 @@ cd navsim
 git submodule update --init --recursive
 ```
 
-# Installation and use without container
-
-* Either setup `navsim` conda env or activate your own python virtual environment:
-  * Simple way to create conda env: `conda create -n navsim python=3.8 jupyter && conda activate navsim`
-  * or install conda env from our repo: Go to `navsim` conda section
-* Install the repos in `navsim` virtual env
-  ```
-  cd /path/to/navsim
-  ./install-repo.sh
-  ```
-* Read `navsim_envs` tutorial to use and test the `navsim_envs`
-* Run `jupyter notebook`. The notebooks are in `examples` folder.
-* Run the `<navsim-command>` described in the section below
-
-# navsim-lab on container
+# use navsim with container
 
 ## Pre-requisites
 
 * [nvidia driver](https://github.com/NVIDIA/nvidia-docker/wiki/Frequently-Asked-Questions#how-do-i-install-the-nvidia-driver)
 * [docker](https://docs.docker.com/get-docker/)
 * [nvidia container toolkit](https://github.com/NVIDIA/nvidia-docker)
-
-## How to build the container (not needed if you want to use our pre-built containers)
-
-Inside `navsim` repo, follow these commands:
-
-```shell
-cd tools
-./zip-repo
-docker-compose build navsim-headless-ubuntu2004
-docker-compose build navsim-headfull-ubuntu2004
-
-docker login ghcr.io -u armando-fandango     # replace with your github login and pat
-docker push ghcr.io/ucf-sttc/navsim/navsim:0.1-navsim-headfull-ubuntu2004
-docker push ghcr.io/ucf-sttc/navsim/navsim:0.1-navsim-headless-ubuntu2004
-```
 
 ## How to run the binary in container
 
@@ -79,6 +50,25 @@ docker push ghcr.io/ucf-sttc/navsim/navsim:0.1-navsim-headless-ubuntu2004
   ```
   DUID="$(id -u)" DGID="$(id -g)" docker-compose run -d navsim-headfull-ubuntu2004 <navsim command>
   ```
+
+# use navsim without container
+
+## Pre-requisites
+
+* Either setup `navsim` conda env or activate your own python virtual environment:
+  * Simple way to create conda env: `conda create -n navsim python=3.8 jupyter && conda activate navsim`
+  * or install conda env from our repo: Go to `navsim` conda section
+* Install the repos in `navsim` virtual env
+  ```
+  cd /path/to/navsim
+  ./install-repo.sh
+  ```
+
+## How to run the binary in container
+
+* Read `navsim_envs` tutorial to use and test the `navsim_envs`
+* Run `jupyter notebook`. The notebooks are in `examples` folder.
+* Run the `<navsim-command>` described in the section below
 
 # The `<navsim command>`
 
@@ -132,6 +122,21 @@ docker push ghcr.io/ucf-sttc/navsim/navsim:0.1-navsim-headless-ubuntu2004
 5. run `make html latexpdf`. If still errors, please call me and I will help fix
 6. `pdf` and `html` versions are inside the `docs/build/...` folders
 7. If you are happy with the PDF/formatting etc then commit and push the doc branch back
+
+## How to build the container (not needed if you want to use our pre-built containers)
+
+Inside `navsim` repo, follow these commands:
+
+```shell
+cd tools
+./zip-repo
+docker-compose build navsim-headless-ubuntu2004
+docker-compose build navsim-headfull-ubuntu2004
+
+docker login ghcr.io -u armando-fandango     # replace with your github login and pat
+docker push ghcr.io/ucf-sttc/navsim/navsim:0.1-navsim-headfull-ubuntu2004
+docker push ghcr.io/ucf-sttc/navsim/navsim:0.1-navsim-headless-ubuntu2004
+```
 
 # old instructions
 
