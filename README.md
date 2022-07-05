@@ -64,7 +64,7 @@ git submodule update --init --recursive
   ./install-repo.sh
   ```
 
-## How to run the binary in container
+## How to run the binary without container
 
 * Read `navsim_envs` tutorial to use and test the `navsim_envs`
 * Run `jupyter notebook`. The notebooks are in `examples` folder.
