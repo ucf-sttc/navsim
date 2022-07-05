@@ -3,6 +3,8 @@ A navigation simulator (navsim) API built on top of Python, Pytorch.
 
 In the future, navsim may be compatible with a variety of simulators, but for now it uses A Realistc Open environment for Rapid Agent training(ARORA) Simulator, that is a highly attributed Unity3D GameEngine based Berlin city environment.
 
+You can either use navsim [with container](#with-container) or [without container](#without-container).
+
 # Getting the code
 
 clone the `navsim` repo:
@@ -16,6 +18,7 @@ git clone git@github.com:ucf-sttc/navsim.git
 cd navsim
 git submodule update --init --recursive
 ```
+
 
 # use navsim with container
 
