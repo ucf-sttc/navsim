@@ -46,8 +46,8 @@ Inside `navsim` repo, follow these commands:
 ```shell
 cd tools
 ./zip-repo
-docker-compose build navsim-headless-container
-docker-compose build navsim-headfull-container
+docker-compose build navsim-headless-ubuntu2004
+docker-compose build navsim-headfull-ubuntu2004
 
 docker login ghcr.io -u armando-fandango     # replace with your github login and pat
 docker push ghcr.io/ucf-sttc/navsim/navsim:0.1-navsim-headfull-ubuntu2004
