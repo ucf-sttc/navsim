@@ -2,7 +2,7 @@
 
 x-volumes: &volumes
   - ${HOME}:${HOME}
-  - /work:/work
+  - /data:/data
   - /etc/passwd:/etc/passwd:ro
   - /etc/group:/etc/group:ro
   - /etc/shadow:/etc/shadow:ro

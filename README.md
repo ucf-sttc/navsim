@@ -40,7 +40,7 @@ git submodule update --init --recursive
 
 * Because on our systems, the `exp ` and `unity-envs` reside in `/data` and are symlinked in home folder, hence this `/data` folder also has to be mounted else the symlinks wont work in container. 
 
-  To do that, in line 5 of `~/exp/docker-compose.yml`, change `/work:/work` to `/data:/data`
+  To mount the folder in your system, in line 5 of `~/exp/docker-compose.yml`, change `/data:/data` to `/whatever-your-folder:/whatever-your-folder`
 
 * For sim-pro binary (remove -d after run if you dont want to run it in background):
 
