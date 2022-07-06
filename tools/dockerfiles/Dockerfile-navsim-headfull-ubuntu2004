@@ -116,6 +116,7 @@ RUN source /root/.bashrc && source /root/ezai-conda.sh && \
 COPY repo.zip /root/
 RUN activate base && \
  	unzip -d ${NAVSIM_DIR} repo.zip && \
+	pip install gym==0.23.1 && \
     pip install -e ${NAVSIM_DIR}/navsim-mlagents/ml-agents-envs && \
     pip install -e ${NAVSIM_DIR}/navsim-mlagents/gym-unity && \
     pip install -e ${NAVSIM_DIR}/navsim-envs && \

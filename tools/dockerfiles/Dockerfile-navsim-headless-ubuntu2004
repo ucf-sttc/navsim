@@ -44,6 +44,7 @@ RUN unzip -d ${NAVSIM_DIR} repo.zip && \
     #source /root/.bashrc && source /root/ezai-conda.sh && \
     #ezai_conda_create --venv "base" && \
     #activate base && \
+    pip install gym==0.23.1 && \
     pip install -e ${NAVSIM_DIR}/navsim-mlagents/ml-agents-envs && \
     pip install -e ${NAVSIM_DIR}/navsim-mlagents/gym-unity && \
     pip install -e ${NAVSIM_DIR}/navsim-envs && \
