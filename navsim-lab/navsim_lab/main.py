@@ -16,10 +16,11 @@ def main():
     TODO: Implement configuration checks
     :return:
     """
+    args = ObjDict(vars(argparser.parse_args()))
+    
     print(f'=========================================')
     print(f'navsim_lab Python API Version {navsim_lab.__version__}')
     print(f'=========================================')
-    args = ObjDict(vars(argparser.parse_args()))
     print('arguments passed:')
     print(non_default_args if non_default_args else "None")
     print("Passed + default arguments:")

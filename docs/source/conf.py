@@ -34,6 +34,7 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx_rtd_theme',
               # 'recommonmark',
               'myst_parser',
+              'sphinxcontrib.programoutput',
               ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -105,3 +106,4 @@ latex_elements = {
 }
 latex_theme = 'manual'
 # latex_toplevel_sectioning = 'part'
+myst_heading_anchors = 2

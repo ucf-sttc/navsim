@@ -9,11 +9,11 @@ You can either use navsim [with container](#use-navsim-with-container) or [witho
 
 clone the `navsim` repo:
 
-```
+```sh
 git clone --recurse-submodules git@github.com:ucf-sttc/navsim.git
 ```
 or
-```
+```sh
 git clone git@github.com:ucf-sttc/navsim.git
 cd navsim
 git submodule update --init --recursive
@@ -22,7 +22,7 @@ git submodule update --init --recursive
 
 # use navsim with container
 
-## Pre-requisites
+## Container Pre-requisites
 
 * [nvidia driver](https://github.com/NVIDIA/nvidia-docker/wiki/Frequently-Asked-Questions#how-do-i-install-the-nvidia-driver)
 * [docker](https://docs.docker.com/get-docker/)
@@ -44,25 +44,22 @@ git submodule update --init --recursive
 
 * For sim-pro binary (remove -d after run if you dont want to run it in background):
 
-  ```
+  ```sh
   DUID="$(id -u)" DGID="$(id -g)" docker-compose run -d navsim-headless-ubuntu2004 <navsim command>
   ```
 
 * For non-simpro binary (remove -d after run if you dont want to run it in background):
 
-  ```
+  ```sh
   DUID="$(id -u)" DGID="$(id -g)" docker-compose run -d navsim-headfull-ubuntu2004 <navsim command>
   ```
 
 # use navsim without container
 
-## Pre-requisites
+## without Container Pre-requisites
 
-* Either setup `navsim` conda env or activate your own python virtual environment:
-  * Simple way to create conda env: `conda create -n navsim python=3.8 jupyter && conda activate navsim`
-  * or install conda env from our repo: Go to `navsim` conda section
-* Install the repos in `navsim` virtual env
-  ```
+* Install the repos:
+  ```sh
   cd /path/to/navsim
   ./install-repo.sh
   ```
@@ -84,38 +81,16 @@ git submodule update --init --recursive
 * Replace the navsim command with your own command if you are just importing
   the NavSim env and have your own code in experiment directory.
 
+```{program-output} navsim --help
+
+```
+
 # Contributing to NavSim API
 
 ## General dev info:
 * Use only google style to document your code:
   https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html#example-google
 
-## Setup `navsim` conda env:
-1. Go to tools folder where we have the following files:
-    ```
-    ezai-conda.sh
-    ezai-conda-req.txt
-    ezai-pip-req.txt
-    ```
-3. miniconda: We suggest you install miniconda from our script, but if you have
-   miniconda installed already then you can skip to next step to create conda
-   environment. If next step doesn't work, then come back and follow the
-   instructions to install miniconda.
-    ```
-    CONDA_ROOT=/opt/conda
-    sudo mkdir $CONDA_ROOT
-    sudo chown $(id -u) $CONDA_ROOT
-    source ezai-conda.sh && install_miniconda
-    ```
-4. Create the conda env for `navsim`
-    ```
-    source ezai-conda.sh && ezai_conda_create --venv "$(conda info --base)/envs/navsim"
-    ```
-5. Optional: Install jupyter in `navsim`
-    ```
-    conda activate navsim && source ezai-conda.sh && install_jupyter
-    ```
-   
 ## to modify and build the docs:
 
 1. Create `<version>-docs` branch from `master` or `version` branch
@@ -130,7 +105,7 @@ git submodule update --init --recursive
 
 Inside `navsim` repo, follow these commands:
 
-```shell
+```sh
 cd tools
 ./zip-repo
 docker-compose build navsim-headless-ubuntu2004
