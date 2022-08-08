@@ -56,6 +56,8 @@ git submodule update --init --recursive
   DUID="$(id -u)" DGID="$(id -g)" docker-compose run -d navsim-headfull-ubuntu2004 <navsim command>
   ```
 
+  To test: `DUID="$(id -u)" DGID="$(id -g)" docker-compose run --rm navsim-headfull-ubuntu2004`
+
 # use navsim without container
 
 ## without Container Pre-requisites

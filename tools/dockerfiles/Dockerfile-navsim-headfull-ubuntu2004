@@ -94,8 +94,9 @@ SHELL ["/bin/bash", "-c"]
 #RUN dpkg -i phoronix-test-suite_10.4.0_all.deb
 #COPY test-profiles/local /var/lib/phoronix-test-suite/test-profiles/
 
-COPY scripts/install-nvidia.sh /opt/container-scripts/entrypoint.d/20-install-nvidia.sh
-COPY scripts/headfull-entrypoint.sh /opt/container-scripts/entrypoint.d/30-headfull.sh
+COPY scripts/activate-conda-base.sh /opt/container-scripts/entrypoint.d/20-activate-conda-base.sh
+COPY scripts/install-nvidia.sh /opt/container-scripts/entrypoint.d/30-install-nvidia.sh
+COPY scripts/headfull-entrypoint.sh /opt/container-scripts/entrypoint.d/40-headfull.sh
 COPY scripts/x_server.py /opt/container-scripts/x_server.py
 
 #RUN ls -l /root/navsim-repo/navsim-mlagents/

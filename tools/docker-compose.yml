@@ -113,7 +113,7 @@ services:
     user: ${DUID}:${DGID}
   
   vulkan-test2:
-    image: ghcr.io/armando-fandango/ez/ez:0.1-ai-nvidia-ubuntu2004
+    image: ghcr.io/armando-fandango/ez/ez:0.2-ai-nvidia-ubuntu2004
     container_name: vulkan-test
     command: bash -c "nvidia-smi; vulkaninfo"
     deploy:
