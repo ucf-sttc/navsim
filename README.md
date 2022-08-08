@@ -42,13 +42,15 @@ git submodule update --init --recursive
 
   To mount the folder in your system, in line 5 of `~/exp/docker-compose.yml`, change `/data:/data` to `/whatever-your-folder:/whatever-your-folder`
 
-* For sim-pro binary (remove -d after run if you dont want to run it in background):
+* For sim-pro binary (remove `-d` after `run` to run it in foreground):
 
   ```sh
   DUID="$(id -u)" DGID="$(id -g)" docker-compose run -d navsim-headless-ubuntu2004 <navsim command>
   ```
 
-* For non-simpro binary (remove -d after run if you dont want to run it in background):
+  To test: `DUID="$(id -u)" DGID="$(id -g)" docker-compose run --rm navsim-headless-ubuntu2004`
+
+* For non-simpro binary (remove `-d` after `run` to run it in foreground):
 
   ```sh
   DUID="$(id -u)" DGID="$(id -g)" docker-compose run -d navsim-headfull-ubuntu2004 <navsim command>

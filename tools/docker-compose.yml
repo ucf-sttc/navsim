@@ -7,7 +7,7 @@ x-volumes: &volumes
   - /etc/group:/etc/group:ro
   - /etc/shadow:/etc/shadow:ro
   - /etc/sudoers.d:/etc/sudoers.d:ro
-#  - /tmp/.X11-unix:/tmp/.X11-unix:rw
+  - /tmp/.X11-unix:/tmp/.X11-unix:rw
 x-x11sock: &x11sock
   - /tmp/.X11-unix:/tmp/.X11-unix:rw
 #  - /usr/share/vulkan/icd.d:/usr/share/vulkan/icd.d
@@ -19,13 +19,11 @@ services:
       context: .
       dockerfile: dockerfiles/Dockerfile-navsim-headless-ubuntu2004
       args:
-        - from=ghcr.io/armando-fandango/ez/ez:0.1-ai-nvidia-ubuntu2004
+        - from=ghcr.io/armando-fandango/ez/ez:0.2-ai-nvidia-ubuntu2004
     #    - from=registry.gitlab.com/armando-fandango/ezai/ez:0.1-ai-nvidia-ubuntu2004
-    #depends_on:
-    #  - base
-    image: ghcr.io/ucf-sttc/navsim/navsim:0.1-navsim-headless-ubuntu2004
+    image: ghcr.io/ucf-sttc/navsim/navsim:0.2-navsim-headless-ubuntu2004
     container_name: navsim-headless-test
-    command: bash -c "nvidia-smi; vulkaninfo"
+    command: bash -c "nvidia-smi; vulkaninfo; glxinfo"
     volumes: *volumes
     deploy:
       resources:
@@ -36,8 +34,7 @@ services:
               #device_ids: ['0', '3']
               capabilities: [gpu]
     environment:
-      - NVIDIA_VISIBLE_DEVICES=all
-      - NVIDIA_DRIVER_CAPABILITIES=all
+      - DISPLAY
     working_dir: ${PWD}
     user: ${DUID}:${DGID}
 
@@ -46,14 +43,14 @@ services:
       context: .
       dockerfile: dockerfiles/Dockerfile-navsim-headfull-ubuntu2004
       args:
-        - from=ghcr.io/armando-fandango/ez/ez:0.1-ai-nvidia-ubuntu2004
+        - from=ghcr.io/armando-fandango/ez/ez:0.2-ai-nvidia-ubuntu2004
       #  - from=nvidia/vulkan:1.2.170-470
       #  - from=nvidia/cudagl:11.1.1-devel-ubuntu20.04
     #depends_on:
     #  - base
-    image: ghcr.io/ucf-sttc/navsim/navsim:0.1-navsim-headfull-ubuntu2004
+    image: ghcr.io/ucf-sttc/navsim/navsim:0.2-navsim-headfull-ubuntu2004
     container_name: navsim-headfull-test
-    command: bash -c "nvidia-smi; vulkaninfo"
+    command: bash -c "nvidia-smi; vulkaninfo; glxinfo"
     volumes: *volumes
     deploy:
       resources:
@@ -64,8 +61,9 @@ services:
               #device_ids: ['0', '3']
               capabilities: [gpu]
     environment:
-      - NVIDIA_VISIBLE_DEVICES=all
-      - NVIDIA_DRIVER_CAPABILITIES=all
+    #  - NVIDIA_VISIBLE_DEVICES=all
+    #  - NVIDIA_DRIVER_CAPABILITIES=all
+      - DISPLAY
       - DUID=${DUID}
       - DGID=${DGID}
       - DUHOME=${HOME}

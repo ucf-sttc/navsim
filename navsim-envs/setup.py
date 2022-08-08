@@ -40,7 +40,7 @@ setuptools.setup(
         'opencv-python',
         'pytest',
         'click',
-        'gym>=0.18.0',
+        'gym==0.23.1',
         #'navsim_mlagents_envs==0.27.0',
         #'gym_unity==0.27.0'
     ],

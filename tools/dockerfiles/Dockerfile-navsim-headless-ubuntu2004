@@ -9,17 +9,15 @@ ENV NAVSIM_DIR="/opt/navsim"
 
 RUN apt-get -q update \
     && apt-get -qq install -y --no-install-recommends \
-		unzip \
-    python3-pip \
-    python3-dev \
+		  unzip \
     && apt-get -q autoremove --purge && apt-get -q clean && rm -rf /var/lib/apt/lists/*
 
-RUN pip3 install --upgrade pip
 
 USER root
 WORKDIR /root/
 SHELL ["/bin/bash", "-c"]
 
+#RUN which python && which conda && which mamba
 #install phoronix
 #RUN wget http://phoronix-test-suite.com/releases/repo/pts.debian/files/phoronix-test-suite_10.4.0_all.deb && \
 #    gdebi phoronix-test-suite_10.4.0_all.deb && \
@@ -40,17 +38,15 @@ SHELL ["/bin/bash", "-c"]
 #ENV BASH_ENV="/root/.bashrc"
 COPY repo.zip /root/
 #RUN mkdir -p ${NAVSIM_DIR}
-RUN unzip -d ${NAVSIM_DIR} repo.zip && \
+RUN unzip -d ${NAVSIM_DIR} repo.zip && rm repo.zip && chmod -R 777 ${NAVSIM_DIR}
     #source /root/.bashrc && source /root/ezai-conda.sh && \
     #ezai_conda_create --venv "base" && \
     #activate base && \
-    pip install gym==0.23.1 && \
-    pip install -e ${NAVSIM_DIR}/navsim-mlagents/ml-agents-envs && \
-    pip install -e ${NAVSIM_DIR}/navsim-mlagents/gym-unity && \
-    pip install -e ${NAVSIM_DIR}/navsim-envs && \
-    pip install -e ${NAVSIM_DIR}/navsim-lab && \
-    chmod -R 777 ${NAVSIM_DIR} && \
-    rm repo.zip
+
+#TODO: bin/bash doesnt activate base so have to do here
+RUN source /opt/py/etc/profile.d/conda.sh && conda activate base && \
+    cd $NAVSIM_DIR && ./install-repo.sh
+
 #ENTRYPOINT ["bash", "-c", "(/root/chuser.sh && python /root/x_server.py) && bash"]
 #ENTRYPOINT ["/root/entrypoint.sh"]
 #CMD ["bash"]
