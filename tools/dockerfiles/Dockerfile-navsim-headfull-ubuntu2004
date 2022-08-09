@@ -11,7 +11,6 @@ ENV NAVSIM_DIR="/opt/navsim"
 
 USER root
 RUN apt-get -qq update && \
-    apt-get -qq upgrade -y && \
     apt-get -qq install -y --no-install-recommends \
     # TODO: sort these package names by alpha - docker BP
       # needed to install custom / launchpad repos
