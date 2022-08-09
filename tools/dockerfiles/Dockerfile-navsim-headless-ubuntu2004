@@ -17,6 +17,8 @@ USER root
 WORKDIR /root/
 SHELL ["/bin/bash", "-c"]
 
+COPY scripts/activate-conda-base.sh /opt/container-scripts/entrypoint.d/20-activate-conda-base.sh
+
 #RUN which python && which conda && which mamba
 #install phoronix
 #RUN wget http://phoronix-test-suite.com/releases/repo/pts.debian/files/phoronix-test-suite_10.4.0_all.deb && \
