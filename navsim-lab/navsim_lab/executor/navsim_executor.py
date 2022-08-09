@@ -60,9 +60,9 @@ class Executor:
         """
         self.run_id = config.run_id
         self.run_config = config
-        for key in navsim.util.run_config:
+        for key in navsim_lab.util.run_config:
             if key not in config:
-                config[key] = navsim.util.run_config[key]
+                config[key] = navsim_lab.util.run_config[key]
 
         self.env_config = config.get("env_config", None)
 
@@ -135,7 +135,7 @@ class Executor:
 
             if self.run_config["mem_backend"] == "cupy":
                 if torch.cuda.is_available():
-                    from navsim.memory import CupyMemory
+                    from navsim_lab.memory import CupyMemory
                     CupyMemory.set_device(self.run_config['agent_gpu_id'])
                     mem_backend = CupyMemory
                 else:
@@ -144,7 +144,7 @@ class Executor:
             elif self.run_config["mem_backend"] == "numpy":
                 if torch.cuda.is_available():
                     print("Warning: GPU is available but mem_backend=numpy")
-                from navsim.memory import NumpyMemory
+                from navsim_lab.memory import NumpyMemory
                 mem_backend = NumpyMemory
 
             obs_shapes = [obs.shape for obs in self.env.observation_space.spaces] if hasattr(self.env.observation_space,
