@@ -23,7 +23,9 @@ services:
     #    - from=registry.gitlab.com/armando-fandango/ezai/ez:0.1-ai-nvidia-ubuntu2004
     image: ghcr.io/ucf-sttc/navsim/navsim:0.2-navsim-headless-ubuntu2004
     container_name: navsim-headless-test
-    command: bash -c "nvidia-smi; vulkaninfo; glxinfo"
+    command: bash -c "nvidia-smi; vulkaninfo; which python; python -V;
+             which conda; conda -V; which mamba; mamba -V; echo 'torch.cuda:';
+             python -c 'import torch; print(torch.cuda.is_available())'"
     volumes: *volumes
     deploy:
       resources:
@@ -50,7 +52,9 @@ services:
     #  - base
     image: ghcr.io/ucf-sttc/navsim/navsim:0.2-navsim-headfull-ubuntu2004
     container_name: navsim-headfull-test
-    command: bash -c "nvidia-smi; vulkaninfo; glxinfo"
+    command: bash -c "nvidia-smi; vulkaninfo; which python; python -V;
+             which conda; conda -V; which mamba; mamba -V; echo 'torch.cuda:';
+             python -c 'import torch; print(torch.cuda.is_available())'"
     volumes: *volumes
     deploy:
       resources:

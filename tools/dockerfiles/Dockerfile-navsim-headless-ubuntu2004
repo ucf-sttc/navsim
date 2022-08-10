@@ -17,7 +17,7 @@ USER root
 WORKDIR /root/
 SHELL ["/bin/bash", "-c"]
 
-COPY scripts/activate-conda-base.sh /opt/container-scripts/entrypoint.d/20-activate-conda-base.sh
+#COPY scripts/activate-conda-base.sh /opt/container-scripts/entrypoint.d/20-activate-conda-base.sh
 
 #RUN which python && which conda && which mamba
 #install phoronix
