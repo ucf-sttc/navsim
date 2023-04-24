@@ -45,12 +45,12 @@ services:
       context: .
       dockerfile: dockerfiles/Dockerfile-navsim-headfull-ubuntu2004
       args:
-        - from=ghcr.io/armando-fandango/ez/ez:0.2-ai-nvidia-ubuntu2004
+        - from=ghcr.io/armando-fandango/ez/ez:0.3-ai-nvidia-ubuntu2004
       #  - from=nvidia/vulkan:1.2.170-470
       #  - from=nvidia/cudagl:11.1.1-devel-ubuntu20.04
     #depends_on:
     #  - base
-    image: ghcr.io/ucf-sttc/navsim/navsim:0.2-navsim-headfull-ubuntu2004
+    image: ghcr.io/ucf-sttc/navsim/navsim:0.3-navsim-headfull-ubuntu2004
     container_name: navsim-headfull-test
     command: bash -c "nvidia-smi; vulkaninfo; which python; python -V;
              which conda; conda -V; which mamba; mamba -V; echo 'torch.cuda:';
