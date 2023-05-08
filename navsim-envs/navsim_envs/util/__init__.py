@@ -41,17 +41,17 @@ def get_logger(name:str='navsim'):
 
 logger = get_logger()
 
-from matplotlib import pyplot as plt
-class Viz:
-    def __init__(self,pause=0.001):
-        if not plt.isinteractive():
-            plt.ion()
-        self.pause = pause
+#from matplotlib import pyplot as plt
+#class Viz:
+#    def __init__(self,pause=0.001):
+#        if not plt.isinteractive():
+#            plt.ion()
+#        self.pause = pause
 
-    def imshow(self,img,pause=None):
-        plt.imshow(img)
-        plt.show()
-        plt.pause(self.pause if pause is None else pause)
-        plt.clf()
+#    def imshow(self,img,pause=None):
+#        plt.imshow(img)
+#        plt.show()
+#        plt.pause(self.pause if pause is None else pause)
+#        plt.clf()
 
         

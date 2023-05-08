@@ -5,7 +5,7 @@ import gym
 import navsim_lab
 
 from ezai.util import ObjDict
-from matplotlib import pyplot as plt
+#from matplotlib import pyplot as plt
 from navsim_lab.planner.navsim_planner import NavsimPlanner
 
 from .cli_utils import argparser, non_default_args
@@ -155,6 +155,7 @@ def main():
         #env_config["goal_clearance"] = 20
         #env_config["goal_distance"]= 100
         env_config["obs_mode"] = 1
+        env_config["env_gpu_id"] = 1  # forcing to one because on laptops nvidia card is at 1
         #env_config["obs_height"] = 256
         #env_config["obs_width"] = 256
         #env_config["seed"] = 12345

@@ -67,7 +67,7 @@ install_fastai_pytorch () {
   #conda config --env --prepend channels fastai
   conda config --show-sources
   # numpy spec due to tensorflow and pillow spec due to gym
-  conda install -y -S "pytorch=1.8.1" "numpy>1.19.0"
+  conda install -y -S "pytorch=1.8.1" "numpy=1.19"
   return $?
 }
 

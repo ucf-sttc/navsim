@@ -13,8 +13,6 @@ from .configs import default_env_config
 
 from .unity_env import AroraUnityEnv
 
-from mlagents_envs.rpc_utils import steps_from_proto
-
 from navsim_envs.envs_base import AroraGymEnvBase
 
 def navsimgymenv_creator(env_config):

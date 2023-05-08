@@ -20,7 +20,7 @@ git submodule update --init --recursive
 ```
 
 
-# use navsim with container
+# Please skip this section : use navsim with container
 
 ## Container Pre-requisites
 
@@ -58,16 +58,17 @@ git submodule update --init --recursive
 
   To test: `DUID="$(id -u)" DGID="$(id -g)" docker-compose run --rm navsim-headfull-ubuntu2004`
 
-# use navsim without container
+# Use navsim without container
 
-## without Container Pre-requisites
+## "without Container" Pre-requisites
 
-* Install the repos:
-  ```sh
+* Install `mamba 4.12.0-3` : `https://github.com/conda-forge/miniforge/releases/download/4.12.0-3/Mambaforge-4.12.0-3-Linux-x86_64.sh`
+* ```sh
   cd /path/to/navsim
+  mamba create -n navsim -f tools/navsim.yml
+  conda activate navsim
   ./install-repo.sh
   ```
-
 ## How to run the binary without container
 
 * Read `navsim_envs` tutorial to use and test the `navsim_envs`

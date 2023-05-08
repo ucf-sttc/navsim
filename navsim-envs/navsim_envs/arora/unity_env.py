@@ -5,7 +5,6 @@ from mlagents_envs.environment import UnityEnvironment
 from mlagents_envs.exception import UnityWorkerInUseException
 from mlagents_envs.side_channel.engine_configuration_channel import EngineConfigurationChannel
 from mlagents_envs.side_channel.environment_parameters_channel import EnvironmentParametersChannel
-from mlagents_envs.side_channel.float_properties_channel import FloatPropertiesChannel
 
 from .configs import default_env_config
 from navsim_envs.envs_base import AroraUnityEnvBase
@@ -86,6 +85,7 @@ class AroraUnityEnv(AroraUnityEnvBase):
                                                 self.sapsc, self.spsc
                                                 ],
                                  additional_args=ad_args)
+                
             except UnityWorkerInUseException:
                 time.sleep(2)
                 self._navsim_base_port += 1

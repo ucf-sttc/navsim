@@ -36,7 +36,8 @@ setuptools.setup(
     python_requires='>=3.8',
     install_requires=[
         'ezai',
-        'numpy',
+        'numpy<=1.19',
+        'protobuf<=3.19',
         'opencv-python',
         'pytest',
         'click',
