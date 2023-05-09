@@ -64,8 +64,9 @@ git submodule update --init --recursive
 
 * Install `mamba 4.12.0-3` : `https://github.com/conda-forge/miniforge/releases/download/4.12.0-3/Mambaforge-4.12.0-3-Linux-x86_64.sh`
 * ```sh
-  cd /path/to/navsim
-  mamba create -n navsim -f tools/navsim.yml
+  cd /path/to/navsim/repo
+  mamba create -n navsim python==3.8.16
+  mamba env update -n navsim -f tools/navsim.yml
   conda activate navsim
   ./install-repo.sh
   ```
