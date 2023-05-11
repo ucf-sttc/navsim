@@ -1,78 +1,62 @@
 #version: "3.9"
 
 x-volumes: &volumes
-  - ${HOME}:${HOME}
+  - ${HOME}/exp:/home/ezdev/exp
+  - ${HOME}/unity-envs:/home/ezdev/unity-envs
+  - ${HOME}/workspaces:/home/ezdev/workspaces
   - /data:/data
-  - /etc/passwd:/etc/passwd:ro
-  - /etc/group:/etc/group:ro
-  - /etc/shadow:/etc/shadow:ro
-  - /etc/sudoers.d:/etc/sudoers.d:ro
   - /tmp/.X11-unix:/tmp/.X11-unix:rw
-x-x11sock: &x11sock
-  - /tmp/.X11-unix:/tmp/.X11-unix:rw
-#  - /usr/share/vulkan/icd.d:/usr/share/vulkan/icd.d
+  - ${XAUTHORITY}:${XAUTHORITY}
+  - $XDG_RUNTIME_DIR:$XDG_RUNTIME_DIR
+  - /usr/share/vulkan/icd.d:/usr/share/vulkan/icd.d
+
+x-service-runtime: &service-runtime
+    environment:
+      - DISPLAY
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all
+      - XAUTHORITY
+      - XDG_RUNTIME_DIR
+    volumes: *volumes
+    working_dir: /home/ezdev/exp
+
+x-deploy-nvidia: &deploy-nvidia
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              #device_ids: ['0', '3']
+              capabilities: [gpu]
 
 services:
-
-  navsim-headless-ubuntu2004:
-    build: 
-      context: .
-      dockerfile: dockerfiles/Dockerfile-navsim-headless-ubuntu2004
-      args:
-        - from=ghcr.io/armando-fandango/ez/ez:0.2-ai-nvidia-ubuntu2004
-    #    - from=registry.gitlab.com/armando-fandango/ezai/ez:0.1-ai-nvidia-ubuntu2004
-    image: ghcr.io/ucf-sttc/navsim/navsim:0.2-navsim-headless-ubuntu2004
-    container_name: navsim-headless-test
+  navsim-1:
+    <<: [*service-runtime, *deploy-nvidia]
+    image: ghcr.io/ucf-sttc/navsim/navsim:1.0.0-navsim
+    container_name: navsim-test
     command: bash -c "nvidia-smi; vulkaninfo; which python; python -V;
              which conda; conda -V; which mamba; mamba -V; echo 'torch.cuda:';
              python -c 'import torch; print(torch.cuda.is_available())'"
-    volumes: *volumes
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              #device_ids: ['0', '3']
-              capabilities: [gpu]
-    environment:
-      - DISPLAY
-    working_dir: ${PWD}
-    user: ${DUID}:${DGID}
-
-  navsim-headfull-ubuntu2004:
     build: 
       context: .
-      dockerfile: dockerfiles/Dockerfile-navsim-headfull-ubuntu2004
+      dockerfile: dockerfiles/Dockerfile-navsim
       args:
-        - from=ghcr.io/armando-fandango/ez/ez:0.2-ai-nvidia-ubuntu2004
-      #  - from=nvidia/vulkan:1.2.170-470
-      #  - from=nvidia/cudagl:11.1.1-devel-ubuntu20.04
-    #depends_on:
-    #  - base
-    image: ghcr.io/ucf-sttc/navsim/navsim:0.2-navsim-headfull-ubuntu2004
-    container_name: navsim-headfull-test
-    command: bash -c "nvidia-smi; vulkaninfo; which python; python -V;
-             which conda; conda -V; which mamba; mamba -V; echo 'torch.cuda:';
-             python -c 'import torch; print(torch.cuda.is_available())'"
-    volumes: *volumes
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              #device_ids: ['0', '3']
-              capabilities: [gpu]
-    environment:
-    #  - NVIDIA_VISIBLE_DEVICES=all
-    #  - NVIDIA_DRIVER_CAPABILITIES=all
-      - DISPLAY
-      - DUID=${DUID}
-      - DGID=${DGID}
-      - DUHOME=${HOME}
-    working_dir: ${PWD}
-    #user: ${DUID}:${DGID}
+        - from=debian:11.6-slim
+        - duid=1003
+        - dgid=1003
+
+  navsim-1-fixid:
+    <<: [*service-runtime]
+    image: ghcr.io/ucf-sttc/navsim/navsim:1.0.0-navsim
+    build: 
+      context: .
+      dockerfile: dockerfiles/Dockerfile-navsim-fixid
+      args:
+        - from=ghcr.io/ucf-sttc/navsim/navsim:1.0.0-navsim
+        - duid=1003
+        - dgid=1003
+
 
   nvidia-test1:
     image: ubuntu:20.04
@@ -114,18 +98,3 @@ services:
               count: all
               #device_ids: ['0', '3']
               capabilities: [gpu]
-    user: ${DUID}:${DGID}
-  
-  vulkan-test2:
-    image: ghcr.io/armando-fandango/ez/ez:0.2-ai-nvidia-ubuntu2004
-    container_name: vulkan-test
-    command: bash -c "nvidia-smi; vulkaninfo"
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              #device_ids: ['0', '3']
-              capabilities: [gpu]
-    user: ${DUID}:${DGID}

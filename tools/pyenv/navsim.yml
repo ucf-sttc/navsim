@@ -1,4 +1,3 @@
-name: navsim
 channels:
   - pytorch
   - conda-forge

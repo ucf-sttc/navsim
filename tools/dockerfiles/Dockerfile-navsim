@@ -1,0 +1,163 @@
+ARG from
+FROM ${from} as base
+LABEL org.opencontainers.image.authors="armando.ucf@gmail.com"
+
+ENV DEBIAN_FRONTEND=noninteractive
+#ENV TZ=UTC
+#RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+SHELL ["/bin/bash", "-c"]
+
+ARG duid=1000
+ARG dgid=1000
+ARG uname=ezdev
+ARG gname=ezdev
+
+USER root
+
+RUN apt-get -q update \
+    && apt-get -q purge -y snapd \
+    && apt-get -qq install -y --no-install-recommends \
+      software-properties-common \
+      sudo gosu \
+      ssh \
+      lsb-release \
+      gnupg2 \
+      ca-certificates \
+      wget curl rsync \
+      unzip \
+      build-essential \
+      autoconf automake libtool ninja-build pkg-config \
+      git git-lfs \
+      python-is-python3 python3-pip \
+      mesa-utils \
+      vulkan-tools \
+      nano vim \
+      terminator \
+    && apt-get -q autoremove --purge && apt-get -q clean && rm -rf /var/lib/apt/lists/*
+
+# install cmake
+RUN wget https://github.com/Kitware/CMake/releases/download/v3.26.3/cmake-3.26.3-Linux-x86_64.sh -q -O /tmp/cmake-install.sh \
+  && chmod u+x /tmp/cmake-install.sh \
+  && mkdir /opt/cmake \
+  && /tmp/cmake-install.sh --skip-license --prefix=/opt/cmake \
+  && rm /tmp/cmake-install.sh \
+  && ln -s /opt/cmake/bin/* /usr/local/bin
+
+RUN mkdir -p /opt/container-scripts/entrypoint.d && chmod -R 777 /opt/container-scripts
+COPY --chmod=777 container-scripts/entrypoint.sh /opt/container-scripts/
+COPY --chmod=777 container-scripts/10-env.sh /opt/container-scripts/entrypoint.d/
+
+RUN groupadd --gid ${dgid} ${gname} \
+  && useradd --uid ${duid} -g ${gname} -G sudo -s /bin/bash -m ${uname}
+RUN echo "${uname} ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/${uname} && \
+    chmod 0440 /etc/sudoers.d/${uname}
+
+USER ${uname}
+ENV home=/home/${uname}
+WORKDIR ${home}
+
+#RUN echo "export LIBGL_ALWAYS_SOFTWARE=1" >> /opt/container-scripts/entrypoint.d/10-env.sh
+ENTRYPOINT ["/opt/container-scripts/entrypoint.sh"]
+CMD ["bash"]
+
+FROM base as conda
+
+ENV DEBIAN_FRONTEND=noninteractive
+#ENV TZ=UTC
+#RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+SHELL ["/bin/bash", "-c"]
+
+
+USER root
+
+ARG mamba_dir="/opt/py"
+RUN mkdir -p ${mamba_dir} && chmod +rx /opt && \
+    chown -R ezdev:ezdev ${mamba_dir}
+
+USER ${uname}
+ENV home=/home/${uname}
+WORKDIR ${HOME}/pyenv
+
+COPY --chown=${uname}:${gname} pyenv ${HOME}/pyenv
+ARG venv="base"
+ARG activate="source ${HOME}/.bashrc \
+      && mamba activate ${venv} && umask 0000"
+
+ENV MAMBA_NO_BANNER=1
+ENV PATH=${mamba_dir}/bin:$PATH
+
+RUN source pyenv.sh \ 
+    && umask 0000 \
+    && ez_install_mamba
+
+RUN ${activate} \
+    && conda config --system --set auto_activate_base true \
+    && mamba env config vars set MAMBA_NO_BANNER=1
+
+RUN ${activate} && mamba env update -n ${venv} --file navsim.yml 
+RUN ${activate} && mamba clean -itcly
+RUN rm -rf ${HOME}/pyenv 
+
+FROM conda as navsim
+
+ENV DEBIAN_FRONTEND=noninteractive
+#ENV TZ=UTC
+#RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+SHELL ["/bin/bash", "-c"]
+
+USER root
+
+ARG navsim_dir="/opt/navsim"
+RUN mkdir -p ${navsim_dir} && chmod +rx /opt && \
+    chown -R ${uname}:${gname} ${navsim_dir}
+
+USER ${uname}
+ENV home=/home/${uname}
+WORKDIR ${home}
+
+####USER root
+####WORKDIR /root/
+####SHELL ["/bin/bash", "-c"]
+
+#COPY scripts/activate-conda-base.sh /opt/container-scripts/entrypoint.d/20-activate-conda-base.sh
+
+#RUN which python && which conda && which mamba
+#install phoronix
+#RUN wget http://phoronix-test-suite.com/releases/repo/pts.debian/files/phoronix-test-suite_10.4.0_all.deb && \
+#    gdebi phoronix-test-suite_10.4.0_all.deb && \
+#    rm phoronix-test-suite_10.4.0_all.deb
+#RUN dpkg -i phoronix-test-suite_10.4.0_all.deb
+#COPY test-profiles/local /var/lib/phoronix-test-suite/test-profiles/
+
+#Install MINICONDA and navsim_env in base
+#COPY scripts/* ezai-conda* ezai-pip-* repo.zip /root/
+
+#RUN ls -l /root/navsim-repo/navsim-mlagents/
+#RUN read -p "Press any key to resume ..."
+#COPY mlagents_patch /root/mlagents_patch
+#RUN chmod +x /root/*.sh && \
+#    source ezai-conda.sh && \
+#    install_miniconda --conda_dir ${CONDA_DIR}
+#ENV PATH=${CONDA_DIR}/bin:$PATH
+#ENV BASH_ENV="/root/.bashrc"
+ARG venv="base"
+ARG activate="source ${home}/.bashrc \
+      && mamba activate ${venv} && umask 0000"
+
+COPY repo.zip ${home}/repo.zip
+#RUN mkdir -p ${NAVSIM_DIR}
+RUN unzip -d ${navsim_dir} repo.zip && rm repo.zip
+    #source /root/.bashrc && source /root/ezai-conda.sh && \
+    #ezai_conda_create --venv "base" && \
+    #activate base && \
+
+#TODO: bin/bash doesnt activate base so have to do here
+####RUN source /opt/py/etc/profile.d/conda.sh && conda activate base && \
+RUN cd ${navsim_dir} && ./install-repo.sh
+
+#ENTRYPOINT ["bash", "-c", "(/root/chuser.sh && python /root/x_server.py) && bash"]
+#ENTRYPOINT ["/root/entrypoint.sh"]
+#CMD ["bash"]
+
+
+# works for both ubuntu and buster-slim
