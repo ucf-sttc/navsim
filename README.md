@@ -21,6 +21,19 @@ git clone --recurse-submodules git@github.com:ucf-sttc/navsim.git
 * Install [docker](https://docs.docker.com/get-docker/)
 * Install [nvidia container toolkit](https://github.com/NVIDIA/nvidia-docker)
 
+## Fix the id of user inside the container
+
+The user inside the container, `ezdev`, comes with an id of 1000:1000. If you want this user to be able to read and write files as per your uid:gid, then run the following command to fix the id of the user inside the container:
+
+```sh
+cd tools
+docker compose build navsim-1-fixid \
+  --build-arg from="ghcr.io/ucf-sttc/navsim/navsim:1.0.0-navsim" \
+  --build-arg duid=1003 \
+  --build-arg dgid=1003
+```
+This example assumes you want to change the id to 1003:1003
+
 ## Initial setup
 
   Use paths specific to your system and update the lines 4-7 of `navsim/tools/docker-compose.yml`.
@@ -102,19 +115,6 @@ Inside `navsim` repo, follow these commands:
 cd tools
 ./zip-repo
 docker compose build navsim-1 \
-  --build-arg duid=1003 \
-  --build-arg dgid=1003
-
-docker login ghcr.io -u armando-fandango     # replace with your github login and pat
-docker compose push navsim-1
-```
-
-## How to fix the id of user inside the container
-
-```sh
-cd tools
-docker compose build navsim-1-fixid \
-  --build-arg from="ghcr.io/ucf-sttc/navsim/navsim:1.0.0-navsim" \
   --build-arg duid=1003 \
   --build-arg dgid=1003
 ```
