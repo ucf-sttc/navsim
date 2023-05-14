@@ -13,7 +13,7 @@ clone the `navsim` repo:
 git clone --recurse-submodules git@github.com:ucf-sttc/navsim.git
 ```
 
-# Use navsim inside container
+# Use navsim inside container (preferred and recommended way)
 
 ## Install Pre-requisites for using inside container
 
@@ -63,7 +63,6 @@ armando@thunderbird:~/workspaces/navsim$ docker compose build navsim-1-fixid \
  => => naming to ghcr.io/ucf-sttc/navsim/navsim:1.0.0-navsim                     0.0s
 ```
 
-
 ## Initial setup
 
   Use paths specific to your system and update the lines 4-7 of `navsim/docker-compose.yml`.
@@ -84,9 +83,9 @@ armando@thunderbird:~/workspaces/navsim$ docker compose build navsim-1-fixid \
 
 ## Run the experiments (inside container)
 
-  Run the following command: (rremove `-d` after `run` to run it in foreground):
+  Run the following command: (remove `-d` after `run` to run it in foreground):
   
-  `docker compose run -d navsim-1 <navsim command>`
+  `docker compose run -d --rm navsim-1 <navsim command>`
 
 # Use navsim in the host (without container)
 
@@ -108,7 +107,7 @@ armando@thunderbird:~/workspaces/navsim$ docker compose build navsim-1-fixid \
 
 # The `<navsim command>`
 
-* `navsim --plan --env arora-v0 --show_visual --env_path ~/unity-envs/ARORA_2.10.17_simpro/ARORA.x86_64`
+* `navsim --plan --env arora-v0 --show_visual --env_path ~/unity-envs/<path-to-arora>/ARORA.x86_64`
 * `navsim_env_test min_env_config.yml`
 * `navsim --help` shows the options
 * `navsim --run_id $run_id --env_path $envdir/$envbin` - executes and/or trains the model
