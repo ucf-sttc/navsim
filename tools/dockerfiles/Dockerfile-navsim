@@ -76,11 +76,11 @@ RUN mkdir -p ${mamba_dir} && chmod +rx /opt && \
 
 USER ${uname}
 ENV home=/home/${uname}
-WORKDIR ${HOME}/pyenv
+WORKDIR ${home}/pyenv
 
-COPY --chown=${uname}:${gname} pyenv ${HOME}/pyenv
+COPY --chown=${uname}:${gname} pyenv ${home}/pyenv
 ARG venv="base"
-ARG activate="source ${HOME}/.bashrc \
+ARG activate="source ${home}/.bashrc \
       && mamba activate ${venv} && umask 0000"
 
 ENV MAMBA_NO_BANNER=1

@@ -1,5 +1,5 @@
-ARG from
-FROM ${from}
+ARG img
+FROM ${img}
 
 ENV DEBIAN_FRONTEND=noninteractive
 #ENV TZ=UTC

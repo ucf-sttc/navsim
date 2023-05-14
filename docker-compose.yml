@@ -39,62 +39,22 @@ services:
              which conda; conda -V; which mamba; mamba -V; echo 'torch.cuda:';
              python -c 'import torch; print(torch.cuda.is_available())'"
     build: 
-      context: .
+      context: ./tools
       dockerfile: dockerfiles/Dockerfile-navsim
       args:
         - from=debian:11.6-slim
-        - duid=1003
-        - dgid=1003
 
   navsim-1-fixid:
     <<: [*service-runtime]
     image: ghcr.io/ucf-sttc/navsim/navsim:1.0.0-navsim
     build: 
-      context: .
+      context: ./tools
       dockerfile: dockerfiles/Dockerfile-navsim-fixid
       args:
-        - from=ghcr.io/ucf-sttc/navsim/navsim:1.0.0-navsim
-        - duid=1003
-        - dgid=1003
+        - img=ghcr.io/ucf-sttc/navsim/navsim:1.0.0-navsim
 
-
-  nvidia-test1:
+  nvidia-test:
+    <<: [*deploy-nvidia, *service-runtime]
     image: ubuntu:20.04
     container_name: nvidia-test
     command: bash -c "nvidia-smi"
-    runtime: nvidia
-    environment:
-      - NVIDIA_VISIBLE_DEVICES=all
-      - NVIDIA_DRIVER_CAPABILITIES=all
-      - DISPLAY
-
-  nvidia-test2:
-    image: ubuntu:20.04
-    container_name: nvidia-test2
-    command: bash -c "nvidia-smi"
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              #device_ids: ['0', '3']
-              capabilities: [gpu]
-    environment:
-      - NVIDIA_VISIBLE_DEVICES=all
-      - NVIDIA_DRIVER_CAPABILITIES=all
-      - DISPLAY
-
-  vulkan-test1:
-    #image: nvidia/vulkan:1.2.133-450
-    image: nvidia/vulkan:1.2.170-470
-    container_name: vulkan-test
-    command: bash -c "nvidia-smi; vulkaninfo"
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              #device_ids: ['0', '3']
-              capabilities: [gpu]

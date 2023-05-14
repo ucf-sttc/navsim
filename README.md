@@ -21,24 +21,54 @@ git clone --recurse-submodules git@github.com:ucf-sttc/navsim.git
 * Install [docker](https://docs.docker.com/get-docker/)
 * Install [nvidia container toolkit](https://github.com/NVIDIA/nvidia-docker)
 
-## Fix the id of user inside the container
+## Fix the id of user inside the container <a name="fixid"></a>
 
 The user inside the container, `ezdev`, comes with an id of 1000:1000. If you want this user to be able to read and write files as per your uid:gid, then run the following command to fix the id of the user inside the container:
 
 ```sh
-cd tools
 docker compose build navsim-1-fixid \
-  --build-arg from="ghcr.io/ucf-sttc/navsim/navsim:1.0.0-navsim" \
   --build-arg duid=1003 \
   --build-arg dgid=1003
 ```
-This example assumes you want to change the id to 1003:1003
+This example assumes you want to change the id to 1003:1003. 
+
+You can also specify the image to fix.
+
+```sh
+docker compose build navsim-1-fixid \
+  --build-arg img="ghcr.io/ucf-sttc/navsim/navsim:1.0.0-navsim" \
+  --build-arg duid=1003 \
+  --build-arg dgid=1003
+```
+
+You will see output similar to following:
+
+```console
+armando@thunderbird:~/workspaces/navsim$ docker compose build navsim-1-fixid \
+>   --build-arg duid=1003 \
+>   --build-arg dgid=1003
+[+] Building 5.5s (8/8) FINISHED                                                                                                                                             
+ => [internal] load .dockerignore                                                0.1s
+ => => transferring context: 2B                                                  0.0s
+ => [internal] load build definition from Dockerfile-navsim-fixid                0.0s
+ => => transferring dockerfile: 440B                                             0.0s
+ => [internal] load metadata for ghcr.io/ucf-sttc/navsim/navsim:1.0.0-navsim     0.0s
+ => [1/4] FROM ghcr.io/ucf-sttc/navsim/navsim:1.0.0-navsim                       1.1s
+ => [2/4] RUN id ezdev                                                           0.5s
+ => [3/4] RUN usermod -u 1003 ezdev && groupmod -g 1003 ezdev                    2.5s
+ => [4/4] RUN id ezdev                                                           0.7s
+ => exporting to image                                                           0.4s
+ => => exporting layers                                                          0.3s
+ => => writing image sha256:e69a490b875892bdbb5498797dcef3aa4551223b5309f80d     0.0s
+ => => naming to ghcr.io/ucf-sttc/navsim/navsim:1.0.0-navsim                     0.0s
+```
+
 
 ## Initial setup
 
-  Use paths specific to your system and update the lines 4-7 of `navsim/tools/docker-compose.yml`.
+  Use paths specific to your system and update the lines 4-7 of `navsim/docker-compose.yml`.
 
-  * `~exp/` : Experiments are run in this folder
+  * `~/exp/` : Experiments are run in this folder
   * `~/unity-envs/` : Unity-based standalone binaries are kept here
   * `~/workspaces/` : Navsim code folder is kept here
   * `/data`: This is where all the above symlinked folders are present 
@@ -91,6 +121,58 @@ This example assumes you want to change the id to 1003:1003
 
 ```
 
+# Errors FAQ
+
+## Getting vulkan error while starting the container
+```console
+ERROR: [Loader Message] Code 0 : /usr/lib/x86_64-linux-gnu/libvulkan_radeon.so: cannot open shared object file: No such file or directory
+No protocol specified
+No protocol specified
+ERROR: [Loader Message] Code 0 : loader_scanned_icd_add: Could not get 'vkCreateInstance' via 'vk_icdGetInstanceProcAddr' for ICD libGLX_nvidia.so.0
+ERROR: [Loader Message] Code 0 : /usr/lib/i386-linux-gnu/libvulkan_intel.so: cannot open shared object file: No such file or directory
+ERROR: [Loader Message] Code 0 : /usr/lib/i386-linux-gnu/libvulkan_radeon.so: cannot open shared object file: No such file or directory
+ERROR: [Loader Message] Code 0 : /usr/lib/x86_64-linux-gnu/libvulkan_intel.so: cannot open shared object file: No such file or directory
+ERROR: [Loader Message] Code 0 : /usr/lib/i386-linux-gnu/libvulkan_lvp.so: cannot open shared object file: No such file or directory
+ERROR: [Loader Message] Code 0 : /usr/lib/x86_64-linux-gnu/libvulkan_lvp.so: cannot open shared object file: No such file or directory
+Cannot create Vulkan instance.
+This problem is often caused by a faulty installation of the Vulkan driver or attempting to use a GPU that does not support Vulkan.
+ERROR at /build/vulkan-tools-oFB8Ns/vulkan-tools-1.2.162.0+dfsg1/vulkaninfo/vulkaninfo.h:666:vkCreateInstance failed with ERROR_INCOMPATIBLE_DRIVER
+```
+
+Solution: For fixing this error you have to update your nvidia driver and fix the id inside the container, as follows:
+
+1. Check your nvidia driver with the following commands: `sudo apt list --installed | grep nvidia-driver` and `nvidia-smi`
+
+For example on our laptop:
+
+```console
+armando@thunderbird:~/workspace/navsim$ sudo apt list --installed | grep nvidia-driver
+
+WARNING: apt does not have a stable CLI interface. Use with caution in scripts.
+
+nvidia-driver-470/focal-updates,focal-security,now 470.182.03-0ubuntu0.20.04.1 amd64 [installed]
+```
+```console
+armando@thunderbird:~/workspace/navsim$ nvidia-smi
+Sun May 14 10:53:30 2023       
++-----------------------------------------------------------------------------+
+| NVIDIA-SMI 470.182.03   Driver Version: 470.182.03   CUDA Version: 11.4     |
+|-------------------------------+----------------------+----------------------+
+```
+Reinstall the nvidia-driver or update it to latest one.
+```sh
+sudo apt update
+sudo apt install nvidia-driver-530
+sudo reboot
+```
+If you dont rebooot after installing the driver then you will get the following error: 
+```console
+Failed to initialize NVML: Driver/library version mismatch
+```
+
+2. Update the id inside the container as per section [fixid](#fixid)
+
+
 # Contributing to NavSim API
 
 ## General dev info:
@@ -114,7 +196,6 @@ Inside `navsim` repo, follow these commands:
 ```sh
 cd tools
 ./zip-repo
-docker compose build navsim-1 \
-  --build-arg duid=1003 \
-  --build-arg dgid=1003
+cd ..
+docker compose build navsim-1
 ```
