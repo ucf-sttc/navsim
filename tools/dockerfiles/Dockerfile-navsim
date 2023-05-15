@@ -153,7 +153,7 @@ RUN unzip -d ${navsim_dir} repo.zip && rm repo.zip
 
 #TODO: bin/bash doesnt activate base so have to do here
 ####RUN source /opt/py/etc/profile.d/conda.sh && conda activate base && \
-RUN cd ${navsim_dir} && ./install-repo.sh
+RUN cd ${navsim_dir} && chmod +x ./install-repo.sh && ./install-repo.sh
 
 #ENTRYPOINT ["bash", "-c", "(/root/chuser.sh && python /root/x_server.py) && bash"]
 #ENTRYPOINT ["/root/entrypoint.sh"]
