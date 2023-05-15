@@ -1,9 +1,9 @@
 #version: "3.9"
 
 x-volumes: &volumes
-  - ${HOME}/exp:/home/ezdev/exp
-  - ${HOME}/unity-envs:/home/ezdev/unity-envs
-  - ${HOME}/workspaces/navsim:/home/ezdev/navsim
+  - ${HOME}/exp:/exp
+  - ${HOME}/unity-envs:/unity-envs
+  - ${HOME}/workspaces/navsim:/navsim
   - /data:/data
   - /tmp/.X11-unix:/tmp/.X11-unix:rw
   - ${XAUTHORITY}:${XAUTHORITY}
@@ -18,7 +18,7 @@ x-service-runtime: &service-runtime
       - XAUTHORITY
       - XDG_RUNTIME_DIR
     volumes: *volumes
-    working_dir: /home/ezdev/exp
+    working_dir: /exp
 
 x-deploy-nvidia: &deploy-nvidia
     deploy:
