@@ -1,23 +1,24 @@
 #version: "3.9"
 
 x-volumes: &volumes
-  - ${HOME}/exp:/exp
-  - ${HOME}/unity-envs:/unity-envs
-  - ${HOME}/workspaces/navsim:/navsim
-  - /data:/data
-  - /tmp/.X11-unix:/tmp/.X11-unix:rw
-  - ${XAUTHORITY}:${XAUTHORITY}
-  - $XDG_RUNTIME_DIR:$XDG_RUNTIME_DIR
-  - /usr/share/vulkan/icd.d:/usr/share/vulkan/icd.d
+  # Modify the paths before the ':' in next 4 lines to match your system
+    - ${HOME}/exp:/exp
+    - ${HOME}/unity-envs:/unity-envs
+    - ${HOME}/workspaces/navsim:/opt/navsim # only needed if you are developing navsim
+    - /data:/data # only needed if your exp, unity-envs or navsim folders are symlinked from here
+    - /tmp/.X11-unix:/tmp/.X11-unix:rw
+    - ${XAUTHORITY}:${XAUTHORITY}
+    - $XDG_RUNTIME_DIR:$XDG_RUNTIME_DIR
+    - /usr/share/vulkan/icd.d:/usr/share/vulkan/icd.d
 
 x-service-runtime: &service-runtime
+    volumes: *volumes
     environment:
       - DISPLAY
       - NVIDIA_VISIBLE_DEVICES=all
       - NVIDIA_DRIVER_CAPABILITIES=all
       - XAUTHORITY
       - XDG_RUNTIME_DIR
-    volumes: *volumes
     working_dir: /exp
 
 x-deploy-nvidia: &deploy-nvidia
@@ -30,35 +31,35 @@ x-deploy-nvidia: &deploy-nvidia
               #device_ids: ['0', '3']
               capabilities: [gpu]
 
-services:
-  navsim-1:
-    <<: [*service-runtime, *deploy-nvidia]
+x-image: &img
     image: ghcr.io/ucf-sttc/navsim/navsim:1.0.0-navsim
-    container_name: navsim-1
-    command: bash -c "nvidia-smi; vulkaninfo; which python; python -V;
-             which conda; conda -V; which mamba; mamba -V; echo 'torch.cuda:';
-             python -c 'import torch; print(torch.cuda.is_available())'; while sleep 1000; do :; done"
 
-  navsim-1-build:
-    <<: [*service-runtime, *deploy-nvidia]
-    image: ghcr.io/ucf-sttc/navsim/navsim:1.0.0-navsim
-    container_name: navsim-buuild
+services:
+  navsim: &navsim
+    <<: [*service-runtime, *deploy-nvidia, *img]
+    container_name: navsim-1
+    command: bash -c "while sleep 1000; do :; done"
+
+  navsim-test:
+    <<: [*navsim]
     command: bash -c "nvidia-smi; vulkaninfo; which python; python -V;
              which conda; conda -V; which mamba; mamba -V; echo 'torch.cuda:';
              python -c 'import torch; print(torch.cuda.is_available())'"
+
+  navsim-build:
+    <<: [*img]
     build: 
       context: ./tools
       dockerfile: dockerfiles/Dockerfile-navsim
       args:
         - from=debian:11.6-slim
 
-  navsim-1-fixid:
-    image: ghcr.io/ucf-sttc/navsim/navsim:1.0.0-navsim
+  navsim-fixid:
+    <<: [*img]
     build: 
       context: ./tools
       dockerfile: dockerfiles/Dockerfile-navsim-fixid
-      args:
-        - img=ghcr.io/ucf-sttc/navsim/navsim:1.0.0-navsim
+      args: *img
 
   nvidia-test:
     <<: [*deploy-nvidia, *service-runtime]

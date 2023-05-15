@@ -35,7 +35,7 @@ You should see nvidia-smi output.
 The user inside the container, `ezdev`, comes with an id of 1000:1000. If you want this user to be able to read and write files as per your uid:gid, then run the following command to fix the id of the user inside the container:
 
 ```sh
-docker compose build navsim-1-fixid \
+docker compose build navsim-fixid \
   --build-arg duid=1003 \
   --build-arg dgid=1003
 ```
@@ -44,7 +44,7 @@ This example assumes you want to change the id to 1003:1003.
 You can also specify the image to fix.
 
 ```sh
-docker compose build navsim-1-fixid \
+docker compose build navsim-fixid \
   --build-arg img="ghcr.io/ucf-sttc/navsim/navsim:1.0.0-navsim" \
   --build-arg duid=1003 \
   --build-arg dgid=1003
@@ -53,7 +53,7 @@ docker compose build navsim-1-fixid \
 You will see output similar to following:
 
 ```console
-armando@thunderbird:~/workspaces/navsim$ docker compose build navsim-1-fixid \
+armando@thunderbird:~/workspaces/navsim$ docker compose build navsim-fixid \
 >   --build-arg duid=1003 \
 >   --build-arg dgid=1003
 [+] Building 5.5s (8/8) FINISHED                                                                                                                                             
@@ -83,9 +83,9 @@ armando@thunderbird:~/workspaces/navsim$ docker compose build navsim-1-fixid \
 
   Run the following command to test everything works fine:
 
-  `docker compose run --rm navsim-1`
+  `docker compose run --rm navsim-test`
 
-  `docker compose run --rm navsim-1 navsim --help`
+  `docker compose run --rm navsim-test navsim --help`
 
 ## Run the experiments (inside container)
 
@@ -200,5 +200,5 @@ Inside `navsim` repo, follow these commands:
 
 ```sh
 ./zip-repo
-docker compose build navsim-1-build
+docker compose build navsim-build
 ```
