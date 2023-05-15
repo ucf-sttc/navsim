@@ -196,5 +196,5 @@ Inside `navsim` repo, follow these commands:
 cd tools
 ./zip-repo
 cd ..
-docker compose build navsim-1
+docker compose build navsim-1-build
 ```

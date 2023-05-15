@@ -38,6 +38,14 @@ services:
     command: bash -c "nvidia-smi; vulkaninfo; which python; python -V;
              which conda; conda -V; which mamba; mamba -V; echo 'torch.cuda:';
              python -c 'import torch; print(torch.cuda.is_available())'"
+
+  navsim-1-build:
+    <<: [*service-runtime, *deploy-nvidia]
+    image: ghcr.io/ucf-sttc/navsim/navsim:1.0.0-navsim
+    container_name: navsim-test
+    command: bash -c "nvidia-smi; vulkaninfo; which python; python -V;
+             which conda; conda -V; which mamba; mamba -V; echo 'torch.cuda:';
+             python -c 'import torch; print(torch.cuda.is_available())'"
     build: 
       context: ./tools
       dockerfile: dockerfiles/Dockerfile-navsim
