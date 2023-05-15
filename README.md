@@ -13,6 +13,8 @@ clone the `navsim` repo:
 git clone --recurse-submodules git@github.com:ucf-sttc/navsim.git
 ```
 
+All further commands should be done inside navsim repo: `cd navsim`
+
 # Use navsim inside container (preferred and recommended way)
 
 ## Install Pre-requisites for using inside container
@@ -72,7 +74,7 @@ armando@thunderbird:~/workspaces/navsim$ docker compose build navsim-1-fixid \
 
 ## Initial setup
 
-  Use paths specific to your system and update the lines 4-7 of `navsim/docker-compose.yml`.
+  Modify the lines 4-7 of `navsim/docker-compose.yml` for paths specific to your system.
 
   * `~/exp/` : Experiments are run in this folder
   * `~/unity-envs/` : Unity-based standalone binaries are kept here
