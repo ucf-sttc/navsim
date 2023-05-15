@@ -113,7 +113,7 @@ armando@thunderbird:~/workspaces/navsim$ docker compose build navsim-1-fixid \
 
 # The `<navsim command>`
 
-* `navsim --plan --env arora-v0 --show_visual --env_path /unity-envs/<path-to-arora-binary>`. For example, `<path-to-arora-binary>` in our case is the foldername and binary after `$HOME/unity-envs` that we mapped in line 5 of docker-compose earlier: `ARORA3/ARORA.x86_64`.
+* `navsim --plan --env arora-v0 --show_visual --env_path /unity-envs/<path-to-arora-binary>`. For example, `<path-to-arora-binary>` in our case is the foldername and binary after `$HOME/unity-envs` that we mapped in line 5 of docker-compose earlier: `ARORA/ARORA.x86_64`.
 * `navsim_env_test min_env_config.yml`
 * `navsim --help` shows the options
 * `navsim --run_id $run_id --env_path $envdir/$envbin` - executes and/or trains the model
@@ -199,8 +199,6 @@ Failed to initialize NVML: Driver/library version mismatch
 Inside `navsim` repo, follow these commands:
 
 ```sh
-cd tools
 ./zip-repo
-cd ..
 docker compose build navsim-1-build
 ```
