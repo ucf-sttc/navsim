@@ -3,7 +3,7 @@
 x-volumes: &volumes
   - ${HOME}/exp:/home/ezdev/exp
   - ${HOME}/unity-envs:/home/ezdev/unity-envs
-  - ${HOME}/workspaces:/home/ezdev/workspaces
+  - ${HOME}/workspaces/navsim:/home/ezdev/navsim
   - /data:/data
   - /tmp/.X11-unix:/tmp/.X11-unix:rw
   - ${XAUTHORITY}:${XAUTHORITY}

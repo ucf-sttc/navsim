@@ -76,13 +76,13 @@ armando@thunderbird:~/workspaces/navsim$ docker compose build navsim-1-fixid \
 
   Modify the lines 4-7 of `navsim/docker-compose.yml` for paths specific to your system.
 
-  * `~/exp/` : Experiments are run in this folder
-  * `~/unity-envs/` : Unity-based standalone binaries are kept here
-  * `~/workspaces/` : Navsim code folder is kept here
+  * `$HOME/exp/` : Experiments are run in this folder
+  * `$HOME/unity-envs/` : Unity-based standalone binaries are kept here
+  * `$HOME/workspaces/navsim` : Navsim code folder is kept here
   * `/data`: This is where all the above symlinked folders are present 
 
 
-    Please note in line 7 of `docker-compose.yml`: because on our systems, all our folders such as `workspaces`, `exp ` and `unity-envs` reside in `/data` and are symlinked in home folder, hence this `/data` folder also has to be mounted else the symlinks wont work in container. If you are not using symlinks, then you can remove this line.
+    Please note in line 7 of `docker-compose.yml`: because on our systems, all our folders such as `workspaces/navsim`, `exp ` and `unity-envs` reside in `/data` and are symlinked in home folder, hence this `/data` folder also has to be mounted else the symlinks wont work in container. If you are not using symlinks, then you can remove this line.
 
   Run the following command to test everything works fine:
 
