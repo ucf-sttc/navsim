@@ -34,15 +34,15 @@ services:
   navsim-1:
     <<: [*service-runtime, *deploy-nvidia]
     image: ghcr.io/ucf-sttc/navsim/navsim:1.0.0-navsim
-    container_name: navsim-test
+    container_name: navsim-1
     command: bash -c "nvidia-smi; vulkaninfo; which python; python -V;
              which conda; conda -V; which mamba; mamba -V; echo 'torch.cuda:';
-             python -c 'import torch; print(torch.cuda.is_available())'"
+             python -c 'import torch; print(torch.cuda.is_available())'; while sleep 1000; do :; done"
 
   navsim-1-build:
     <<: [*service-runtime, *deploy-nvidia]
     image: ghcr.io/ucf-sttc/navsim/navsim:1.0.0-navsim
-    container_name: navsim-test
+    container_name: navsim-buuild
     command: bash -c "nvidia-smi; vulkaninfo; which python; python -V;
              which conda; conda -V; which mamba; mamba -V; echo 'torch.cuda:';
              python -c 'import torch; print(torch.cuda.is_available())'"
@@ -63,6 +63,6 @@ services:
 
   nvidia-test:
     <<: [*deploy-nvidia, *service-runtime]
-    image: ubuntu:20.04
+    image: debian:11.6-slim
     container_name: nvidia-test
     command: bash -c "nvidia-smi"

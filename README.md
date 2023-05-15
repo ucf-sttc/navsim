@@ -17,9 +17,16 @@ git clone --recurse-submodules git@github.com:ucf-sttc/navsim.git
 
 ## Install Pre-requisites for using inside container
 
-* Install [nvidia driver](https://github.com/NVIDIA/nvidia-docker/wiki/Frequently-Asked-Questions#how-do-i-install-the-nvidia-driver)
-* Install [docker](https://docs.docker.com/get-docker/)
-* Install [nvidia container toolkit](https://github.com/NVIDIA/nvidia-docker)
+Please make sure to install the following as per latest instrunctions that work for your system. As a guidance the link to instructions that worked are being provided.
+* Install [nvidia driver](https://docs.nvidia.com/datacenter/tesla/tesla-installation-notes/index.html)
+* Install [docker engine](https://docs.docker.com/get-docker/) | Do not install docker desktop. It has been tested not to work with desktop.
+* Install [nvidia container toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html#install-guide)
+
+To check that dependencies are working properly for your user:
+
+`docker run --rm --runtime=nvidia --gpus all debian:11.6-slim nvidia-smi`
+
+You should see nvidia-smi output.
 
 ## Fix the id of user inside the container <a name="fixid"></a>
 
