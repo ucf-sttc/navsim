@@ -15,3 +15,6 @@ zip -FSr tools/repo.zip \
 #    -x "examples/.ipynb_checkpoints" \
 #    -x "examples/env_log"
 
+
+#scp tools/repo.zip fixer:/data/work/navsim-repo/repo.zip
+#rm  tools/repo.zip
