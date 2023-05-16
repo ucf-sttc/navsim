@@ -1,15 +1,15 @@
 #version: "3.9"
 
-x-code: &code
-    volumes:
-      - ${PWD}:/opt/navsim # only needed if you are developing navsim
-
 x-data: &data
 # Modify the paths before the ':' in next 4 lines to match your system
     volumes:
       - ${HOME}/exp:/exp
       - ${HOME}/unity-envs:/unity-envs
       - /data:/data # only needed if your exp, unity-envs or navsim folders are symlinked from here
+
+x-code: &code
+    volumes:
+      - ${PWD}:/opt/navsim # only needed if you are developing navsim
 
 x-exportx: &exportx
     volumes:

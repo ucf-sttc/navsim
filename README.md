@@ -47,9 +47,7 @@ IMAGE=ghcr.io/ucf-sttc/navsim/navsim:1.0.0-navsim DUID=`id -u` DGID=`id -g` dock
 You will see output similar to following:
 
 ```console
-armando@thunderbird:~/workspaces/navsim$ docker compose build navsim-fixid \
->   --build-arg duid=1003 \
->   --build-arg dgid=1003
+armando@thunderbird:~/workspaces/navsim$ docker compose build navsim-fixid
 [+] Building 5.5s (8/8) FINISHED                                                                                                                                             
  => [internal] load .dockerignore                                                0.1s
  => => transferring context: 2B                                                  0.0s
@@ -68,11 +66,10 @@ armando@thunderbird:~/workspaces/navsim$ docker compose build navsim-fixid \
 
 ## Initial setup
 
-  Modify the lines 4-7 of `navsim/docker-compose.yml` for paths specific to your system.
+  Modify the lines 6-8 of `navsim/docker-compose.yml` for paths specific to your system.
 
   * `$HOME/exp/` : Experiments are run in this folder
   * `$HOME/unity-envs/` : Unity-based standalone binaries are kept here
-  * `$HOME/workspaces/navsim` : Navsim code folder is kept here
   * `/data`: This is where all the above symlinked folders are present. Please note in line 7 of `docker-compose.yml`: because on our systems, all our folders such as `workspaces/navsim`, `exp ` and `unity-envs` reside in `/data` and are symlinked in home folder, hence this `/data` folder also has to be mounted else the symlinks wont work in container. If you are not using symlinks, then you can remove this line.
 
   Run the following command to test everything works fine:
@@ -85,7 +82,7 @@ armando@thunderbird:~/workspaces/navsim$ docker compose build navsim-fixid \
 
   Run the following command: (remove `-d` after `run` to run it in foreground):
   
-  `docker compose run -d --rm navsim-1 <navsim command>`
+  `docker compose run -d --rm navsim <navsim command>`
 
 # Use navsim in the host (without container)
 
@@ -177,6 +174,8 @@ Failed to initialize NVML: Driver/library version mismatch
 ## General dev info:
 * Use only google style to document your code:
   https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html#example-google
+
+* `$HOME/workspaces/navsim` : Navsim code folder is kept here
 
 ## to modify and build the docs:
 
