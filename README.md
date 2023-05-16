@@ -35,19 +35,13 @@ You should see nvidia-smi output.
 The user inside the container, `ezdev`, comes with an id of 1000:1000. If you want this user to be able to read and write files as per your uid:gid, then run the following command to fix the id of the user inside the container:
 
 ```sh
-docker compose build navsim-fixid \
-  -e DUID=`id -u` \
-  -e DGID=`id -g`
+DUID=`id -u` DGID=`id -g` docker compose build navsim-fixid
 ```
-This example assumes you want to change the id to 1003:1003. 
 
-You can also specify the image to fix.
+You can also specify the image to fix as env variable:
 
 ```sh
-docker compose build navsim-fixid \
-  -e IMAGE=ghcr.io/ucf-sttc/navsim/navsim:1.0.0-navsim \
-  -e DUID=`id -u` \
-  -e DGID=`id -g`
+IMAGE=ghcr.io/ucf-sttc/navsim/navsim:1.0.0-navsim DUID=`id -u` DGID=`id -g` docker compose build navsim-fixid
 ```
 
 You will see output similar to following:
