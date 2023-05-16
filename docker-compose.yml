@@ -1,25 +1,28 @@
 #version: "3.9"
 
-x-volumes: &volumes
-  # Modify the paths before the ':' in next 4 lines to match your system
-    - ${HOME}/exp:/exp
-    - ${HOME}/unity-envs:/unity-envs
-    - ${HOME}/workspaces/navsim:/opt/navsim # only needed if you are developing navsim
-    - /data:/data # only needed if your exp, unity-envs or navsim folders are symlinked from here
-    - /tmp/.X11-unix:/tmp/.X11-unix:rw
-    - ${XAUTHORITY}:${XAUTHORITY}
-    - $XDG_RUNTIME_DIR:$XDG_RUNTIME_DIR
-    - /usr/share/vulkan/icd.d:/usr/share/vulkan/icd.d
+x-code: &code
+    volumes:
+      - ${PWD}:/opt/navsim # only needed if you are developing navsim
 
-x-service-runtime: &service-runtime
-    volumes: *volumes
+x-data: &data
+# Modify the paths before the ':' in next 4 lines to match your system
+    volumes:
+      - ${HOME}/exp:/exp
+      - ${HOME}/unity-envs:/unity-envs
+      - /data:/data # only needed if your exp, unity-envs or navsim folders are symlinked from here
+
+x-exportx: &exportx
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - ${XAUTHORITY}:${XAUTHORITY}
+      - $XDG_RUNTIME_DIR:$XDG_RUNTIME_DIR
+      - /usr/share/vulkan/icd.d:/usr/share/vulkan/icd.d
     environment:
       - DISPLAY
       - NVIDIA_VISIBLE_DEVICES=all
       - NVIDIA_DRIVER_CAPABILITIES=all
       - XAUTHORITY
       - XDG_RUNTIME_DIR
-    working_dir: /exp
 
 x-deploy-nvidia: &deploy-nvidia
     deploy:
@@ -32,19 +35,36 @@ x-deploy-nvidia: &deploy-nvidia
               capabilities: [gpu]
 
 x-image: &img
-    image: ghcr.io/ucf-sttc/navsim/navsim:1.0.0-navsim
+    image: ${IMAGE:-ghcr.io/ucf-sttc/navsim/navsim:1.0.0-navsim}
 
 services:
-  navsim: &navsim
-    <<: [*service-runtime, *deploy-nvidia, *img]
-    container_name: navsim-1
-    command: bash -c "while sleep 1000; do :; done"
+  runtime-base:
+    <<: [*data, *img]
+    working_dir: /exp
+  
+  runtime-base-x:
+    extends:
+      service: runtime-base
+    <<: [*exportx, *deploy-nvidia]
+
+  navsim:
+    extends:
+      service: runtime-base-x
+    container_name: navsim
+    command: bash -c "echo run the container with a navsim-command; navsim --help"
 
   navsim-test:
-    <<: [*navsim]
+    extends:
+      service: navsim
     command: bash -c "nvidia-smi; vulkaninfo; which python; python -V;
              which conda; conda -V; which mamba; mamba -V; echo 'torch.cuda:';
              python -c 'import torch; print(torch.cuda.is_available())'"
+
+  navsim-dev:
+    extends:
+       service: navsim
+    <<: [*code]
+    command: bash -c "cd /opt/navsim; ./install-repo.sh; while sleep 1000; do :; done"
 
   navsim-build:
     <<: [*img]
@@ -59,10 +79,13 @@ services:
     build: 
       context: ./tools
       dockerfile: dockerfiles/Dockerfile-navsim-fixid
-      args: *img
+      args: 
+        <<: *img
+        duid: ${DUID:-1000}
+        dgid: ${DGID:-1000}
 
   nvidia-test:
-    <<: [*deploy-nvidia, *service-runtime]
+    <<: [*deploy-nvidia, *exportx]
     image: debian:11.6-slim
     container_name: nvidia-test
     command: bash -c "nvidia-smi"

@@ -36,8 +36,8 @@ The user inside the container, `ezdev`, comes with an id of 1000:1000. If you wa
 
 ```sh
 docker compose build navsim-fixid \
-  --build-arg duid=1003 \
-  --build-arg dgid=1003
+  -e DUID=`id -u` \
+  -e DGID=`id -g`
 ```
 This example assumes you want to change the id to 1003:1003. 
 
@@ -45,9 +45,9 @@ You can also specify the image to fix.
 
 ```sh
 docker compose build navsim-fixid \
-  --build-arg img="ghcr.io/ucf-sttc/navsim/navsim:1.0.0-navsim" \
-  --build-arg duid=1003 \
-  --build-arg dgid=1003
+  -e IMAGE=ghcr.io/ucf-sttc/navsim/navsim:1.0.0-navsim \
+  -e DUID=`id -u` \
+  -e DGID=`id -g`
 ```
 
 You will see output similar to following:
