@@ -40,7 +40,7 @@ DUID=`id -u` DGID=`id -g` docker compose build navsim-fixid
 You can also specify the image to fix as env variable:
 
 ```sh
-IMAGE=ghcr.io/ucf-sttc/navsim/navsim:1.0.0-navsim DUID=`id -u` DGID=`id -g` docker compose build navsim-fixid
+IMAGE=ghcr.io/ucf-sttc/navsim/navsim:1.0.1 DUID=`id -u` DGID=`id -g` docker compose build navsim-fixid
 ```
 
 You will see output similar to following:
@@ -48,19 +48,19 @@ You will see output similar to following:
 ```console
 armando@thunderbird:~/workspaces/navsim$ docker compose build navsim-fixid
 [+] Building 5.5s (8/8) FINISHED                                                                                                                                             
- => [internal] load .dockerignore                                                0.1s
- => => transferring context: 2B                                                  0.0s
- => [internal] load build definition from Dockerfile-navsim-fixid                0.0s
- => => transferring dockerfile: 440B                                             0.0s
- => [internal] load metadata for ghcr.io/ucf-sttc/navsim/navsim:1.0.0-navsim     0.0s
- => [1/4] FROM ghcr.io/ucf-sttc/navsim/navsim:1.0.0-navsim                       1.1s
- => [2/4] RUN id ezdev                                                           0.5s
- => [3/4] RUN usermod -u 1003 ezdev && groupmod -g 1003 ezdev                    2.5s
- => [4/4] RUN id ezdev                                                           0.7s
- => exporting to image                                                           0.4s
- => => exporting layers                                                          0.3s
- => => writing image sha256:e69a490b875892bdbb5498797dcef3aa4551223b5309f80d     0.0s
- => => naming to ghcr.io/ucf-sttc/navsim/navsim:1.0.0-navsim                     0.0s
+ => [internal] load .dockerignore                                               0.1s
+ => => transferring context: 2B                                                 0.0s
+ => [internal] load build definition from Dockerfile-navsim-fixid               0.0s
+ => => transferring dockerfile: 440B                                            0.0s
+ => [internal] load metadata for ghcr.io/ucf-sttc/navsim/navsim:1.0.0           0.0s
+ => [1/4] FROM ghcr.io/ucf-sttc/navsim/navsim:1.0.0                             1.1s
+ => [2/4] RUN id ezdev                                                          0.5s
+ => [3/4] RUN usermod -u 1003 ezdev && groupmod -g 1003 ezdev                   2.5s
+ => [4/4] RUN id ezdev                                                          0.7s
+ => exporting to image                                                          0.4s
+ => => exporting layers                                                         0.3s
+ => => writing image sha256:e69a490b875892bdbb5498797dcef3aa4551223b5309f80d    0.0s
+ => => naming to ghcr.io/ucf-sttc/navsim/navsim:1.0.0                           0.0s
 ```
 
 ## Initial setup
@@ -71,7 +71,9 @@ armando@thunderbird:~/workspaces/navsim$ docker compose build navsim-fixid
   * `$HOME/unity-envs/` : Unity-based standalone binaries are kept here
   * `/data`: This is where all the above symlinked folders are present. Please note in line 7 of `docker-compose.yml`: because on our systems, all our folders such as `workspaces/navsim`, `exp ` and `unity-envs` reside in `/data` and are symlinked in home folder, hence this `/data` folder also has to be mounted else the symlinks wont work in container. If you are not using symlinks, then you can remove this line.
 
-  Run the following command to test everything works fine:
+## Test the container
+
+  Run the following commands to test everything works fine:
 
   `docker compose run --rm navsim-test`
 
