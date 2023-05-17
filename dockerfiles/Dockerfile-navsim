@@ -144,12 +144,15 @@ ARG venv="base"
 ARG activate="source ${home}/.bashrc \
       && mamba activate ${venv} && umask 0000"
 
-COPY repo.zip ${home}/repo.zip
-#RUN mkdir -p ${NAVSIM_DIR}
-RUN unzip -d ${navsim_dir} repo.zip && rm repo.zip
-    #source /root/.bashrc && source /root/ezai-conda.sh && \
-    #ezai_conda_create --venv "base" && \
-    #activate base && \
+####COPY repo.zip ${home}/repo.zip
+####RUN unzip -d ${navsim_dir} repo.zip && rm repo.zip
+COPY --chown=${uname}:${gname} navsim-envs  ${navsim_dir}/navsim-envs/
+COPY --chown=${uname}:${gname} navsim-lab  ${navsim_dir}/navsim-lab/
+COPY --chown=${uname}:${gname} navsim-mlagents ${navsim_dir}/navsim-mlagents/
+COPY --chown=${uname}:${gname} --chmod=+x ./install-repo.sh ${navsim_dir}/install-repo.sh
+COPY --chown=${uname}:${gname} version.txt ${navsim_dir}/version.txt
+
+RUN ls -l ${navsim_dir}
 
 #TODO: bin/bash doesnt activate base so have to do here
 ####RUN source /opt/py/etc/profile.d/conda.sh && conda activate base && \

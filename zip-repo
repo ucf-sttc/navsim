@@ -6,7 +6,7 @@ zip -FSr tools/repo.zip \
     version.txt \
     install-repo.sh \
     examples \
-    -x@syncex.txt
+    -x@.dockerignore
 #    -x "${zip_exclude[@]}"
 #    -x "*/\build" \
 #    -x "*/\dist" \

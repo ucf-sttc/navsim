@@ -35,7 +35,7 @@ x-deploy-nvidia: &deploy-nvidia
               capabilities: [gpu]
 
 x-image: &img
-    image: ${IMAGE:-ghcr.io/ucf-sttc/navsim/navsim:1.0.0-navsim}
+    image: ${IMAGE:-ghcr.io/ucf-sttc/navsim/navsim:1.0.1}
 
 services:
   runtime-base:
@@ -69,7 +69,7 @@ services:
   navsim-build:
     <<: [*img]
     build: 
-      context: ./tools
+      context: .
       dockerfile: dockerfiles/Dockerfile-navsim
       args:
         - from=debian:11.6-slim
@@ -77,7 +77,7 @@ services:
   navsim-fixid:
     <<: [*img]
     build: 
-      context: ./tools
+      context: .
       dockerfile: dockerfiles/Dockerfile-navsim-fixid
       args: 
         <<: *img

@@ -3,7 +3,7 @@ A navigation simulator (navsim) API built on top of Python, Pytorch.
 
 In the future, navsim may be compatible with a variety of simulators, but for now it uses A Realistc Open environment for Rapid Agent training(ARORA) Simulator, that is a highly attributed Unity3D GameEngine based Berlin city environment.
 
-You can either use navsim [with container](#use-navsim-with-container) or [without container](#use-navsim-without-container).
+You can either run navsim [inside container](#run-navsim-inside-container-preferred-and-recommended-way) or [witdirectly in host without container](#run-navsim-in-the-host-without-container).
 
 # Get the code
 
@@ -15,7 +15,7 @@ git clone --recurse-submodules git@github.com:ucf-sttc/navsim.git
 
 All further commands should be done inside navsim repo: `cd navsim`
 
-# Use navsim inside container (preferred and recommended way)
+# Run navsim inside container (preferred and recommended way)
 
 ## Install Pre-requisites for using inside container
 
@@ -30,8 +30,7 @@ To check that dependencies are working properly for your user:
 
 You should see nvidia-smi output.
 
-## Fix the id of user inside the container <a name="fixid"></a>
-
+## Fix the user id inside the container
 The user inside the container, `ezdev`, comes with an id of 1000:1000. If you want this user to be able to read and write files as per your uid:gid, then run the following command to fix the id of the user inside the container:
 
 ```sh
@@ -76,15 +75,22 @@ armando@thunderbird:~/workspaces/navsim$ docker compose build navsim-fixid
 
   `docker compose run --rm navsim-test`
 
-  `docker compose run --rm navsim-test navsim --help`
+  `docker compose run --rm navsim navsim --help`
 
+  In the following test command replace `ARORA3/ARORA.x86_64` with the path to your unity binary that you mapped in `x-data: &data section` of docker-compose in above instructions. In our case it is the foldername and binary after `$HOME/unity-envs` that we mapped in `x-data: &data` section of docker-compose earlier: `ARORA/ARORA.x86_64`.
+
+  `docker compose run --rm navsim navsim --plan --env arora-v0 --show_visual --env_path /unity-envs/ARORA3/ARORA.x86_64`
+  
 ## Run the experiments (inside container)
 
   Run the following command: (remove `-d` after `run` to run it in foreground):
   
   `docker compose run -d --rm navsim <navsim command>`
 
-# Use navsim in the host (without container)
+  [`<navsim command>`](#the-navsim-command-examples) is described in the section below.
+
+
+# Run navsim in the host (without container)
 
 ## Install pre-requisites for using in the host (without container)
 
@@ -92,7 +98,7 @@ armando@thunderbird:~/workspaces/navsim$ docker compose build navsim-fixid
 * ```sh
   cd /path/to/navsim/repo
   mamba create -n navsim python==3.8.16
-  mamba env update -n navsim -f tools/pyenv/navsim.yml
+  mamba env update -n navsim -f pyenv/navsim.yml
   conda activate navsim
   ./install-repo.sh
   ```
@@ -100,9 +106,9 @@ armando@thunderbird:~/workspaces/navsim$ docker compose build navsim-fixid
 
 * Read `navsim_envs` tutorial to use and test the `navsim_envs`
 * Run `jupyter notebook`. The notebooks are in `examples` folder.
-* Run the `<navsim command>` described in the section below
+* Run the [`<navsim command>`](#the-navsim-command-examples) is described in the section below
 
-# The `<navsim command>`
+# The `<navsim command>` examples
 
 * `navsim --plan --env arora-v0 --show_visual --env_path /unity-envs/<path-to-arora-binary>`. For example, `<path-to-arora-binary>` in our case is the foldername and binary after `$HOME/unity-envs` that we mapped in line 5 of docker-compose earlier: `ARORA/ARORA.x86_64`.
 * `navsim_env_test min_env_config.yml`
@@ -139,34 +145,34 @@ Solution: For fixing this error you have to update your nvidia driver and fix th
 
 1. Check your nvidia driver with the following commands: `sudo apt list --installed | grep nvidia-driver` and `nvidia-smi`
 
-For example on our laptop:
+  For example on our laptop:
 
-```console
-armando@thunderbird:~/workspace/navsim$ sudo apt list --installed | grep nvidia-driver
+  ```console
+  armando@thunderbird:~/workspace/navsim$ sudo apt list --installed | grep nvidia-driver
 
-WARNING: apt does not have a stable CLI interface. Use with caution in scripts.
+  WARNING: apt does not have a stable CLI interface. Use with caution in scripts.
 
-nvidia-driver-470/focal-updates,focal-security,now 470.182.03-0ubuntu0.20.04.1 amd64 [installed]
-```
-```console
-armando@thunderbird:~/workspace/navsim$ nvidia-smi
-Sun May 14 10:53:30 2023       
-+-----------------------------------------------------------------------------+
-| NVIDIA-SMI 470.182.03   Driver Version: 470.182.03   CUDA Version: 11.4     |
-|-------------------------------+----------------------+----------------------+
-```
-Reinstall the nvidia-driver or update it to latest one.
-```sh
-sudo apt update
-sudo apt install nvidia-driver-530
-sudo reboot
-```
-If you dont rebooot after installing the driver then you will get the following error: 
-```console
-Failed to initialize NVML: Driver/library version mismatch
-```
+  nvidia-driver-470/focal-updates,focal-security,now 470.182.03-0ubuntu0.20.04.1 amd64 [installed]
+  ```
+  ```console
+  armando@thunderbird:~/workspace/navsim$ nvidia-smi
+  Sun May 14 10:53:30 2023       
+  +-----------------------------------------------------------------------------+
+  | NVIDIA-SMI 470.182.03   Driver Version: 470.182.03   CUDA Version: 11.4     |
+  |-------------------------------+----------------------+----------------------+
+  ```
+  Reinstall the nvidia-driver or update it to latest one.
+  ```sh
+  sudo apt update
+  sudo apt install nvidia-driver-530
+  sudo reboot
+  ```
+  If you dont rebooot after installing the driver then you will get the following error: 
+  ```console
+  Failed to initialize NVML: Driver/library version mismatch
+  ```
 
-2. Update the id inside the container as per section: [Fix the id of user inside the container](#fixid)
+2. Update the id inside the container as per section: [fix the user id inside the container](#fix-the-user-id-inside-the-container)
 
 
 # Contributing to NavSim API
@@ -175,14 +181,14 @@ Failed to initialize NVML: Driver/library version mismatch
 * Use only google style to document your code:
   https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html#example-google
 
-* `$HOME/workspaces/navsim` : Navsim code folder is kept here
+* `/opt/navsim` : Navsim code folder is kept here
 
 ## to modify and build the docs:
 
 1. Create `<version>-docs` branch from `master` or `version` branch
 2. Make sure you have navsim conda env activated and local repo installed with pip.
-3. Modify the `.md` files in `/path/to/navsim-lab`, `/path/to/ai_coop_py`, `/path/to/navsim-envs`
-4. go to `ai_coop_py/docs`
+3. Modify the `.md` files in `/path/to/navsim`, `/path/to/navsim-lab`, `/path/to/navsim-envs`
+4. go to `navsim/docs`
 5. run `make html latexpdf`. If still errors, please call me and I will help fix
 6. `pdf` and `html` versions are inside the `docs/build/...` folders
 7. If you are happy with the PDF/formatting etc then commit and push the doc branch back
@@ -192,6 +198,5 @@ Failed to initialize NVML: Driver/library version mismatch
 Inside `navsim` repo, follow these commands:
 
 ```sh
-./zip-repo
 docker compose build navsim-build
 ```
