@@ -179,6 +179,24 @@ Solution: For fixing this error you have to update your nvidia driver and fix th
 
 # Contributing to NavSim API
 
+## build and test flow
+
+* Modify code
+
+
+## release flow
+* Modify the `version.txt`
+* Modify the version of image in `docker_compose.yml`
+* Build the container: `docker compose build navsim-build`
+* Fix the id: `DUID=$(id -u) DGID=$(id -g) docker compose build navsim-fixid`
+* [Test the container](#test-the-container)
+* Build again to remove effects of fixid: `docker compose build navsim-build`
+* Push the container to dockerhub: `docker compose push navsim-build`
+* Ask someone else to test - TODO: CI/CD testing
+* `git tag vx.x.x` and `git push --tags` : TODO: Make it pull request based or CI/CD based
+* release
+
+
 ## General dev info:
 * Use only google style to document your code:
   https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html#example-google
@@ -195,10 +213,16 @@ Solution: For fixing this error you have to update your nvidia driver and fix th
 6. `pdf` and `html` versions are inside the `docs/build/...` folders
 7. If you are happy with the PDF/formatting etc then commit and push the doc branch back
 
-## How to build the container (not needed if you want to use our pre-built containers)
-
-Inside `navsim` repo, follow these commands:
+## misc tasks:
+To give the zip of repo to someone, run the following command:
 
 ```sh
-docker compose build navsim-build
+zip -FSr repo.zip \
+    navsim-lab navsim-envs \
+    navsim-mlagents/ml-agents-envs \
+    navsim-mlagents/gym-unity \
+    version.txt \
+    install-repo.sh \
+    examples \
+    -x@.dockerignore
 ```

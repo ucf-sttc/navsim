@@ -15,16 +15,16 @@
 	// The optional 'workspaceFolder' property is the path VS Code should open by default when
 	// connected. This is typically a file mount in .devcontainer/docker-compose.yml
 	// "workspaceFolder": "/home/ezdev/${localWorkspaceFolderBasename}",
-	"workspaceFolder": "/opt/navsim"
-	,
-	// Features to add to the dev container. More info: https://containers.dev/features	// "features": {},
+	"workspaceFolder": "/opt/navsim",
+	// Features to add to the dev container. More info: https://containers.dev/features	
+	// "features": {},
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	//"forwardPorts": [3000],
 
 	// Uncomment the next line if you want start specific services in your Docker Compose config.
 	// "runServices": [],
-	"runServices":["navsim-dev"]
+	"runServices":["navsim-dev"],
 
 	// Uncomment the next line if you want to keep your containers running after VS Code shuts down.
 	// "shutdownAction": "none",
@@ -41,8 +41,24 @@
 				"redhat.vscode-yaml",
 				"ms-python.python",
 				"ms-python.vscode-pylance",
-				"ms-python.black-formatter"
-			]
+				//"ms-python.black-formatter",
+				"ms-python.flake8",
+				"omnilib.ufmt"
+			],
+			"settings":{
+				"files.autoSave": "afterDelay",
+				"git.rebaseWhenSync": true,
+				"python.defaultInterpreterPath": "/opt/py/bin/python",
+				"python.formatting.provider": "none",
+				"python.linting.enabled": true,
+				"python.linting.flake8Enabled": true,
+				"[python]": {
+					"editor.defaultFormatter": "omnilib.ufmt"
+				}
+
+				//"black-formatter.interpreter": ["/opt/py/bin/python"],
+				//"black-formatter.path": ["/opt/py/bin/black"]
+			}
 		}
 	},
 

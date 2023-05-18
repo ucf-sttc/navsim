@@ -72,7 +72,9 @@ services:
       context: .
       dockerfile: dockerfiles/Dockerfile-navsim
       args:
-        - from=debian:11.6-slim
+        from: debian:11.6-slim        
+        duid: ${DUID:-1000}
+        dgid: ${DGID:-1000}
 
   navsim-fixid:
     <<: [*img]

@@ -1,15 +1,15 @@
 from pathlib import Path
 
-import cv2
 import gym
 import navsim_lab
 
 from ezai.util import ObjDict
-#from matplotlib import pyplot as plt
+# from matplotlib import pyplot as plt
 from navsim_lab.planner.navsim_planner import NavsimPlanner
 
 from .cli_utils import argparser, non_default_args
 from navsim_lab.executor.navsim_executor import Executor
+
 
 def main():
     """
@@ -17,10 +17,10 @@ def main():
     :return:
     """
     args = ObjDict(vars(argparser.parse_args()))
-    
-    print(f'=========================================')
+
+    print('=========================================')
     print(f'navsim_lab Python API Version {navsim_lab.__version__}')
-    print(f'=========================================')
+    print('=========================================')
     print('arguments passed:')
     print(non_default_args if non_default_args else "None")
     print("Passed + default arguments:")

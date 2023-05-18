@@ -90,6 +90,8 @@ RUN source pyenv.sh \
     && umask 0000 \
     && ez_install_mamba
 
+USER ${uname}
+
 RUN ${activate} \
     && conda config --system --set auto_activate_base true \
     && mamba env config vars set MAMBA_NO_BANNER=1
@@ -106,6 +108,9 @@ ENV DEBIAN_FRONTEND=noninteractive
 SHELL ["/bin/bash", "-c"]
 
 USER root
+
+RUN PATH=${mamba_dir}/bin:$PATH && \
+    mamba init $(basename "${SHELL}")
 
 ARG navsim_dir="/opt/navsim"
 RUN mkdir -p ${navsim_dir} && chmod +rx /opt && \

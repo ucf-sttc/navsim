@@ -14,6 +14,7 @@ ARG gname=ezdev
 USER root
 RUN id ${uname}
 RUN usermod -u ${duid} ${uname} && groupmod -g ${dgid} ${gname}
+#RUN chown -R ${uname}:${gname} /opt/py /opt/navsim
 RUN id ${uname}
 #sudo usermod -a -G $DGID ezdev
 USER ${uname}

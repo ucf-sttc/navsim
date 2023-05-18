@@ -1,4 +1,4 @@
-Welcome to NavSim |version| documentation
+NavSim |version| documentation
 *******************************************
 .. toctree::
    :maxdepth: 3
