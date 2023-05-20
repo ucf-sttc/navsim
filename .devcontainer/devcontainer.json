@@ -41,9 +41,10 @@
 				"redhat.vscode-yaml",
 				"ms-python.python",
 				"ms-python.vscode-pylance",
-				//"ms-python.black-formatter",
 				"ms-python.flake8",
-				"omnilib.ufmt"
+				"omnilib.ufmt",
+				"GitHub.vscode-pull-request-github",
+				"github.vscode-github-actions"
 			],
 			"settings":{
 				"files.autoSave": "afterDelay",
@@ -54,7 +55,8 @@
 				"python.linting.flake8Enabled": true,
 				"[python]": {
 					"editor.defaultFormatter": "omnilib.ufmt"
-				}
+				},
+				"editor.tabSize": 2
 
 				//"black-formatter.interpreter": ["/opt/py/bin/python"],
 				//"black-formatter.path": ["/opt/py/bin/black"]

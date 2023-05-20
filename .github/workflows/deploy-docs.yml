@@ -1,0 +1,25 @@
+name: 'deploy-pages'
+
+on:
+  push:
+    branches: ['ts']
+  #pull_request:
+  #  branches: [ "ts" ]
+
+jobs:
+  deploy-to-gh-pages:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/ucf-sttc/navsim/navsim:1.0.1
+      options: --cpus 1 --user 1001
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v3
+      - name: build docs
+        run: cd docs && make html
+      - name: deploy to gh-pages branch
+        if: ${{ github.event_name != 'pull_request' }}
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: docs/build/html
