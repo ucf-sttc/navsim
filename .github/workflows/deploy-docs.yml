@@ -2,7 +2,7 @@ name: 'deploy-pages'
 
 on:
   push:
-    branches: ['ts']
+    branches: ['main']
   #pull_request:
   #  branches: [ "ts" ]
 
