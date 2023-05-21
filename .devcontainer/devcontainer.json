@@ -44,7 +44,8 @@
 				"ms-python.flake8",
 				"omnilib.ufmt",
 				"GitHub.vscode-pull-request-github",
-				"github.vscode-github-actions"
+				"github.vscode-github-actions",
+				"ms-vscode.makefile-tools"
 			],
 			"settings":{
 				"files.autoSave": "afterDelay",
