@@ -3,7 +3,7 @@ A navigation simulator (navsim) API built on top of Python, Pytorch.
 
 In the future, navsim may be compatible with a variety of simulators, but for now it uses A Realistc Open environment for Rapid Agent training(ARORA) Simulator, that is a highly attributed Unity3D GameEngine based Berlin city environment.
 
-You can either run navsim [inside container](#run-navsim-inside-container-preferred-and-recommended-way) or [witdirectly in host without container](#run-navsim-in-the-host-without-container).
+You can either run navsim [inside container](#run-navsim-inside-container-preferred-and-recommended-way) or [directly in host without container](#run-navsim-in-the-host-without-container).
 
 # Get the code
 
@@ -79,9 +79,9 @@ armando@thunderbird:~/workspaces/navsim$ docker compose build navsim-fixid
 
   `docker compose run --rm navsim navsim --help`
 
-  In the following test command replace `ARORA3/ARORA.x86_64` with the path to your unity binary that you mapped in `x-data: &data section` of docker-compose in above instructions. In our case it is the foldername and binary after `$HOME/unity-envs` that we mapped in `x-data: &data` section of docker-compose earlier: `ARORA/ARORA.x86_64`.
+  In the following test command replace `ARORA1/ARORA.x86_64` with the path to your unity binary that you mapped in `x-data: &data section` of docker-compose in above instructions. In our case it is the foldername and binary after `$HOME/unity-envs` that we mapped in `x-data: &data` section of docker-compose earlier: `ARORA/ARORA.x86_64`.
 
-  `docker compose run --rm navsim navsim --plan --env arora-v0 --show_visual --env_path /unity-envs/ARORA3/ARORA.x86_64`
+  `docker compose run --rm navsim navsim --plan --env arora-v0 --show_visual --env_path /unity-envs/ARORA1/ARORA.x86_64`
   
 ## Run the experiments (inside container)
 

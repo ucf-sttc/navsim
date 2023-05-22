@@ -272,6 +272,7 @@ dependencies:
   - snappy=1.1.10
   - snowballstemmer=2.2.0
   - sphinx=5.3.0
+  - sphinx-copybutton
   - sphinx_rtd_theme=1.2.0
   - sphinxcontrib-applehelp=1.0.4
   - sphinxcontrib-devhelp=1.0.2

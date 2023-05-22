@@ -2,6 +2,7 @@ NavSim |version| documentation
 *******************************************
 .. toctree::
    :maxdepth: 3
+   :numbered:
 
    Introduction <navsim/README.md>
    navsim_envs Tutorial <navsim-envs/README.md>

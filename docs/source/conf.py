@@ -12,7 +12,7 @@
 #
 import os
 import sys
-import sphinx_rtd_theme
+import sphinx_rtd_theme  # noqa
 
 sys.path.insert(0, os.path.abspath('../..'))
 
@@ -20,7 +20,7 @@ sys.path.insert(0, os.path.abspath('../..'))
 
 with open('../../version.txt', 'r') as vf:
     version = vf.read().strip()
-project = 'NavSim'
+project = 'navsim'
 copyright = '2021, STTC, UCF'
 author = 'STTC, UCF'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
@@ -35,6 +35,7 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.todo',
               'sphinx.ext.viewcode',
               'sphinx.ext.autosectionlabel',
+              'sphinx_copybutton',
               'sphinx_rtd_theme',
               # 'sphinxcontrib.katex',
               # 'sphinx_copybutton',
@@ -44,7 +45,7 @@ extensions = ['sphinx.ext.autodoc',
               ]
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+# templates_path = ['_templates']
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -55,10 +56,10 @@ autodoc_default_flags = []
 autodoc_default_options = {
     'member-order': 'alphabetical',
     'members': True,
-    'undoc-members':True,
-    'show-inheritance':True,
-    'inherited-members':False,
-    'inherit-docstrings':False,
+    'undoc-members': True,
+    'show-inheritance': True,
+    'inherited-members': False,
+    'inherit-docstrings': False,
 }
 
 # -- Options for HTML output -------------------------------------------------
@@ -88,14 +89,17 @@ html_theme_options = {
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
+html_show_sourcelink = False
+html_copy_source = False
+
 
 # At the bottom of conf.py
 def setup(app):
     pass
-        #app.add_config_value('recommonmark_config', {
-        # 'url_resolver': lambda url: github_doc_root + url,
-        # 'auto_toc_tree_section': 'Contents',
-        #}, True)
+    # app.add_config_value('recommonmark_config', {
+    # 'url_resolver': lambda url: github_doc_root + url,
+    # 'auto_toc_tree_section': 'Contents',
+    # }, True)
 
 
 #    app.add_transform(AutoStructify)
