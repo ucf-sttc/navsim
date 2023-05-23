@@ -45,7 +45,8 @@
 				"omnilib.ufmt",
 				"GitHub.vscode-pull-request-github",
 				"github.vscode-github-actions",
-				"ms-vscode.makefile-tools"
+				"ms-vscode.makefile-tools",
+				"ExecutableBookProject.myst-highlight"
 			],
 			"settings":{
 				"files.autoSave": "afterDelay",

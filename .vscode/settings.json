@@ -1,0 +1,12 @@
+{
+    "files.autoSave": "afterDelay",
+    "git.rebaseWhenSync": true,
+    "python.defaultInterpreterPath": "/opt/py/bin/python",
+    "python.formatting.provider": "none",
+    "python.linting.enabled": true,
+    "python.linting.flake8Enabled": true,
+    "[python]": {
+        "editor.defaultFormatter": "omnilib.ufmt"
+    },
+    "editor.tabSize": 2
+}

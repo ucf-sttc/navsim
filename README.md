@@ -1,11 +1,12 @@
-# Introduction 
 A navigation simulator (navsim) API built on top of Python, Pytorch.
 
 In the future, navsim may be compatible with a variety of simulators, but for now it uses A Realistc Open environment for Rapid Agent training(ARORA) Simulator, that is a highly attributed Unity3D GameEngine based Berlin city environment.
 
+# Getting started
+
 You can either run navsim [inside container](#run-navsim-inside-container-preferred-and-recommended-way) or [directly in host without container](#run-navsim-in-the-host-without-container).
 
-# Get the code
+## Get the code
 
 clone the `navsim` repo:
 
@@ -15,9 +16,9 @@ git clone --recurse-submodules git@github.com:ucf-sttc/navsim.git
 
 All further commands should be done inside navsim repo: `cd navsim`
 
-# Run navsim inside container (preferred and recommended way)
+## Run navsim inside container (preferred and recommended way)
 
-## Install Pre-requisites for using inside container
+### Install Pre-requisites for using inside container
 
 Please make sure to install the following as per latest instrunctions that work for your system. As a guidance the link to instructions that worked are being provided.
 * Install [nvidia driver](https://docs.nvidia.com/datacenter/tesla/tesla-installation-notes/index.html)
@@ -30,7 +31,7 @@ To check that dependencies are working properly for your user:
 
 You should see nvidia-smi output.
 
-## Fix the user id inside the container
+### Fix the user id inside the container
 The user inside the container, `ezdev`, comes with an id of 1000:1000. If you want this user to be able to read and write files as per your uid:gid, then run the following command to fix the id of the user inside the container:
 
 ```sh
@@ -63,7 +64,7 @@ armando@thunderbird:~/workspaces/navsim$ docker compose build navsim-fixid
  => => naming to ghcr.io/ucf-sttc/navsim/navsim:1.0.0                           0.0s
 ```
 
-## Initial setup
+### Initial setup
 
   Modify the lines 6-8 of `navsim/docker-compose.yml` for paths specific to your system.
 
@@ -71,7 +72,7 @@ armando@thunderbird:~/workspaces/navsim$ docker compose build navsim-fixid
   * `$HOME/unity-envs/` : Unity-based standalone binaries are kept here
   * `/data`: This is where all the above symlinked folders are present. Please note in line 7 of `docker-compose.yml`: because on our systems, all our folders such as `workspaces/navsim`, `exp ` and `unity-envs` reside in `/data` and are symlinked in home folder, hence this `/data` folder also has to be mounted else the symlinks wont work in container. If you are not using symlinks, then you can remove this line.
 
-## Test the container
+### Test the container
 
   Run the following commands to test everything works fine:
 
@@ -83,7 +84,7 @@ armando@thunderbird:~/workspaces/navsim$ docker compose build navsim-fixid
 
   `docker compose run --rm navsim navsim --plan --env arora-v0 --show_visual --env_path /unity-envs/ARORA1/ARORA.x86_64`
   
-## Run the experiments (inside container)
+### Run the experiments (inside container)
 
   Run the following command: (remove `-d` after `run` to run it in foreground):
   
@@ -92,9 +93,9 @@ armando@thunderbird:~/workspaces/navsim$ docker compose build navsim-fixid
   [`<navsim command>`](#the-navsim-command-examples) is described in the section below.
 
 
-# Run navsim in the host (without container)
+## Run navsim in the host (without container)
 
-## Install pre-requisites for using in the host (without container)
+### Install pre-requisites for using in the host (without container)
 
 * Install `mamba 4.12.0-3` : `https://github.com/conda-forge/miniforge/releases/download/4.12.0-3/Mambaforge-4.12.0-3-Linux-x86_64.sh`
 * ```sh
@@ -104,13 +105,13 @@ armando@thunderbird:~/workspaces/navsim$ docker compose build navsim-fixid
   conda activate navsim
   ./install-repo.sh
   ```
-## Run the experiments (in the host, without container)
+### Run the experiments (in the host, without container)
 
 * Read `navsim_envs` tutorial to use and test the `navsim_envs`
 * Run `jupyter notebook`. The notebooks are in `examples` folder.
 * Run the [`<navsim command>`](#the-navsim-command-examples) is described in the section below
 
-# The `<navsim command>` examples
+## The `<navsim command>` examples
 
 * `navsim --plan --env arora-v0 --show_visual --env_path /unity-envs/<path-to-arora-binary>`. For example, `<path-to-arora-binary>` in our case is the foldername and binary after `$HOME/unity-envs` that we mapped in line 5 of docker-compose earlier: `ARORA/ARORA.x86_64`.
 * `navsim_env_test min_env_config.yml`
@@ -125,9 +126,9 @@ armando@thunderbird:~/workspaces/navsim$ docker compose build navsim-fixid
 
 ```
 
-# Errors FAQ
+## Errors FAQ
 
-## Getting vulkan error while starting the container
+### vulkan error while starting the container
 ```console
 ERROR: [Loader Message] Code 0 : /usr/lib/x86_64-linux-gnu/libvulkan_radeon.so: cannot open shared object file: No such file or directory
 No protocol specified
@@ -177,14 +178,14 @@ Solution: For fixing this error you have to update your nvidia driver and fix th
 2. Update the id inside the container as per section: [fix the user id inside the container](#fix-the-user-id-inside-the-container)
 
 
-# Contributing to NavSim API
+## Contributing to NavSim API
 
-## build and test flow
+### build and test flow
 
 * Modify code
 
 
-## release flow
+### release flow
 * Modify the `version.txt`
 * Modify the version of image in `docker_compose.yml`
 * Build the container: `docker compose build navsim-build`
@@ -197,13 +198,13 @@ Solution: For fixing this error you have to update your nvidia driver and fix th
 * release
 
 
-## General dev info:
+### General dev info:
 * Use only google style to document your code:
   https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html#example-google
 
 * `/opt/navsim` : Navsim code folder is kept here
 
-## to modify and build the docs:
+### to modify and build the docs:
 
 1. Create `<version>-docs` branch from `master` or `version` branch
 2. Make sure you have navsim conda env activated and local repo installed with pip.
@@ -213,7 +214,7 @@ Solution: For fixing this error you have to update your nvidia driver and fix th
 6. `pdf` and `html` versions are inside the `docs/build/...` folders
 7. If you are happy with the PDF/formatting etc then commit and push the doc branch back
 
-## misc tasks:
+### misc tasks:
 To give the zip of repo to someone, run the following command:
 
 ```sh

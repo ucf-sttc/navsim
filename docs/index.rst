@@ -1,10 +1,9 @@
-NavSim |version| documentation
-*******************************************
+navsim |version| documentation
+===============================
 .. toctree::
    :maxdepth: 3
-   :numbered:
 
-   Introduction <navsim/README.md>
+   navsim/README.md
    navsim_envs Tutorial <navsim-envs/README.md>
    navsim_envs_api
    ARORA Sim Tutorial - After Action Review (AAR) Mode<navsim-envs/aar.md>

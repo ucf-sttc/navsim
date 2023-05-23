@@ -273,7 +273,8 @@ dependencies:
   - snowballstemmer=2.2.0
   - sphinx=5.3.0
   - sphinx-copybutton
-  - sphinx_rtd_theme=1.2.0
+  - sphinx-togglebutton
+  - sphinx-book-theme
   - sphinxcontrib-applehelp=1.0.4
   - sphinxcontrib-devhelp=1.0.2
   - sphinxcontrib-htmlhelp=2.0.1
