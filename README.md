@@ -192,12 +192,12 @@ Solution: For fixing this error you have to update your nvidia driver and fix th
   * docker-compose.yml
   * .github/workflows/deploy-docs.yml
 * Build the container: `docker compose build navsim-build`
-* Run fixid
+* Run fixid: `DUID=``id -u`` DGID=``id -g`` docker compose build navsim-fixid`
 * Test the container
 * Commit and push the changes
 * create a pull request to main branch
 * Merge the pull request
-* Switch to main branch
+* Switch to main branch: `git checkout main`
 * Build the container: `docker compose build navsim-build`
 * Push the container: `docker compose push navsim-build`
 * `git tag vx.x.x` and `git push --tags`
