@@ -41,7 +41,7 @@ DUID=`id -u` DGID=`id -g` docker compose build navsim-fixid
 You can also specify the image to fix as env variable:
 
 ```sh
-IMAGE=ghcr.io/ucf-sttc/navsim/navsim:1.0.1 DUID=`id -u` DGID=`id -g` docker compose build navsim-fixid
+IMAGE=ghcr.io/ucf-sttc/navsim/navsim:1.2.0 DUID=`id -u` DGID=`id -g` docker compose build navsim-fixid
 ```
 
 You will see output similar to following:
@@ -53,15 +53,15 @@ armando@thunderbird:~/workspaces/navsim$ docker compose build navsim-fixid
  => => transferring context: 2B                                                 0.0s
  => [internal] load build definition from Dockerfile-navsim-fixid               0.0s
  => => transferring dockerfile: 440B                                            0.0s
- => [internal] load metadata for ghcr.io/ucf-sttc/navsim/navsim:1.0.0           0.0s
- => [1/4] FROM ghcr.io/ucf-sttc/navsim/navsim:1.0.0                             1.1s
+ => [internal] load metadata for ghcr.io/ucf-sttc/navsim/navsim:1.2.0           0.0s
+ => [1/4] FROM ghcr.io/ucf-sttc/navsim/navsim:1.2.0                             1.1s
  => [2/4] RUN id ezdev                                                          0.5s
  => [3/4] RUN usermod -u 1003 ezdev && groupmod -g 1003 ezdev                   2.5s
  => [4/4] RUN id ezdev                                                          0.7s
  => exporting to image                                                          0.4s
  => => exporting layers                                                         0.3s
  => => writing image sha256:e69a490b875892bdbb5498797dcef3aa4551223b5309f80d    0.0s
- => => naming to ghcr.io/ucf-sttc/navsim/navsim:1.0.0                           0.0s
+ => => naming to ghcr.io/ucf-sttc/navsim/navsim:1.2.0                           0.0s
 ```
 
 ### Initial setup
@@ -80,9 +80,9 @@ armando@thunderbird:~/workspaces/navsim$ docker compose build navsim-fixid
 
   `docker compose run --rm navsim navsim --help`
 
-  In the following test command replace `ARORA1/ARORA.x86_64` with the path to your unity binary that you mapped in `x-data: &data section` of docker-compose in above instructions. In our case it is the foldername and binary after `$HOME/unity-envs` that we mapped in `x-data: &data` section of docker-compose earlier: `ARORA/ARORA.x86_64`.
+  In the following test command replace `ARORA/ARORA.x86_64` with the path to your unity binary that you mapped in `x-data: &data section` of docker-compose in above instructions. In our case it is the foldername and binary after `$HOME/unity-envs` that we mapped in `x-data: &data` section of docker-compose earlier: `ARORA/ARORA.x86_64`.
 
-  `docker compose run --rm navsim navsim --plan --env arora-v0 --show_visual --env_path /unity-envs/ARORA1/ARORA.x86_64`
+  `docker compose run --rm navsim navsim --plan --env arora-v0 --show_visual --env_path /unity-envs/ARORA/ARORA.x86_64`
   
 ### Run the experiments (inside container)
 

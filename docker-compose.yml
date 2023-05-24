@@ -35,7 +35,7 @@ x-deploy-nvidia: &deploy-nvidia
               capabilities: [gpu]
 
 x-image: &img
-    image: ${IMAGE:-ghcr.io/ucf-sttc/navsim/navsim:1.0.1}
+    image: ${IMAGE:-ghcr.io/ucf-sttc/navsim/navsim:1.2.0}
 
 services:
   runtime-base:
@@ -64,7 +64,7 @@ services:
     extends:
        service: navsim
     <<: [*code]
-    command: bash -c "cd /opt/navsim; ./install-repo.sh; while sleep 1000; do :; done"
+    command: bash -c "while sleep 1000; do :; done"
 
   navsim-build:
     <<: [*img]

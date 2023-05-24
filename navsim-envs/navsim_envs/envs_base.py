@@ -26,10 +26,11 @@ from navsim_envs.util import (
 )
 from navsim_envs.exceptions import EnvNotInitializedError
 
-from gym_unity.envs import (
+from mlagents_envs.envs.unity_gym_env import (
     UnityToGymWrapper,
     GymStepResult
 )
+
 
 class UnityEnvBase(UnityEnvironment):
 
