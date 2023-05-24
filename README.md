@@ -182,43 +182,53 @@ Solution: For fixing this error you have to update your nvidia driver and fix th
 
 ### build and test flow
 
-* Modify code
+#### For Code
 
+1. Switch to feature branch
+2. Modify code
+3. Test it in container
+
+### For docs
+
+1. Switch to feature branch
+2. `docker compose run navsim-dev bash`
+4. `cd navsim/docs`
+5. `make html latexpdf`
+6. `pdf` and `html` versions are inside the `docs/build/...` folders
 
 ### release flow
-* switch to feature branch
-* Modify the `version.txt`
-* Modify image version in:
+
+1. switch to feature branch
+2. Update version
+  * Modify the `version.txt`
+  * Modify image version in:
   * docker-compose.yml
   * .github/workflows/deploy-docs.yml
-* Build the container: `docker compose build navsim-build`
-* Run fixid: `DUID=``id -u`` DGID=``id -g`` docker compose build navsim-fixid`
-* Test the container
-* Commit and push the changes
-* create a pull request to main branch
-* Merge the pull request
-* Switch to main branch: `git checkout main`
-* Build the container: `docker compose build navsim-build`
-* Push the container: `docker compose push navsim-build`
-* `git tag vx.x.x` and `git push --tags`
-* Run the docs workflow in github manually
-* Create a release in github with the tag
+3. Build the container: 
+  ```sh
+  docker compose build navsim-build
+  DUID=`id -u` DGID=`id -g` docker compose build navsim-fixid
+  ```
+4. Test the container
+5. Commit and push the changes to feature branch
+6. create a pull request to main branch
+7. Switch to main branch: `git checkout main`
+8. Merge the pull request
+9. Build and push the container: 
+  ```sh
+  docker compose build navsim-build
+  docker compose push navsim-build
+  ```
+10. Run the docs workflow in github manually
+11. `git tag vx.x.x` and `git push --tags`
+12. Create a release in github with the tag
 
 ### General dev info:
 * Use only google style to document your code:
   https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html#example-google
 
-* `/opt/navsim` : Navsim code folder is kept here
+* `/opt/navsim` : Navsim code folder
 
-### to modify and build the docs:
-
-1. Create `<version>-docs` branch from `master` or `version` branch
-2. Make sure you have navsim conda env activated and local repo installed with pip.
-3. Modify the `.md` files in `/path/to/navsim`, `/path/to/navsim-lab`, `/path/to/navsim-envs`
-4. go to `navsim/docs`
-5. run `make html latexpdf`. If still errors, please call me and I will help fix
-6. `pdf` and `html` versions are inside the `docs/build/...` folders
-7. If you are happy with the PDF/formatting etc then commit and push the doc branch back
 
 ### misc tasks:
 To give the zip of repo to someone, run the following command:
