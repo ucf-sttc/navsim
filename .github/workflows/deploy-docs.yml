@@ -11,7 +11,7 @@ jobs:
   deploy-to-gh-pages:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/ucf-sttc/navsim/navsim:1.0.1
+      image: ghcr.io/ucf-sttc/navsim/navsim:2.0.0
       options: --cpus 1 --user 1001
     steps:
       - name: checkout repository

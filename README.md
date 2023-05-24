@@ -186,17 +186,23 @@ Solution: For fixing this error you have to update your nvidia driver and fix th
 
 
 ### release flow
+* switch to feature branch
 * Modify the `version.txt`
-* Modify the version of image in `docker_compose.yml`
+* Modify image version in:
+  * docker-compose.yml
+  * .github/workflows/deploy-docs.yml
 * Build the container: `docker compose build navsim-build`
-* Fix the id: `DUID=$(id -u) DGID=$(id -g) docker compose build navsim-fixid`
-* [Test the container](#test-the-container)
-* Build again to remove effects of fixid: `docker compose build navsim-build`
-* Push the container to dockerhub: `docker compose push navsim-build`
-* Ask someone else to test - TODO: CI/CD testing
-* `git tag vx.x.x` and `git push --tags` : TODO: Make it pull request based or CI/CD based
-* release
-
+* Run fixid
+* Test the container
+* Commit and push the changes
+* create a pull request to main branch
+* Merge the pull request
+* Switch to main branch
+* Build the container: `docker compose build navsim-build`
+* Push the container: `docker compose push navsim-build`
+* `git tag vx.x.x` and `git push --tags`
+* Run the docs workflow in github manually
+* Create a release in github with the tag
 
 ### General dev info:
 * Use only google style to document your code:
