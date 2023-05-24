@@ -41,7 +41,7 @@ DUID=`id -u` DGID=`id -g` docker compose build navsim-fixid
 You can also specify the image to fix as env variable:
 
 ```sh
-IMAGE=ghcr.io/ucf-sttc/navsim/navsim:1.2.0 DUID=`id -u` DGID=`id -g` docker compose build navsim-fixid
+IMAGE=ghcr.io/ucf-sttc/navsim/navsim:<version> DUID=`id -u` DGID=`id -g` docker compose build navsim-fixid
 ```
 
 You will see output similar to following:
@@ -49,19 +49,19 @@ You will see output similar to following:
 ```console
 armando@thunderbird:~/workspaces/navsim$ docker compose build navsim-fixid
 [+] Building 5.5s (8/8) FINISHED                                                                                                                                             
- => [internal] load .dockerignore                                               0.1s
- => => transferring context: 2B                                                 0.0s
- => [internal] load build definition from Dockerfile-navsim-fixid               0.0s
- => => transferring dockerfile: 440B                                            0.0s
- => [internal] load metadata for ghcr.io/ucf-sttc/navsim/navsim:1.2.0           0.0s
- => [1/4] FROM ghcr.io/ucf-sttc/navsim/navsim:1.2.0                             1.1s
- => [2/4] RUN id ezdev                                                          0.5s
- => [3/4] RUN usermod -u 1003 ezdev && groupmod -g 1003 ezdev                   2.5s
- => [4/4] RUN id ezdev                                                          0.7s
- => exporting to image                                                          0.4s
- => => exporting layers                                                         0.3s
- => => writing image sha256:e69a490b875892bdbb5498797dcef3aa4551223b5309f80d    0.0s
- => => naming to ghcr.io/ucf-sttc/navsim/navsim:1.2.0                           0.0s
+ => [internal] load .dockerignore                                      0.1s
+ => => transferring context: 2B                                        0.0s
+ => [internal] load build definition from Dockerfile-navsim-fixid      0.0s
+ => => transferring dockerfile: 440B                                   0.0s
+ => [internal] load metadata for ghcr.io/ucf-sttc/navsim/navsim        0.0s
+ => [1/4] FROM ghcr.io/ucf-sttc/navsim/navsim                          1.1s
+ => [2/4] RUN id ezdev                                                 0.5s
+ => [3/4] RUN usermod -u 1003 ezdev && groupmod -g 1003 ezdev          2.5s
+ => [4/4] RUN id ezdev                                                 0.7s
+ => exporting to image                                                 0.4s
+ => => exporting layers                                                0.3s
+ => => writing image sha256:e69a490b875892bdbb5498797dcef3aa4551223    0.0s
+ => => naming to ghcr.io/ucf-sttc/navsim/navsim                        0.0s
 ```
 
 ### Initial setup

@@ -35,7 +35,7 @@ x-deploy-nvidia: &deploy-nvidia
               capabilities: [gpu]
 
 x-image: &img
-    image: ${IMAGE:-ghcr.io/ucf-sttc/navsim/navsim:1.2.0}
+    image: ${IMAGE:-ghcr.io/ucf-sttc/navsim/navsim:2.0.0}
 
 services:
   runtime-base:
