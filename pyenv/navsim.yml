@@ -307,6 +307,7 @@ dependencies:
   - urllib3=1.26.15
   - werkzeug=2.3.2
   - wheel=0.40.0
+  - watermark
   - x264=1!164.3095
   - x265=3.5
   - xcb-util=0.4.0
