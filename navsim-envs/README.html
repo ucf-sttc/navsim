@@ -1,0 +1,716 @@
+
+
+<!DOCTYPE html>
+
+
+<html lang="en" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>navsim_envs Package Tutorial &#8212; navsim v2.0.0 docs</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "light";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=e353d410970836974a52" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=e353d410970836974a52" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=e353d410970836974a52" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.1.2/css/all.min.css?digest=e353d410970836974a52" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.1.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.1.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.1.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" href="../_static/styles/sphinx-book-theme.css?digest=14f4ca6b54d191a8c7657f6c759bf11a5fb86285" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=e353d410970836974a52" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52" />
+
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/clipboard.min.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?digest=5a5c038af52cf7bc1a1ec88eea08e6366ee68824"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../_static/togglebutton.js"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'navsim-envs/README';</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="navsim_envs API" href="../navsim_envs_api.html" />
+    <link rel="prev" title="Getting started" href="../navsim/README.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__primary"
+          id="__primary"/>
+  <label class="overlay overlay-primary" for="__primary"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__secondary"
+          id="__secondary"/>
+  <label class="overlay overlay-secondary" for="__secondary"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+  
+    <nav class="bd-header navbar navbar-expand-lg bd-navbar">
+    </nav>
+  
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    <p class="title logo__title">navsim v2.0.0 docs</p>
+  
+</a></div>
+        <div class="sidebar-primary-item"><nav class="bd-links" id="bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="../index.html">
+                    Home
+                </a>
+            </li>
+        </ul>
+        <ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../navsim/README.html">Getting started</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">navsim_envs Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../navsim_envs_api.html">navsim_envs API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aar.html">ARORA Sim Tutorial - After Action Review (AAR) Mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../navsim/navsim_conda.html">Conda/Container Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../navsim_lab_api.html">NavSim Labs API</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><label class="sidebar-toggle primary-toggle btn btn-sm" for="__primary" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</label></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../_sources/" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+<script>
+document.write(`
+  <button class="theme-switch-button btn btn-sm btn-outline-primary navbar-btn rounded-circle" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch" data-mode="light"><i class="fa-solid fa-sun"></i></span>
+    <span class="theme-switch" data-mode="dark"><i class="fa-solid fa-moon"></i></span>
+    <span class="theme-switch" data-mode="auto"><i class="fa-solid fa-circle-half-stroke"></i></span>
+  </button>
+`);
+</script>
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+  </button>
+`);
+</script>
+<label class="sidebar-toggle secondary-toggle btn btn-sm" for="__secondary"title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</label>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>navsim_envs Package Tutorial</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#test-the-installation">Test the installation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#how-to-use-the-arora-env">How to use the ARORA env</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#config-parameters">Config Parameters</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#observation-mode">Observation Mode</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#segmentation-mode">Segmentation Mode</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#task">Task</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#goal-only-relevant-for-simpleobjectnav-and-objectnav">Goal : Only relevant for SimpleObjectNav and ObjectNav</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rewards">Rewards</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#reward-values">Reward Values</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#reward-specifications">Reward Specifications</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#agent-car-physics">Agent Car Physics</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#action-space">Action Space</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#car-motion-explanation-based-on-action-space">Car motion explanation based on action space</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#simple-car-physics-agent-car-physics-0">Simple Car Physics (Agent car physics <code class="docutils literal notranslate"><span class="pre">0</span></code>)</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#torque-driven-car-physics-agent-car-physics-0">Torque-Driven Car Physics (Agent car physics <code class="docutils literal notranslate"><span class="pre">&gt;0</span></code>)</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#observation-space">Observation Space</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-vector-observation-space">The vector observation space</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-visual-observation-space">The visual observation space</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#depth-camera-images">Depth Camera Images</a></li>
+</ul>
+</li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article" role="main">
+                  
+  <div class="section" id="navsim-envs-package-tutorial">
+<h1><code class="docutils literal notranslate"><span class="pre">navsim_envs</span></code> Package Tutorial<a class="headerlink" href="#navsim-envs-package-tutorial" title="Permalink to this heading">#</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">navsim_envs</span></code> is a package that wraps the environments for Reinforcement
+Learning. Current implementation has the following sims encapsulated:</p>
+<ul class="simple">
+<li><p>ARORA from UCF</p></li>
+<li><p>RIDE from military</p></li>
+</ul>
+<div class="section" id="test-the-installation">
+<h2>Test the installation<a class="headerlink" href="#test-the-installation" title="Permalink to this heading">#</a></h2>
+<ul>
+<li><p>Create an experiment folder, we use folder <code class="docutils literal notranslate"><span class="pre">~/exp</span></code> and change into this folder.</p></li>
+<li><p>Create a minimal yaml file with the following contents:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">env_path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/path/to/Berlin_Walk_V2</span>
+</pre></div>
+</div>
+<p>Let us say you named this file <code class="docutils literal notranslate"><span class="pre">min_env_config.yml</span></code>.</p>
+</li>
+<li><p>Run the tests: <code class="docutils literal notranslate"><span class="pre">navsim_env_test</span> <span class="pre">min_env_config.yml</span></code>. If you are using <code class="docutils literal notranslate"><span class="pre">navsim</span></code>
+container then follow the instructions on the container page.</p></li>
+</ul>
+</div>
+<div class="section" id="how-to-use-the-arora-env">
+<h2>How to use the ARORA env<a class="headerlink" href="#how-to-use-the-arora-env" title="Permalink to this heading">#</a></h2>
+<p>If you only want to use <code class="docutils literal notranslate"><span class="pre">AroraGymEnv</span></code>, then either subclass it or use it as follows:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">navsim_envs</span>
+<span class="kn">from</span> <span class="nn">navsim_envs.arora</span> <span class="kn">import</span> <span class="n">AroraGymEnv</span><span class="p">,</span> <span class="n">default_env_config</span>
+<span class="kn">import</span> <span class="nn">gym</span>
+
+<span class="n">env_config</span> <span class="o">=</span> <span class="n">default_env_config</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+<span class="c1"># or</span>
+
+<span class="n">default_env_config</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;agent_car_physics&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="s2">&quot;area&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="s2">&quot;debug&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="s2">&quot;episode_max_steps&quot;</span><span class="p">:</span> <span class="mi">1000</span><span class="p">,</span>
+    <span class="s2">&quot;env_gpu_id&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="s2">&quot;env_path&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="s2">&quot;goal&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="s2">&quot;goal_distance&quot;</span><span class="p">:</span> <span class="mi">50</span><span class="p">,</span>
+    <span class="s2">&quot;goal_clearance&quot;</span><span class="p">:</span> <span class="mf">2.5</span><span class="p">,</span>
+    <span class="s2">&quot;log_folder&quot;</span><span class="p">:</span> <span class="s2">&quot;./env_log&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;obs_mode&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="s2">&quot;obs_height&quot;</span><span class="p">:</span> <span class="mi">64</span><span class="p">,</span>
+    <span class="s2">&quot;obs_width&quot;</span><span class="p">:</span> <span class="mi">64</span><span class="p">,</span>
+    <span class="s2">&quot;seed&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="s2">&quot;segmentation_mode&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="s2">&quot;start_from_episode&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="s2">&quot;reward_for_goal&quot;</span><span class="p">:</span> <span class="mi">50</span><span class="p">,</span>
+    <span class="s2">&quot;reward_for_no_viable_path&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mi">50</span><span class="p">,</span>
+    <span class="s2">&quot;reward_step_mul&quot;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">,</span>
+    <span class="s2">&quot;reward_collision_mul&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+    <span class="s2">&quot;reward_spl_delta_mul&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="s2">&quot;relative_steering&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="s2">&quot;save_actions&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="s2">&quot;save_vector_obs&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="s2">&quot;save_visual_obs&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="s2">&quot;show_visual&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="s2">&quot;task&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="s2">&quot;terrain&quot;</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span>
+    <span class="s2">&quot;timeout&quot;</span><span class="p">:</span> <span class="mi">600</span><span class="p">,</span>
+    <span class="s2">&quot;traffic_vehicles&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="s2">&quot;worker_id&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="s2">&quot;base_port&quot;</span><span class="p">:</span> <span class="mi">5004</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="c1"># Either use gym.make to create an env</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s2">&quot;arora-v0&quot;</span><span class="p">,</span> <span class="n">env_config</span><span class="o">=</span><span class="n">env_config</span><span class="p">)</span>
+<span class="c1"># or use the AroraGymEnv constructor to create an env</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">AroraGymEnv</span><span class="p">(</span><span class="n">env_config</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If you want to use our <code class="docutils literal notranslate"><span class="pre">navsim</span></code> conda environment or <code class="docutils literal notranslate"><span class="pre">navsim</span></code> container then
+follow the instructions &lt;TODO: insert_link_here&gt;.</p>
+</div>
+<div class="section" id="config-parameters">
+<h2>Config Parameters<a class="headerlink" href="#config-parameters" title="Permalink to this heading">#</a></h2>
+<p>TODO: Explain all the above parameters here from config dictionary</p>
+<div class="section" id="observation-mode">
+<h3>Observation Mode<a class="headerlink" href="#observation-mode" title="Permalink to this heading">#</a></h3>
+<p>Sets the return mode of observations to one of the following. The observations themselves are described in the
+Observation Space heading in next subsection.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">0</span></code> - Vector only</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">1</span></code> - Visual only</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">2</span></code> - VectorVisual - Vector and Visual</p></li>
+</ul>
+</div>
+<div class="section" id="segmentation-mode">
+<h3>Segmentation Mode<a class="headerlink" href="#segmentation-mode" title="Permalink to this heading">#</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">0</span></code> - Object Seg: Each ‘class’ of gameobject in the scene is a unique color</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">1</span></code> - Tag Seg:  Gameobject colors are based on the tag assigned such that all
+objects with the same tag share a color. (E.g. Car, Tree, Buildings)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">2</span></code> - Layer Seg: Similar to tag segmentation but with the physics layers.
+Current layers (Default, Trees, Tree Colliders, Agent Vehicle,
+Autonomous Vehicle, Parked Vehicle)</p></li>
+</ul>
+</div>
+<div class="section" id="task">
+<h3>Task<a class="headerlink" href="#task" title="Permalink to this heading">#</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">0</span></code> - PointNav - The agent is randomly placed along with a randomly place goal
+position. The agent must navigate to the goal position.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">1</span></code> - SimpleObjectNav1 - The Agent is place at a specified starting location
+(manually identified traffic intersection). Goal is a sedan 40m forward in a
+straight line of the agent. The goal is to reach that sedan.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">2</span></code> - ObjectNav - The Agent is randomly place and goal object is defined by
+the goal parameter. The Agent must reach one instance of the goal object.
+E.g. The goal object is a sedan and there any multiple sedans in the scene.
+Reaching any of the sedans results in a success.</p></li>
+</ul>
+</div>
+<div class="section" id="goal-only-relevant-for-simpleobjectnav-and-objectnav">
+<h3>Goal : Only relevant for SimpleObjectNav and ObjectNav<a class="headerlink" href="#goal-only-relevant-for-simpleobjectnav-and-objectnav" title="Permalink to this heading">#</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">0</span></code> - Tocus</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">1</span></code> - sedan1</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">2</span></code> - Car1</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">3</span></code> - Car2</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">4</span></code> - City Bus</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">5</span></code> - Sporty_Hatchback</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Else</span></code> - SEDAN</p></li>
+</ul>
+</div>
+<div class="section" id="rewards">
+<h3>Rewards<a class="headerlink" href="#rewards" title="Permalink to this heading">#</a></h3>
+<div class="section" id="reward-values">
+<h4>Reward Values<a class="headerlink" href="#reward-values" title="Permalink to this heading">#</a></h4>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">reward_for_goal</span></code> : For pointnav, the goal is the target position to complete the
+task.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">reward_for_ep</span></code> : Exploration points are randomly placed in the environment to
+reward exploration.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">reward_collision_mul</span></code> : This reward multiple is used to determine the reward upon collision are anything that is not a goal point or
+exploration point. This includes other cars, building, trees, etc.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">reward_for_no_viable_path</span></code> : The map is a tiled specified bounded by the values of env.unity_map_dims(). If the agent
+goes outside this area and falls -15m below the environment area or enters an area outside of the navigable area then this reward is
+activated. This will also result in a reset.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">reward_step_mul</span></code> : This reward multiplier is used to determine the rewards given at every step in addition to any
+other reward received at the same step.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">reward_spl_delta_mul</span></code> : This reward multiplier is used to determine the reward as the agent reduces the current SPL to the goal</p></li>
+</ul>
+</div>
+<div class="section" id="reward-specifications">
+<h4>Reward Specifications<a class="headerlink" href="#reward-specifications" title="Permalink to this heading">#</a></h4>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span> 
+spl_delta = spl_prev_step – spl_current_step 
+#If spl_delta is positive: the agent is closer to the goal according to spl 
+#If spl_delta is negative: the agent is further away from the goal according to spl 
+
+spl_reward = -(1 * reward_spl_delta_mul)  if delta==0 else spl_delta * reward_spl_delta_mul 
+step_reward = -(reward_for_goal / start_spl)  * reward_step_mul 
+collision_reward = reward_collision_mul * step_reward
+
+if `agent reached goal`:
+    total_reward = goal_reward 
+
+elif `agent has no viable path`: 
+    total reward = -no_viable_path_reward
+
+else: 
+    total_reward = spl_reward + step_reward + collision_reward 
+
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="agent-car-physics">
+<h3>Agent Car Physics<a class="headerlink" href="#agent-car-physics" title="Permalink to this heading">#</a></h3>
+<ul class="simple">
+<li><p>0 - Simple : Collisions and gravity only - An agent that moves by a
+specific distance and direction scaled by the provided action. This agent only experiences collision and gravity forces</p></li>
+<li><p>1 - Intermediate 1 : Addition of wheel torque</p></li>
+<li><p>2 - Intermediate 2 : Addition of suspension, downforce, and sideslip</p></li>
+<li><p>10 - Complex : Addition of traction control and varying surface friction</p></li>
+</ul>
+</div>
+</div>
+<div class="section" id="action-space">
+<h2>Action Space<a class="headerlink" href="#action-space" title="Permalink to this heading">#</a></h2>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[Throttle, Steering, Brake]  
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Throttle : -1.0 to 1.0 : Moves the agent backward or forward</p></li>
+<li><p>Steering : -1.0 to 1.0 : Turns the steering column of the vehicle towards
+left or right</p></li>
+<li><p>Brake : -1.0 to 1.0 : Reduces the agents current velocity</p></li>
+</ul>
+<div class="section" id="car-motion-explanation-based-on-action-space">
+<h3>Car motion explanation based on action space<a class="headerlink" href="#car-motion-explanation-based-on-action-space" title="Permalink to this heading">#</a></h3>
+<div class="section" id="simple-car-physics-agent-car-physics-0">
+<h4>Simple Car Physics (Agent car physics <code class="docutils literal notranslate"><span class="pre">0</span></code>)<a class="headerlink" href="#simple-car-physics-agent-car-physics-0" title="Permalink to this heading">#</a></h4>
+<p>In this mode, the steering and travel of a car is imitated without driven
+wheels. This means that the car will have a turning radius, but there is no
+momentum or acceleration that is experienced from torque being applied to
+wheels as in a real car.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">0,</span> <span class="pre">0]</span></code> - No throttle, steering, or braking is applied. No agent travel.</p></li>
+<li><p>Individual Actions:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">[1</span> <span class="pre">to</span> <span class="pre">-1,</span> <span class="pre">0,</span> <span class="pre">0]</span></code> - Throttle is applied - forward for +ve, and backward for -ve values.
+The agent travels at (max_velocity/throttle_value) for the duration of the step.
+Throttle is only valid for current step and is not remembered in next step.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">-1</span> <span class="pre">to</span> <span class="pre">1,</span> <span class="pre">0]</span></code> - Steering is applied - left-turn for -ve, and right-turn for +ve values.
+No throttle or braking is applied, speed is zero, there is no travel.</p>
+<ul>
+<li><p>For relative steering mode, the steering turn is remembered in next step.</p></li>
+<li><p>For absolute steering mode, this is a useless operation.</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">0,</span> <span class="pre">1]</span></code> - Full braking is applied, with no throttle or steering. No agent
+travel. The breaking is not remembered in next step, thus this is a useless operation.</p></li>
+</ul>
+</li>
+<li><p>Combining Actions</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">[1,</span> <span class="pre">-1,</span> <span class="pre">0]</span></code> - Full forward throttle and full left-turn steering are applied.
+The agent travels forward at a leftward angle that is equal to a fraction of
+the max steering angle (25 degrees for the default car). This fraction is
+dependent on the length of the step in real time.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[-1,</span> <span class="pre">-1,</span> <span class="pre">0]</span></code> - Full backward throttle and full left-turn steering are
+applied. Similar to previous example, but with backward travel.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[0.5,</span> <span class="pre">0.5,</span> <span class="pre">0]</span></code> - Half forward throttle and half right-turn steering are
+applied. The agent travels forward at half its max velocity and at a lesser
+rightward angle.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[1,</span> <span class="pre">0,</span> <span class="pre">1]</span></code> - Full forward throttle and full braking are applied. These
+cancel each other out and result in no agent travel. Thus, this is a useless operation.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[1,</span> <span class="pre">0,</span> <span class="pre">0.5]</span></code> - Full forward throttle and half braking are applied. The agent
+travels forward at half throttle.</p></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="torque-driven-car-physics-agent-car-physics-0">
+<h4>Torque-Driven Car Physics (Agent car physics <code class="docutils literal notranslate"><span class="pre">&gt;0</span></code>)<a class="headerlink" href="#torque-driven-car-physics-agent-car-physics-0" title="Permalink to this heading">#</a></h4>
+<p>The agent car is driven forward by applying torque to each drive wheel. The
+agent will have momentum, so travel is possible in a step where no throttle is
+input. With those differences in mind, the action space examples are similar
+with some minor behavioral differences:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">0,</span> <span class="pre">1]</span></code> - Full braking is applied. The agent will slow to a complete stop
+if in motion.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">0,</span> <span class="pre">0.5]</span></code> - Half braking is applied. The agent will slow at a lesser rate
+to the previous example, until completely stopped.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[1,</span> <span class="pre">0,</span> <span class="pre">0]</span></code> - Full forward throttle is applied. The agent will travel forward
+at an acceleration resulting from max wheel torque (not velocity, as in the
+simple car physics)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[1,</span> <span class="pre">0,</span> <span class="pre">1]</span></code> - Full forward throttle and full braking are applied. The agent
+will not travel forward if it does not have any forward momentum, otherwise
+the agent will slow to a complete stop.</p></li>
+</ul>
+</div>
+</div>
+</div>
+<div class="section" id="observation-space">
+<h2>Observation Space<a class="headerlink" href="#observation-space" title="Permalink to this heading">#</a></h2>
+<div class="section" id="the-vector-observation-space">
+<h3>The vector observation space<a class="headerlink" href="#the-vector-observation-space" title="Permalink to this heading">#</a></h3>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[Agent_Position.x, Agent_Position.y, Agent_Position.z,
+Agent_Velocity.x, Agent_Velocity.y, Agent_Velocity.z,
+Agent_Rotation.x, Agent_Rotation.y, Agent_Rotation.z, Agent_Rotation.w,
+Goal_Position.x, Goal_Position.y, Goal_Position.z,
+Proximity_Forward, Proximity_45_Left, Proximity_45_Right]
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Proximity_*</span></code> refers to the navigable / clear space before the agent collides
+with another object</p></li>
+</ul>
+</div>
+<div class="section" id="the-visual-observation-space">
+<h3>The visual observation space<a class="headerlink" href="#the-visual-observation-space" title="Permalink to this heading">#</a></h3>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[[Raw Agent Camera],[Depth Agent Camera],[Segmentation Agent Camera]]
+</pre></div>
+</div>
+</div>
+<div class="section" id="depth-camera-images">
+<h3>Depth Camera Images<a class="headerlink" href="#depth-camera-images" title="Permalink to this heading">#</a></h3>
+<p>The depth sensor records distances between a near plane 0.3 meters from the
+camera to a far plane 500 meters from the camera. The field of view is 60 degrees.
+The camera is positioned near the windshield of the vehicle, so it is 0.94
+meters above and 0.82 meters in front of the position of the vehicle.
+The resulting values are raised to the power of 0.25
+to get the final value passed out in the depth sensor image.</p>
+</div>
+</div>
+</div>
+
+
+                </article>
+              
+
+              
+              
+                <footer class="bd-footer-article">
+                  
+<div class="footer-article-items footer-article__inner">
+  
+    <div class="footer-article-item"><!-- Previous / next buttons -->
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="../navsim/README.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Getting started</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../navsim_envs_api.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">navsim_envs API</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div></div>
+  
+</div>
+
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By STTC, UCF
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  <p class="copyright">
+    
+      © Copyright 2021, STTC, UCF.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=e353d410970836974a52"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

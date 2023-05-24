@@ -1,0 +1,804 @@
+
+
+<!DOCTYPE html>
+
+
+<html lang="en" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Getting started &#8212; navsim v2.0.0 docs</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "light";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=e353d410970836974a52" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=e353d410970836974a52" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=e353d410970836974a52" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.1.2/css/all.min.css?digest=e353d410970836974a52" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.1.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.1.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.1.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" href="../_static/styles/sphinx-book-theme.css?digest=14f4ca6b54d191a8c7657f6c759bf11a5fb86285" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=e353d410970836974a52" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52" />
+
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/clipboard.min.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?digest=5a5c038af52cf7bc1a1ec88eea08e6366ee68824"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../_static/togglebutton.js"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'navsim/README';</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="navsim_envs Package Tutorial" href="../navsim-envs/README.html" />
+    <link rel="prev" title="Home" href="../index.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__primary"
+          id="__primary"/>
+  <label class="overlay overlay-primary" for="__primary"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__secondary"
+          id="__secondary"/>
+  <label class="overlay overlay-secondary" for="__secondary"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+  
+    <nav class="bd-header navbar navbar-expand-lg bd-navbar">
+    </nav>
+  
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    <p class="title logo__title">navsim v2.0.0 docs</p>
+  
+</a></div>
+        <div class="sidebar-primary-item"><nav class="bd-links" id="bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="../index.html">
+                    Home
+                </a>
+            </li>
+        </ul>
+        <ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../navsim-envs/README.html">navsim_envs Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../navsim_envs_api.html">navsim_envs API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../navsim-envs/aar.html">ARORA Sim Tutorial - After Action Review (AAR) Mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="navsim_conda.html">Conda/Container Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../navsim_lab_api.html">NavSim Labs API</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><label class="sidebar-toggle primary-toggle btn btn-sm" for="__primary" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</label></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../_sources/" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+<script>
+document.write(`
+  <button class="theme-switch-button btn btn-sm btn-outline-primary navbar-btn rounded-circle" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch" data-mode="light"><i class="fa-solid fa-sun"></i></span>
+    <span class="theme-switch" data-mode="dark"><i class="fa-solid fa-moon"></i></span>
+    <span class="theme-switch" data-mode="auto"><i class="fa-solid fa-circle-half-stroke"></i></span>
+  </button>
+`);
+</script>
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+  </button>
+`);
+</script>
+<label class="sidebar-toggle secondary-toggle btn btn-sm" for="__secondary"title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</label>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Getting started</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#get-the-code">Get the code</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#run-navsim-inside-container-preferred-and-recommended-way">Run navsim inside container (preferred and recommended way)</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#install-pre-requisites-for-using-inside-container">Install Pre-requisites for using inside container</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#fix-the-user-id-inside-the-container">Fix the user id inside the container</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#initial-setup">Initial setup</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#test-the-container">Test the container</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#run-the-experiments-inside-container">Run the experiments (inside container)</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#run-navsim-in-the-host-without-container">Run navsim in the host (without container)</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#install-pre-requisites-for-using-in-the-host-without-container">Install pre-requisites for using in the host (without container)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#run-the-experiments-in-the-host-without-container">Run the experiments (in the host, without container)</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-navsim-command-examples">The <code class="docutils literal notranslate"><span class="pre">&lt;navsim</span> <span class="pre">command&gt;</span></code> examples</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#errors-faq">Errors FAQ</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vulkan-error-while-starting-the-container">vulkan error while starting the container</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#contributing-to-navsim-api">Contributing to NavSim API</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#build-and-test-flow">build and test flow</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#release-flow">release flow</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#general-dev-info">General dev info:</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#to-modify-and-build-the-docs">to modify and build the docs:</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#misc-tasks">misc tasks:</a></li>
+</ul>
+</li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article" role="main">
+                  
+  <p>A navigation simulator (navsim) API built on top of Python, Pytorch.</p>
+<p>In the future, navsim may be compatible with a variety of simulators, but for now it uses A Realistc Open environment for Rapid Agent training(ARORA) Simulator, that is a highly attributed Unity3D GameEngine based Berlin city environment.</p>
+<div class="section" id="getting-started">
+<h1>Getting started<a class="headerlink" href="#getting-started" title="Permalink to this heading">#</a></h1>
+<p>You can either run navsim <a class="reference internal" href="#run-navsim-inside-container-preferred-and-recommended-way">inside container</a> or <a class="reference internal" href="#run-navsim-in-the-host-without-container">directly in host without container</a>.</p>
+<div class="section" id="get-the-code">
+<h2>Get the code<a class="headerlink" href="#get-the-code" title="Permalink to this heading">#</a></h2>
+<p>clone the <code class="docutils literal notranslate"><span class="pre">navsim</span></code> repo:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>--recurse-submodules<span class="w"> </span>git@github.com:ucf-sttc/navsim.git
+</pre></div>
+</div>
+<p>All further commands should be done inside navsim repo: <code class="docutils literal notranslate"><span class="pre">cd</span> <span class="pre">navsim</span></code></p>
+</div>
+<div class="section" id="run-navsim-inside-container-preferred-and-recommended-way">
+<h2>Run navsim inside container (preferred and recommended way)<a class="headerlink" href="#run-navsim-inside-container-preferred-and-recommended-way" title="Permalink to this heading">#</a></h2>
+<div class="section" id="install-pre-requisites-for-using-inside-container">
+<h3>Install Pre-requisites for using inside container<a class="headerlink" href="#install-pre-requisites-for-using-inside-container" title="Permalink to this heading">#</a></h3>
+<p>Please make sure to install the following as per latest instrunctions that work for your system. As a guidance the link to instructions that worked are being provided.</p>
+<ul class="simple">
+<li><p>Install <a class="reference external" href="https://docs.nvidia.com/datacenter/tesla/tesla-installation-notes/index.html">nvidia driver</a></p></li>
+<li><p>Install <a class="reference external" href="https://docs.docker.com/get-docker/">docker engine</a> | Do not install docker desktop. It has been tested not to work with desktop.</p></li>
+<li><p>Install <a class="reference external" href="https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html#install-guide">nvidia container toolkit</a></p></li>
+</ul>
+<p>To check that dependencies are working properly for your user:</p>
+<p><code class="docutils literal notranslate"><span class="pre">docker</span> <span class="pre">run</span> <span class="pre">--rm</span> <span class="pre">--runtime=nvidia</span> <span class="pre">--gpus</span> <span class="pre">all</span> <span class="pre">debian:11.6-slim</span> <span class="pre">nvidia-smi</span></code></p>
+<p>You should see nvidia-smi output.</p>
+</div>
+<div class="section" id="fix-the-user-id-inside-the-container">
+<h3>Fix the user id inside the container<a class="headerlink" href="#fix-the-user-id-inside-the-container" title="Permalink to this heading">#</a></h3>
+<p>The user inside the container, <code class="docutils literal notranslate"><span class="pre">ezdev</span></code>, comes with an id of 1000:1000. If you want this user to be able to read and write files as per your uid:gid, then run the following command to fix the id of the user inside the container:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="nv">DUID</span><span class="o">=</span><span class="sb">`</span>id<span class="w"> </span>-u<span class="sb">`</span><span class="w"> </span><span class="nv">DGID</span><span class="o">=</span><span class="sb">`</span>id<span class="w"> </span>-g<span class="sb">`</span><span class="w"> </span>docker<span class="w"> </span>compose<span class="w"> </span>build<span class="w"> </span>navsim-fixid
+</pre></div>
+</div>
+<p>You can also specify the image to fix as env variable:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="nv">IMAGE</span><span class="o">=</span>ghcr.io/ucf-sttc/navsim/navsim:&lt;version&gt;<span class="w"> </span><span class="nv">DUID</span><span class="o">=</span><span class="sb">`</span>id<span class="w"> </span>-u<span class="sb">`</span><span class="w"> </span><span class="nv">DGID</span><span class="o">=</span><span class="sb">`</span>id<span class="w"> </span>-g<span class="sb">`</span><span class="w"> </span>docker<span class="w"> </span>compose<span class="w"> </span>build<span class="w"> </span>navsim-fixid
+</pre></div>
+</div>
+<p>You will see output similar to following:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">armando@thunderbird:~/workspaces/navsim$ </span>docker<span class="w"> </span>compose<span class="w"> </span>build<span class="w"> </span>navsim-fixid
+<span class="go">[+] Building 5.5s (8/8) FINISHED                                                                                                                                             </span>
+<span class="go"> =&gt; [internal] load .dockerignore                                      0.1s</span>
+<span class="go"> =&gt; =&gt; transferring context: 2B                                        0.0s</span>
+<span class="go"> =&gt; [internal] load build definition from Dockerfile-navsim-fixid      0.0s</span>
+<span class="go"> =&gt; =&gt; transferring dockerfile: 440B                                   0.0s</span>
+<span class="go"> =&gt; [internal] load metadata for ghcr.io/ucf-sttc/navsim/navsim        0.0s</span>
+<span class="go"> =&gt; [1/4] FROM ghcr.io/ucf-sttc/navsim/navsim                          1.1s</span>
+<span class="go"> =&gt; [2/4] RUN id ezdev                                                 0.5s</span>
+<span class="go"> =&gt; [3/4] RUN usermod -u 1003 ezdev &amp;&amp; groupmod -g 1003 ezdev          2.5s</span>
+<span class="go"> =&gt; [4/4] RUN id ezdev                                                 0.7s</span>
+<span class="go"> =&gt; exporting to image                                                 0.4s</span>
+<span class="go"> =&gt; =&gt; exporting layers                                                0.3s</span>
+<span class="go"> =&gt; =&gt; writing image sha256:e69a490b875892bdbb5498797dcef3aa4551223    0.0s</span>
+<span class="go"> =&gt; =&gt; naming to ghcr.io/ucf-sttc/navsim/navsim                        0.0s</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="initial-setup">
+<h3>Initial setup<a class="headerlink" href="#initial-setup" title="Permalink to this heading">#</a></h3>
+<p>Modify the lines 6-8 of <code class="docutils literal notranslate"><span class="pre">navsim/docker-compose.yml</span></code> for paths specific to your system.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">$HOME/exp/</span></code> : Experiments are run in this folder</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">$HOME/unity-envs/</span></code> : Unity-based standalone binaries are kept here</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">/data</span></code>: This is where all the above symlinked folders are present. Please note in line 7 of <code class="docutils literal notranslate"><span class="pre">docker-compose.yml</span></code>: because on our systems, all our folders such as <code class="docutils literal notranslate"><span class="pre">workspaces/navsim</span></code>, <code class="docutils literal notranslate"><span class="pre">exp</span> </code> and <code class="docutils literal notranslate"><span class="pre">unity-envs</span></code> reside in <code class="docutils literal notranslate"><span class="pre">/data</span></code> and are symlinked in home folder, hence this <code class="docutils literal notranslate"><span class="pre">/data</span></code> folder also has to be mounted else the symlinks wont work in container. If you are not using symlinks, then you can remove this line.</p></li>
+</ul>
+</div>
+<div class="section" id="test-the-container">
+<h3>Test the container<a class="headerlink" href="#test-the-container" title="Permalink to this heading">#</a></h3>
+<p>Run the following commands to test everything works fine:</p>
+<p><code class="docutils literal notranslate"><span class="pre">docker</span> <span class="pre">compose</span> <span class="pre">run</span> <span class="pre">--rm</span> <span class="pre">navsim-test</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">docker</span> <span class="pre">compose</span> <span class="pre">run</span> <span class="pre">--rm</span> <span class="pre">navsim</span> <span class="pre">navsim</span> <span class="pre">--help</span></code></p>
+<p>In the following test command replace <code class="docutils literal notranslate"><span class="pre">ARORA/ARORA.x86_64</span></code> with the path to your unity binary that you mapped in <code class="docutils literal notranslate"><span class="pre">x-data:</span> <span class="pre">&amp;data</span> <span class="pre">section</span></code> of docker-compose in above instructions. In our case it is the foldername and binary after <code class="docutils literal notranslate"><span class="pre">$HOME/unity-envs</span></code> that we mapped in <code class="docutils literal notranslate"><span class="pre">x-data:</span> <span class="pre">&amp;data</span></code> section of docker-compose earlier: <code class="docutils literal notranslate"><span class="pre">ARORA/ARORA.x86_64</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">docker</span> <span class="pre">compose</span> <span class="pre">run</span> <span class="pre">--rm</span> <span class="pre">navsim</span> <span class="pre">navsim</span> <span class="pre">--plan</span> <span class="pre">--env</span> <span class="pre">arora-v0</span> <span class="pre">--show_visual</span> <span class="pre">--env_path</span> <span class="pre">/unity-envs/ARORA/ARORA.x86_64</span></code></p>
+</div>
+<div class="section" id="run-the-experiments-inside-container">
+<h3>Run the experiments (inside container)<a class="headerlink" href="#run-the-experiments-inside-container" title="Permalink to this heading">#</a></h3>
+<p>Run the following command: (remove <code class="docutils literal notranslate"><span class="pre">-d</span></code> after <code class="docutils literal notranslate"><span class="pre">run</span></code> to run it in foreground):</p>
+<p><code class="docutils literal notranslate"><span class="pre">docker</span> <span class="pre">compose</span> <span class="pre">run</span> <span class="pre">-d</span> <span class="pre">--rm</span> <span class="pre">navsim</span> <span class="pre">&lt;navsim</span> <span class="pre">command&gt;</span></code></p>
+<p><a class="reference internal" href="#the-navsim-command-examples"><code class="docutils literal notranslate"><span class="pre">&lt;navsim</span> <span class="pre">command&gt;</span></code></a> is described in the section below.</p>
+</div>
+</div>
+<div class="section" id="run-navsim-in-the-host-without-container">
+<h2>Run navsim in the host (without container)<a class="headerlink" href="#run-navsim-in-the-host-without-container" title="Permalink to this heading">#</a></h2>
+<div class="section" id="install-pre-requisites-for-using-in-the-host-without-container">
+<h3>Install pre-requisites for using in the host (without container)<a class="headerlink" href="#install-pre-requisites-for-using-in-the-host-without-container" title="Permalink to this heading">#</a></h3>
+<ul>
+<li><p>Install <code class="docutils literal notranslate"><span class="pre">mamba</span> <span class="pre">4.12.0-3</span></code> : <code class="docutils literal notranslate"><span class="pre">https://github.com/conda-forge/miniforge/releases/download/4.12.0-3/Mambaforge-4.12.0-3-Linux-x86_64.sh</span></code></p></li>
+<li><div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>/path/to/navsim/repo
+mamba<span class="w"> </span>create<span class="w"> </span>-n<span class="w"> </span>navsim<span class="w"> </span><span class="nv">python</span><span class="o">==</span><span class="m">3</span>.8.16
+mamba<span class="w"> </span>env<span class="w"> </span>update<span class="w"> </span>-n<span class="w"> </span>navsim<span class="w"> </span>-f<span class="w"> </span>pyenv/navsim.yml
+conda<span class="w"> </span>activate<span class="w"> </span>navsim
+./install-repo.sh
+</pre></div>
+</div>
+</li>
+</ul>
+</div>
+<div class="section" id="run-the-experiments-in-the-host-without-container">
+<h3>Run the experiments (in the host, without container)<a class="headerlink" href="#run-the-experiments-in-the-host-without-container" title="Permalink to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Read <code class="docutils literal notranslate"><span class="pre">navsim_envs</span></code> tutorial to use and test the <code class="docutils literal notranslate"><span class="pre">navsim_envs</span></code></p></li>
+<li><p>Run <code class="docutils literal notranslate"><span class="pre">jupyter</span> <span class="pre">notebook</span></code>. The notebooks are in <code class="docutils literal notranslate"><span class="pre">examples</span></code> folder.</p></li>
+<li><p>Run the <a class="reference internal" href="#the-navsim-command-examples"><code class="docutils literal notranslate"><span class="pre">&lt;navsim</span> <span class="pre">command&gt;</span></code></a> is described in the section below</p></li>
+</ul>
+</div>
+</div>
+<div class="section" id="the-navsim-command-examples">
+<h2>The <code class="docutils literal notranslate"><span class="pre">&lt;navsim</span> <span class="pre">command&gt;</span></code> examples<a class="headerlink" href="#the-navsim-command-examples" title="Permalink to this heading">#</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">navsim</span> <span class="pre">--plan</span> <span class="pre">--env</span> <span class="pre">arora-v0</span> <span class="pre">--show_visual</span> <span class="pre">--env_path</span> <span class="pre">/unity-envs/&lt;path-to-arora-binary&gt;</span></code>. For example, <code class="docutils literal notranslate"><span class="pre">&lt;path-to-arora-binary&gt;</span></code> in our case is the foldername and binary after <code class="docutils literal notranslate"><span class="pre">$HOME/unity-envs</span></code> that we mapped in line 5 of docker-compose earlier: <code class="docutils literal notranslate"><span class="pre">ARORA/ARORA.x86_64</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">navsim_env_test</span> <span class="pre">min_env_config.yml</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">navsim</span> <span class="pre">--help</span></code> shows the options</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">navsim</span> <span class="pre">--run_id</span> <span class="pre">$run_id</span> <span class="pre">--env_path</span> <span class="pre">$envdir/$envbin</span></code> - executes and/or trains the model</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">navsim-benchmark</span> <span class="pre">$envdir/$envbin</span></code> - benchmarks the model</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">navsim-saturate-gpu</span> <span class="pre">$envdir/$envbin</span></code> - Saturates the GPU</p></li>
+<li><p>Replace the navsim command with your own command if you are just importing
+the NavSim env and have your own code in experiment directory.</p></li>
+</ul>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>/opt/py/lib/python3.8/site-packages/torch/utils/tensorboard/__init__.py:4: DeprecationWarning: distutils Version classes are deprecated. Use packaging.version instead.
+  if not hasattr(tensorboard, &quot;__version__&quot;) or LooseVersion(
+usage: navsim [-h] [--run_id RUN_ID] [--env ENV] [--plan]
+              [--rl_backend RL_BACKEND] [--debug] [--force]
+              [--total_episodes TOTAL_EPISODES]
+              [--train_interval TRAIN_INTERVAL]
+              [--checkpoint_interval CHECKPOINT_INTERVAL]
+              [--agent_gpu_id AGENT_GPU_ID]
+              [--episode_max_steps EPISODE_MAX_STEPS] [--seed SEED]
+              [--discount DISCOUNT] [--tau TAU]
+              [--exploration_noise EXPLORATION_NOISE]
+              [--batch_size BATCH_SIZE] [--memory_capacity MEMORY_CAPACITY]
+              [--resume] [--continue] [--clear_memory]
+              [--agent_car_physics AGENT_CAR_PHYSICS] [--area AREA]
+              [--env_path ENV_PATH] [--env_gpu_id ENV_GPU_ID] [--goal GOAL]
+              [--goal_distance GOAL_DISTANCE]
+              [--goal_clearance GOAL_CLEARANCE] [--obs_mode OBS_MODE]
+              [--obs_height OBS_HEIGHT] [--obs_width OBS_WIDTH]
+              [--reward_for_goal REWARD_FOR_GOAL]
+              [--reward_for_no_viable_path REWARD_FOR_NO_VIABLE_PATH]
+              [--reward_step_mul REWARD_STEP_MUL]
+              [--reward_collision_mul REWARD_COLLISION_MUL]
+              [--reward_spl_delta_mul REWARD_SPL_DELTA_MUL] [--save_actions]
+              [--save_visual_obs] [--save_vector_obs] [--show_visual]
+              [--segmentation_mode SEGMENTATION_MODE] [--task TASK]
+              [--terrain TERRAIN] [--timeout TIMEOUT]
+              [--traffic_vehicles TRAFFIC_VEHICLES]
+              [--mem_backend MEM_BACKEND]
+
+optional arguments:
+  -h, --help            show this help message and exit
+
+Run Configuration:
+  The arguments are used to configure the runtime execution.
+
+  --run_id RUN_ID       The identifier for the training run. This identifier
+                        is used to name the subdirectories in which the
+                        trained model and summary statistics are saved as well
+                        as the saved model itself. If you use TensorBoard to
+                        view the training statistics, always set a unique run-
+                        id for each training run. (The statistics for all runs
+                        with the same id are combined as if they were produced
+                        by a the same session.) (default: demo)
+  --env ENV             EnvironmentL arora-v0 or ride-v0 (default: arora-v0)
+  --plan                Run with Planner (default: False)
+  --rl_backend RL_BACKEND
+                        The backend library for RL. (default: navsim)
+  --debug               Turn debugging on (default: False)
+  --force               Whether to force-overwrite this run-id&#39;s existing
+                        summary and model data. (Without this flag, attempting
+                        to train a model with a run-id that has been used
+                        before will throw an error. (default: False)
+  --total_episodes TOTAL_EPISODES
+                        Total number of episodes to run. If resume is used,
+                        then it will try to read the previously run episodes
+                        and continue from there. (default: 1)
+  --train_interval TRAIN_INTERVAL
+                        Train the model after these many global steps. If set
+                        to 0 then model wont train (default: 1)
+  --checkpoint_interval CHECKPOINT_INTERVAL
+                        Execute the episodes in blocks of checkpoint intervals
+                        (default: 1)
+  --agent_gpu_id AGENT_GPU_ID
+                        Which GPU to run models in agent on (default: 0)
+  --episode_max_steps EPISODE_MAX_STEPS
+                        Maximum number of steps in an Episode, aka Episode
+                        Length (default: 50)
+  --seed SEED           Seed (default: None)
+  --discount DISCOUNT   discount (default: 0.99)
+  --tau TAU             tau (default: 0.005)
+  --exploration_noise EXPLORATION_NOISE
+                        exploration_noise (default: 0.1)
+  --batch_size BATCH_SIZE
+                        Batch Size (default: 32)
+  --memory_capacity MEMORY_CAPACITY
+                        Total capacity of memory, should be &gt; batch_size
+                        (default: 100)
+  --resume              resumes the interrupted training from last saved
+                        checkpoint (default: False)
+  --continue            continue the training forward from last saved
+                        checkpoint (default: False)
+  --clear_memory        On resuming, the memory will be cleared and actions
+                        would be sampled from the neural network, if neural
+                        network is not trained yet, then actions would sample
+                        from action_space (default: False)
+
+Environment Configuration:
+  The arguments are used to configure the environment.
+
+  --agent_car_physics AGENT_CAR_PHYSICS
+                        Agent Car Physics Levels : 0,1,2,10 (default: 0)
+  --area AREA           0 for all map, 1 for train area (0, 0 to 500, 3000), 2
+                        for test area (500, 0 to 4000, 3000) (default: 0)
+  --env_path ENV_PATH   Path to the Unity executable to train (default: None)
+  --env_gpu_id ENV_GPU_ID
+                        Which GPU to run env on (default: 0)
+  --goal GOAL           Goal (default: 0)
+  --goal_distance GOAL_DISTANCE
+                        Distance to goal from current location (default: 50)
+  --goal_clearance GOAL_CLEARANCE
+                        Sets the minimum clear area around a point for it to
+                        be a valid location to place the goal (default: 2.5)
+  --obs_mode OBS_MODE   Observation Mode : 0,1,2 (default: 0)
+  --obs_height OBS_HEIGHT
+                        Observation height (default: 64)
+  --obs_width OBS_WIDTH
+                        Observation width (default: 64)
+  --reward_for_goal REWARD_FOR_GOAL
+                        Reward for reaching the goal (default: 50)
+  --reward_for_no_viable_path REWARD_FOR_NO_VIABLE_PATH
+                        Reward for no more viable paths remaining to reach the
+                        goal (default: -50)
+  --reward_step_mul REWARD_STEP_MUL
+                        Multiply step reward [which is -(goal_reward /
+                        spl_start) with this number (default: 0.1)
+  --reward_collision_mul REWARD_COLLISION_MUL
+                        Multiply step reward with this number when there is a
+                        collision and add to reward (default: 4)
+  --reward_spl_delta_mul REWARD_SPL_DELTA_MUL
+                        Shortest path length delta multiplier (default: 1)
+  --save_actions        Save the actions vector at every step (default: True)
+  --save_visual_obs     Save the visual observations at every step (default:
+                        True)
+  --save_vector_obs     Save the vector observations at every step (default:
+                        True)
+  --show_visual         Show visual obs window (default: False)
+  --segmentation_mode SEGMENTATION_MODE
+                        Segmentation Mode (default: 1)
+  --task TASK           Task (default: 0)
+  --terrain TERRAIN     Terrain: could be 0 or 1 (default: 0)
+  --timeout TIMEOUT     TimeOut for the Env (default: 600)
+  --traffic_vehicles TRAFFIC_VEHICLES
+                        Number of traffic vehicles (default: 0)
+
+Developer Configuration:
+  The arguments are used by developers to benchmark and debug navsim API
+
+  --mem_backend MEM_BACKEND
+                        The backend library for Rollback Memory. Options cupy,
+                        numpy. (default: cupy)
+</pre></div>
+</div>
+</div>
+<div class="section" id="errors-faq">
+<h2>Errors FAQ<a class="headerlink" href="#errors-faq" title="Permalink to this heading">#</a></h2>
+<div class="section" id="vulkan-error-while-starting-the-container">
+<h3>vulkan error while starting the container<a class="headerlink" href="#vulkan-error-while-starting-the-container" title="Permalink to this heading">#</a></h3>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">ERROR: [Loader Message] Code 0 : /usr/lib/x86_64-linux-gnu/libvulkan_radeon.so: cannot open shared object file: No such file or directory</span>
+<span class="go">No protocol specified</span>
+<span class="go">No protocol specified</span>
+<span class="go">ERROR: [Loader Message] Code 0 : loader_scanned_icd_add: Could not get &#39;vkCreateInstance&#39; via &#39;vk_icdGetInstanceProcAddr&#39; for ICD libGLX_nvidia.so.0</span>
+<span class="go">ERROR: [Loader Message] Code 0 : /usr/lib/i386-linux-gnu/libvulkan_intel.so: cannot open shared object file: No such file or directory</span>
+<span class="go">ERROR: [Loader Message] Code 0 : /usr/lib/i386-linux-gnu/libvulkan_radeon.so: cannot open shared object file: No such file or directory</span>
+<span class="go">ERROR: [Loader Message] Code 0 : /usr/lib/x86_64-linux-gnu/libvulkan_intel.so: cannot open shared object file: No such file or directory</span>
+<span class="go">ERROR: [Loader Message] Code 0 : /usr/lib/i386-linux-gnu/libvulkan_lvp.so: cannot open shared object file: No such file or directory</span>
+<span class="go">ERROR: [Loader Message] Code 0 : /usr/lib/x86_64-linux-gnu/libvulkan_lvp.so: cannot open shared object file: No such file or directory</span>
+<span class="go">Cannot create Vulkan instance.</span>
+<span class="go">This problem is often caused by a faulty installation of the Vulkan driver or attempting to use a GPU that does not support Vulkan.</span>
+<span class="go">ERROR at /build/vulkan-tools-oFB8Ns/vulkan-tools-1.2.162.0+dfsg1/vulkaninfo/vulkaninfo.h:666:vkCreateInstance failed with ERROR_INCOMPATIBLE_DRIVER</span>
+</pre></div>
+</div>
+<p>Solution: For fixing this error you have to update your nvidia driver and fix the id inside the container, as follows:</p>
+<ol class="arabic simple">
+<li><p>Check your nvidia driver with the following commands: <code class="docutils literal notranslate"><span class="pre">sudo</span> <span class="pre">apt</span> <span class="pre">list</span> <span class="pre">--installed</span> <span class="pre">|</span> <span class="pre">grep</span> <span class="pre">nvidia-driver</span></code> and <code class="docutils literal notranslate"><span class="pre">nvidia-smi</span></code></p></li>
+</ol>
+<p>For example on our laptop:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">armando@thunderbird:~/workspace/navsim$ </span>sudo<span class="w"> </span>apt<span class="w"> </span>list<span class="w"> </span>--installed<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>nvidia-driver
+
+<span class="go">WARNING: apt does not have a stable CLI interface. Use with caution in scripts.</span>
+
+<span class="go">nvidia-driver-470/focal-updates,focal-security,now 470.182.03-0ubuntu0.20.04.1 amd64 [installed]</span>
+</pre></div>
+</div>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">armando@thunderbird:~/workspace/navsim$ </span>nvidia-smi
+<span class="go">Sun May 14 10:53:30 2023       </span>
+<span class="go">+-----------------------------------------------------------------------------+</span>
+<span class="go">| NVIDIA-SMI 470.182.03   Driver Version: 470.182.03   CUDA Version: 11.4     |</span>
+<span class="go">|-------------------------------+----------------------+----------------------+</span>
+</pre></div>
+</div>
+<p>Reinstall the nvidia-driver or update it to latest one.</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>apt<span class="w"> </span>update
+sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>nvidia-driver-530
+sudo<span class="w"> </span>reboot
+</pre></div>
+</div>
+<p>If you dont rebooot after installing the driver then you will get the following error:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Failed to initialize NVML: Driver/library version mismatch</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="2">
+<li><p>Update the id inside the container as per section: <a class="reference internal" href="#fix-the-user-id-inside-the-container">fix the user id inside the container</a></p></li>
+</ol>
+</div>
+</div>
+<div class="section" id="contributing-to-navsim-api">
+<h2>Contributing to NavSim API<a class="headerlink" href="#contributing-to-navsim-api" title="Permalink to this heading">#</a></h2>
+<div class="section" id="build-and-test-flow">
+<h3>build and test flow<a class="headerlink" href="#build-and-test-flow" title="Permalink to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Modify code</p></li>
+</ul>
+</div>
+<div class="section" id="release-flow">
+<h3>release flow<a class="headerlink" href="#release-flow" title="Permalink to this heading">#</a></h3>
+<ul class="simple">
+<li><p>switch to feature branch</p></li>
+<li><p>Modify the <code class="docutils literal notranslate"><span class="pre">version.txt</span></code></p></li>
+<li><p>Modify image version in:</p>
+<ul>
+<li><p>docker-compose.yml</p></li>
+<li><p>.github/workflows/deploy-docs.yml</p></li>
+</ul>
+</li>
+<li><p>Build the container: <code class="docutils literal notranslate"><span class="pre">docker</span> <span class="pre">compose</span> <span class="pre">build</span> <span class="pre">navsim-build</span></code></p></li>
+<li><p>Run fixid: <code class="docutils literal notranslate"><span class="pre">DUID=``id</span> <span class="pre">-u``</span> <span class="pre">DGID=``id</span> <span class="pre">-g``</span> <span class="pre">docker</span> <span class="pre">compose</span> <span class="pre">build</span> <span class="pre">navsim-fixid</span></code></p></li>
+<li><p>Test the container</p></li>
+<li><p>Commit and push the changes</p></li>
+<li><p>create a pull request to main branch</p></li>
+<li><p>Merge the pull request</p></li>
+<li><p>Switch to main branch: <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">checkout</span> <span class="pre">main</span></code></p></li>
+<li><p>Build the container: <code class="docutils literal notranslate"><span class="pre">docker</span> <span class="pre">compose</span> <span class="pre">build</span> <span class="pre">navsim-build</span></code></p></li>
+<li><p>Push the container: <code class="docutils literal notranslate"><span class="pre">docker</span> <span class="pre">compose</span> <span class="pre">push</span> <span class="pre">navsim-build</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">tag</span> <span class="pre">vx.x.x</span></code> and <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">push</span> <span class="pre">--tags</span></code></p></li>
+<li><p>Run the docs workflow in github manually</p></li>
+<li><p>Create a release in github with the tag</p></li>
+</ul>
+</div>
+<div class="section" id="general-dev-info">
+<h3>General dev info:<a class="headerlink" href="#general-dev-info" title="Permalink to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Use only google style to document your code:
+https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html#example-google</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">/opt/navsim</span></code> : Navsim code folder is kept here</p></li>
+</ul>
+</div>
+<div class="section" id="to-modify-and-build-the-docs">
+<h3>to modify and build the docs:<a class="headerlink" href="#to-modify-and-build-the-docs" title="Permalink to this heading">#</a></h3>
+<ol class="arabic simple">
+<li><p>Create <code class="docutils literal notranslate"><span class="pre">&lt;version&gt;-docs</span></code> branch from <code class="docutils literal notranslate"><span class="pre">master</span></code> or <code class="docutils literal notranslate"><span class="pre">version</span></code> branch</p></li>
+<li><p>Make sure you have navsim conda env activated and local repo installed with pip.</p></li>
+<li><p>Modify the <code class="docutils literal notranslate"><span class="pre">.md</span></code> files in <code class="docutils literal notranslate"><span class="pre">/path/to/navsim</span></code>, <code class="docutils literal notranslate"><span class="pre">/path/to/navsim-lab</span></code>, <code class="docutils literal notranslate"><span class="pre">/path/to/navsim-envs</span></code></p></li>
+<li><p>go to <code class="docutils literal notranslate"><span class="pre">navsim/docs</span></code></p></li>
+<li><p>run <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">html</span> <span class="pre">latexpdf</span></code>. If still errors, please call me and I will help fix</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pdf</span></code> and <code class="docutils literal notranslate"><span class="pre">html</span></code> versions are inside the <code class="docutils literal notranslate"><span class="pre">docs/build/...</span></code> folders</p></li>
+<li><p>If you are happy with the PDF/formatting etc then commit and push the doc branch back</p></li>
+</ol>
+</div>
+<div class="section" id="misc-tasks">
+<h3>misc tasks:<a class="headerlink" href="#misc-tasks" title="Permalink to this heading">#</a></h3>
+<p>To give the zip of repo to someone, run the following command:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>zip<span class="w"> </span>-FSr<span class="w"> </span>repo.zip<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>navsim-lab<span class="w"> </span>navsim-envs<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>navsim-mlagents/ml-agents-envs<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>navsim-mlagents/gym-unity<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>version.txt<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>install-repo.sh<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>examples<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-x@.dockerignore
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+
+
+                </article>
+              
+
+              
+              
+                <footer class="bd-footer-article">
+                  
+<div class="footer-article-items footer-article__inner">
+  
+    <div class="footer-article-item"><!-- Previous / next buttons -->
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="../index.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Home</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../navsim-envs/README.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title"><code class="docutils literal notranslate"><span class="pre">navsim_envs</span></code> Package Tutorial</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div></div>
+  
+</div>
+
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By STTC, UCF
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  <p class="copyright">
+    
+      © Copyright 2021, STTC, UCF.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=e353d410970836974a52"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>
