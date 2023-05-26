@@ -40,7 +40,6 @@ setuptools.setup(
         'scikit-fmm',
         'scikit-image',
         'tensorboard',
-        'protobuf<=3.19',
         'tqdm',
         # 'opencv-python',
     ],

@@ -64,7 +64,7 @@ services:
     extends:
        service: navsim
     <<: [*code]
-    command: bash -c "while sleep 1000; do :; done"
+    command: bash -c "cd /opt/navsim; ./install-repo.sh; cd /exp; while sleep 1000; do :; done; bash"
 
   navsim-build:
     <<: [*img]

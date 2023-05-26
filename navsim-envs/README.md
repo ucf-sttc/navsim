@@ -10,7 +10,7 @@ Learning. Current implementation has the following sims encapsulated:
 * Create an experiment folder, we use folder `~/exp` and change into this folder.
 * Create a minimal yaml file with the following contents:
   ```yaml
-  env_path: /path/to/Berlin_Walk_V2
+  env_path: /path/to/arora
   ```
   Let us say you named this file `min_env_config.yml`. 
 * Run the tests: `navsim_env_test min_env_config.yml`. If you are using `navsim`

@@ -116,7 +116,7 @@ armando@thunderbird:~/workspaces/navsim$ docker compose build navsim-fixid
 * `navsim --plan --env arora-v0 --show_visual --env_path /unity-envs/<path-to-arora-binary>`. For example, `<path-to-arora-binary>` in our case is the foldername and binary after `$HOME/unity-envs` that we mapped in line 5 of docker-compose earlier: `ARORA/ARORA.x86_64`.
 * `navsim_env_test min_env_config.yml`
 * `navsim --help` shows the options
-* `navsim --run_id $run_id --env_path $envdir/$envbin` - executes and/or trains the model
+* `navsim --run_id $run_id --env_path /unity-envs/<path-to-arora-binary>` - executes and/or trains the model
 * `navsim-benchmark $envdir/$envbin` - benchmarks the model
 * `navsim-saturate-gpu $envdir/$envbin` - Saturates the GPU
 * Replace the navsim command with your own command if you are just importing
@@ -184,26 +184,30 @@ Solution: For fixing this error you have to update your nvidia driver and fix th
 
 #### For Code
 
-1. Switch to feature branch
-2. Modify code
-3. Test it in container
+1. `docker compose run navsim-dev` should drop you into container bash
+2. `cd /opt/navsim`
+3. `git checkout <feature branch>`
+4. Modify code
+5. `cd /exp`
+6. Test it in container
+7. Repeat at step 4
 
 ### For docs
 
-1. Switch to feature branch
-2. `docker compose run navsim-dev bash`
-4. `cd navsim/docs`
+1. `docker compose run navsim-dev` should drop you into container bash
+2. `cd /opt/navsim`
+3. `git checkout <feature branch>`
+4. `cd docs`
 5. `make html latexpdf`
 6. `pdf` and `html` versions are inside the `docs/build/...` folders
 
 ### release flow
 
 1. switch to feature branch
-2. Update version
-  * Modify the `version.txt`
-  * Modify image version in:
-  * docker-compose.yml
-  * .github/workflows/deploy-docs.yml
+2. Update version in:
+  * `version.txt`
+  * `docker-compose.yml`
+  * `.github/workflows/deploy-docs.yml`
 3. Build the container: 
   ```sh
   docker compose build navsim-build
@@ -237,9 +241,23 @@ To give the zip of repo to someone, run the following command:
 zip -FSr repo.zip \
     navsim-lab navsim-envs \
     navsim-mlagents/ml-agents-envs \
-    navsim-mlagents/gym-unity \
     version.txt \
     install-repo.sh \
     examples \
     -x@.dockerignore
 ```
+
+### TODO: To run the singularity container
+Note: Do it on a partition that has at least 10GB space as the next step will create navsim_0.0.1.sif file of ~10GB.
+
+singularity pull docker://$repo/navsim:$ver
+singularity shell --nv \
+-B <absolute path of sim binary folder>  not needed if path to binary is inside $HOME folder  
+-B <absolute path of current folder>  not needed if path to current folder is inside $HOME folder
+navsim_$ver.sif
+
+
+For IST Devs: From local docker repo for development purposes:
+
+SINGULARITY_NOHTTPS=true singularity pull docker://$repo/navsim:$ver
+

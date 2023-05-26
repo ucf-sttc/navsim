@@ -36,13 +36,14 @@ setuptools.setup(
     python_requires='>=3.8',
     install_requires=[
         'ezai',
-        'protobuf<=3.19',
+        'protobuf==4.21',
+        'onnx==1.14',
         'opencv-python',
         'pytest',
         'click',
         'gym==0.23.1',
-        #'navsim_mlagents_envs==0.27.0',
-        #'gym_unity==0.27.0'
+        # 'navsim_mlagents_envs==0.27.0',
+        # 'gym_unity==0.27.0'
     ],
     entry_points={
         "console_scripts": [
